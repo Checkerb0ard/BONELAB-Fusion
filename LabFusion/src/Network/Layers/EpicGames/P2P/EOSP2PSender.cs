@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using Epic.OnlineServices;
+﻿using Epic.OnlineServices;
 using Epic.OnlineServices.P2P;
 using LabFusion.Utilities;
 
@@ -15,6 +14,8 @@ internal class EOSP2PSender
     internal EOSP2P P2P;
     private int _nextFragmentId = 1;
     
+    private readonly byte[] _sendBuffer = new byte[MaxPacketSize];
+
     internal EOSP2PSender(EOSP2P p2p)
     {
         P2P = p2p;
@@ -43,31 +44,23 @@ internal class EOSP2PSender
     private Result SendSingle(ProductUserId remoteUserId, ReadOnlySpan<byte> payload, PacketReliability reliability, byte targetChannel)
     {
         int packetSize = payload.Length + FragmentHeader.KindPrefixSize;
-        byte[] packetBuffer = P2P.BufferPool.Rent(packetSize);
 
-        try
+        _sendBuffer[0] = FragmentHeader.KindSingle;
+        payload.CopyTo(_sendBuffer.AsSpan(FragmentHeader.KindPrefixSize));
+
+        var sendPacketOptions = new SendPacketOptions
         {
-            packetBuffer[0] = FragmentHeader.KindSingle;
-            payload.CopyTo(packetBuffer.AsSpan(FragmentHeader.KindPrefixSize));
+            LocalUserId = P2P.LocalUserId,
+            RemoteUserId = remoteUserId,
+            SocketId = P2P.SocketId,
+            Channel = targetChannel,
+            Data = new ArraySegment<byte>(_sendBuffer, 0, packetSize),
+            AllowDelayedDelivery = true,
+            Reliability = reliability,
+            DisableAutoAcceptConnection = false
+        };
 
-            var sendPacketOptions = new SendPacketOptions
-            {
-                LocalUserId = P2P.LocalUserId,
-                RemoteUserId = remoteUserId,
-                SocketId = P2P.SocketId,
-                Channel = targetChannel,
-                Data = new ArraySegment<byte>(packetBuffer, 0, packetSize),
-                AllowDelayedDelivery = true,
-                Reliability = reliability,
-                DisableAutoAcceptConnection = false
-            };
-
-            return P2P.P2PInterface.SendPacket(ref sendPacketOptions);
-        }
-        finally
-        {
-            P2P.BufferPool.Return(packetBuffer);
-        }
+        return P2P.P2PInterface.SendPacket(ref sendPacketOptions);
     }
 
     private Result SendFragmented(ProductUserId remoteUserId, ReadOnlySpan<byte> payload, PacketReliability reliability, byte targetChannel)
@@ -99,24 +92,16 @@ internal class EOSP2PSender
             int fragmentLength = System.Math.Min(MaxDataPerFragment, payload.Length - offset);
             int packetSize = FragmentHeader.HeaderSize + fragmentLength;
 
-            byte[] packetBuffer = P2P.BufferPool.Rent(packetSize);
-            try
-            {
-                FragmentHeader.Write(packetBuffer.AsSpan(), fragmentId, (ushort)i, (ushort)totalFragments, payload.Length);
-                payload.Slice(offset, fragmentLength).CopyTo(packetBuffer.AsSpan(FragmentHeader.HeaderSize));
+            FragmentHeader.Write(_sendBuffer.AsSpan(), fragmentId, (ushort)i, (ushort)totalFragments, payload.Length);
+            payload.Slice(offset, fragmentLength).CopyTo(_sendBuffer.AsSpan(FragmentHeader.HeaderSize));
 
-                sendPacketOptions.Data = new ArraySegment<byte>(packetBuffer, 0, packetSize);
-                
-                Result sendResult = P2P.P2PInterface.SendPacket(ref sendPacketOptions);
-                if (sendResult != Result.Success)
-                {
-                    FusionLogger.Error($"Failed to send fragment {i}/{totalFragments}: {sendResult}");
-                    return sendResult;
-                }
-            }
-            finally
+            sendPacketOptions.Data = new ArraySegment<byte>(_sendBuffer, 0, packetSize);
+
+            Result sendResult = P2P.P2PInterface.SendPacket(ref sendPacketOptions);
+            if (sendResult != Result.Success)
             {
-                P2P.BufferPool.Return(packetBuffer);
+                FusionLogger.Error($"Failed to send fragment {i}/{totalFragments}: {sendResult}");
+                return sendResult;
             }
         }
 
