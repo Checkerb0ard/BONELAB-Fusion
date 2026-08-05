@@ -94,10 +94,17 @@ internal class EOSPlatform : EOSInterface
         
         return true;
     }
-
-    private void InitializeTicker()
+    
+    internal override void Tick()
     {
-        MelonLoader.MelonCoroutines.Start(Tick());
+        PlatformInterface?.Tick();
+    }
+
+    private object _tickerRoutine;
+    
+    internal void InitializeTicker()
+    {
+        _tickerRoutine = MelonLoader.MelonCoroutines.Start(Tick());
 
         IEnumerator Tick()
         {
@@ -129,6 +136,15 @@ internal class EOSPlatform : EOSInterface
             
             yield return null;
         }
+    }
+
+    internal void DeInitializeTicker()
+    {
+        if (_tickerRoutine != null)
+        {
+            MelonLoader.MelonCoroutines.Stop(_tickerRoutine);
+        }
+        _tickerRoutine = null;
     }
     
     internal override void Shutdown()

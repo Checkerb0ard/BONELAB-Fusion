@@ -9,9 +9,6 @@ using MelonLoader;
 
 namespace LabFusion.Network;
 
-// TODO:
-// Try fixing server trying to handle a few left over messages when kicking somebody from server (?)
-// Fix stuttery voice (test)
 public class EpicGamesNetworkLayer : NetworkLayer
 {
     private const int ServerCodeLength = 8;
@@ -50,6 +47,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
         {
             if (success)
             {
+                Runtime.Platform.DeInitializeTicker();
                 InvokeLoggedInEvent();
             }
             else
@@ -98,10 +96,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
 
     public override void OnUpdateLayer()
     {
-        if (_isConnectionActive)
-        {
-            Runtime.P2P.Receiver.Receive();
-        }
+        Runtime?.Tick();
     }
 
     // This method doesn't actually get used anywhere in fusion. However, the steam layer uses it for setting the local username.
@@ -155,7 +150,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
             return;
         }
         
-        Runtime.P2P.Sender.Send(ProductUserId.FromString(userId), message, channel, false);
+        Runtime.P2P.Sender.Send(userId, message, channel, false);
     }
 
     public override void StartServer()

@@ -50,6 +50,14 @@ internal class EOSRuntime
         onComplete?.Invoke(true);
     }
 
+    internal void Tick()
+    {
+        Platform?.Tick();
+        Connect?.Tick();
+        P2P?.Tick();
+        Lobby?.Tick();
+    }
+
     internal void Shutdown()
     {
         Lobby?.Shutdown();

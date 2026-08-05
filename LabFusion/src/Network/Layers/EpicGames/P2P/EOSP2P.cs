@@ -52,6 +52,11 @@ internal class EOSP2P : EOSInterface
         yield return null;
     }
 
+    internal override void Tick()
+    {
+        Receiver.Receive();
+    }
+
     // Can be called as host or client. Kills all p2p connections
     internal void Disconnect()
     {

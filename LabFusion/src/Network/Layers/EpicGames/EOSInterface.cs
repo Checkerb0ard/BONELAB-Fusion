@@ -10,5 +10,7 @@ internal abstract class EOSInterface
         yield return null;
     }
     
+    internal virtual void Tick() { }
+    
     internal virtual void Shutdown() { }
 }

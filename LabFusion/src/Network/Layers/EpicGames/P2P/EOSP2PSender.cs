@@ -20,11 +20,13 @@ internal class EOSP2PSender
         P2P = p2p;
     }
 
-    internal void Send(ProductUserId userId, NetMessage message, NetworkChannel channel, bool isServerHandled) => Send(userId, message.ToByteArray(), channel, isServerHandled);
-    
-    internal Result Send(ProductUserId remoteUserId, byte[] payload, NetworkChannel reliability, bool isServerHandled)
+    internal void Send(string remoteUserId, NetMessage message, NetworkChannel channel, bool isServerHandled) => Send(ProductUserId.FromString(remoteUserId), message, channel, isServerHandled);
+
+    internal unsafe void Send(ProductUserId remoteUserId, NetMessage message, NetworkChannel channel, bool isServerHandled) => Send(remoteUserId, new ReadOnlySpan<byte>(message.Buffer, message.Length), channel, isServerHandled);
+
+    internal Result Send(ProductUserId remoteUserId, ReadOnlySpan<byte> payload, NetworkChannel reliability, bool isServerHandled)
     {
-        if (remoteUserId == null || payload == null)
+        if (remoteUserId == null)
             return Result.InvalidParameters;
 
         byte targetChannel = isServerHandled ? ServerChannel : ClientChannel;
@@ -34,11 +36,11 @@ internal class EOSP2PSender
         {
             return SendSingle(remoteUserId, payload, packetReliability, targetChannel);
         }
-        
+
         return SendFragmented(remoteUserId, payload, packetReliability, targetChannel);
     }
 
-    private Result SendSingle(ProductUserId remoteUserId, byte[] payload, PacketReliability reliability, byte targetChannel)
+    private Result SendSingle(ProductUserId remoteUserId, ReadOnlySpan<byte> payload, PacketReliability reliability, byte targetChannel)
     {
         int packetSize = payload.Length + FragmentHeader.KindPrefixSize;
         byte[] packetBuffer = P2P.BufferPool.Rent(packetSize);
@@ -46,9 +48,9 @@ internal class EOSP2PSender
         try
         {
             packetBuffer[0] = FragmentHeader.KindSingle;
-            Array.Copy(payload, 0, packetBuffer, FragmentHeader.KindPrefixSize, payload.Length);
+            payload.CopyTo(packetBuffer.AsSpan(FragmentHeader.KindPrefixSize));
 
-            var options = new SendPacketOptions
+            var sendPacketOptions = new SendPacketOptions
             {
                 LocalUserId = P2P.LocalUserId,
                 RemoteUserId = remoteUserId,
@@ -60,7 +62,7 @@ internal class EOSP2PSender
                 DisableAutoAcceptConnection = false
             };
 
-            return P2P.P2PInterface.SendPacket(ref options);
+            return P2P.P2PInterface.SendPacket(ref sendPacketOptions);
         }
         finally
         {
@@ -68,7 +70,7 @@ internal class EOSP2PSender
         }
     }
 
-    private Result SendFragmented(ProductUserId remoteUserId, byte[] payload, PacketReliability reliability, byte targetChannel)
+    private Result SendFragmented(ProductUserId remoteUserId, ReadOnlySpan<byte> payload, PacketReliability reliability, byte targetChannel)
     {
         int totalFragments = (payload.Length + MaxDataPerFragment - 1) / MaxDataPerFragment;
 
@@ -101,7 +103,7 @@ internal class EOSP2PSender
             try
             {
                 FragmentHeader.Write(packetBuffer.AsSpan(), fragmentId, (ushort)i, (ushort)totalFragments, payload.Length);
-                Array.Copy(payload, offset, packetBuffer, FragmentHeader.HeaderSize, fragmentLength);
+                payload.Slice(offset, fragmentLength).CopyTo(packetBuffer.AsSpan(FragmentHeader.HeaderSize));
 
                 sendPacketOptions.Data = new ArraySegment<byte>(packetBuffer, 0, packetSize);
                 
