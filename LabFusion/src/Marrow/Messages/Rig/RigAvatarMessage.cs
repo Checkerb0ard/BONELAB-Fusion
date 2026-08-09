@@ -48,7 +48,7 @@ public class RigAvatarMessage : ModuleMessageHandler
         // Prevent the stats from being relayed and disconnect them
         if (!data.Stats.IsValid())
         {
-            ConnectionSender.SendDisconnect(platformID, "Invalid Avatar");
+            ServerManager.SendDisconnect(platformID, "Invalid Avatar");
             return false;
         }
 

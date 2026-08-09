@@ -160,7 +160,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
                         InternalServerHelpers.OnPlayerLeft(platformID);
 
                         // Send disconnect notif to everyone
-                        ConnectionSender.SendDisconnect(platformID);
+                        ServerManager.SendDisconnect(platformID);
                     }
                 }
                 break;
@@ -395,21 +395,6 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         _isConnectionActive = false;
 
         InternalServerHelpers.OnDisconnect(reason);
-    }
-
-    public override void DisconnectUser(ClientPlatformID platformID)
-    {
-        // Make sure we are the host
-        if (!_isServerActive)
-        {
-            return;
-        }
-
-        NetDataWriter writer = NewWriter(MessageTypes.DisconnectUser);
-
-        writer.Put(platformID.Value);
-
-        SendToProxyServer(writer);
     }
 
     public string ServerCode { get; private set; } = null;

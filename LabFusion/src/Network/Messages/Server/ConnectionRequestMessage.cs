@@ -7,7 +7,6 @@ using LabFusion.Preferences.Server;
 using LabFusion.Senders;
 using LabFusion.Network.Serialization;
 using LabFusion.Safety;
-using LabFusion.Network.Messages;
 
 namespace LabFusion.Network;
 
@@ -74,35 +73,35 @@ public class ConnectionRequestMessage : NativeMessageHandler
         // No unused ids available
         if (!newSmallId.HasValue)
         {
-            ConnectionSender.SendConnectionDeny(platformID, "Server ran out of space! Wait for someone to leave.");
+            ServerManager.SendDisconnect(platformID, "Server ran out of space! Wait for someone to leave.");
             return;
         }
 
         // Player already is in the server?
         if (PlayerIDManager.GetPlayerID(platformID) != null)
         {
-            ConnectionSender.SendConnectionDeny(platformID, "You attempted to join, but the server detects you as already in it?");
+            ServerManager.SendDisconnect(platformID, "You attempted to join, but the server detects you as already in it?");
             return;
         }
 
         // If the connection request is invalid, deny it
         if (!data.IsValid)
         {
-            ConnectionSender.SendConnectionDeny(platformID, "Connection request was invalid. You are likely on mismatching versions.");
+            ServerManager.SendDisconnect(platformID, "Connection request was invalid. You are likely on mismatching versions.");
             return;
         }
 
         // Check if theres too many players
         if (PlayerIDManager.PlayerCount >= byte.MaxValue || PlayerIDManager.PlayerCount >= SavedServerSettings.MaxPlayers.Value)
         {
-            ConnectionSender.SendConnectionDeny(platformID, "Server is full! Wait for someone to leave.");
+            ServerManager.SendDisconnect(platformID, "Server is full! Wait for someone to leave.");
             return;
         }
 
         // Make sure we aren't loading
         if (FusionSceneManager.IsLoading())
         {
-            ConnectionSender.SendConnectionDeny(platformID, "Host is loading.");
+            ServerManager.SendDisconnect(platformID, "Host is loading.");
             return;
         }
 
@@ -111,7 +110,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
 
         if (!isVerified)
         {
-            ConnectionSender.SendConnectionDeny(platformID, "Server is private.");
+            ServerManager.SendDisconnect(platformID, "Server is private.");
             return;
         }
 
@@ -124,13 +123,13 @@ public class ConnectionRequestMessage : NativeMessageHandler
             {
                 default:
                 case VersionResult.Unknown:
-                    ConnectionSender.SendConnectionDeny(platformID, "Unknown Version Mismatch");
+                    ServerManager.SendDisconnect(platformID, "Unknown Version Mismatch");
                     break;
                 case VersionResult.Lower:
-                    ConnectionSender.SendConnectionDeny(platformID, "Server is on an older version. Downgrade your version or notify the host.");
+                    ServerManager.SendDisconnect(platformID, "Server is on an older version. Downgrade your version or notify the host.");
                     break;
                 case VersionResult.Higher:
-                    ConnectionSender.SendConnectionDeny(platformID, "Server is on a newer version. Update your version.");
+                    ServerManager.SendDisconnect(platformID, "Server is on a newer version. Update your version.");
                     break;
             }
 
@@ -143,7 +142,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
         // Check for banning
         if (NetworkHelper.IsBanned(platformID))
         {
-            ConnectionSender.SendConnectionDeny(platformID, "Banned from Server");
+            ServerManager.SendDisconnect(platformID, "Banned from Server");
             return;
         }
 
@@ -152,7 +151,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
 
         if (globalBanInfo != null && SavedServerSettings.Privacy.Value != ServerPrivacy.FRIENDS_ONLY)
         {
-            ConnectionSender.SendConnectionDeny(platformID, globalBanInfo.Reason);
+            ServerManager.SendDisconnect(platformID, globalBanInfo.Reason);
             return;
         }
 
@@ -165,7 +164,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
         // Finally, check for dynamic connection disallowing
         if (!MultiplayerHooking.CheckShouldAllowConnection(playerID, out string reason))
         {
-            ConnectionSender.SendConnectionDeny(platformID, reason);
+            ServerManager.SendDisconnect(platformID, reason);
             return;
         }
 

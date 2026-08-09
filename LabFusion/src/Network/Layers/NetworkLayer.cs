@@ -188,12 +188,6 @@ public abstract class NetworkLayer
     public abstract void Disconnect(string reason = "");
 
     /// <summary>
-    /// Forcefully closes the connection for a connected user.
-    /// </summary>
-    /// <param name="platformID">The PlatformID of the connected user.</param>
-    public abstract void DisconnectUser(ClientPlatformID platformID);
-
-    /// <summary>
     /// Returns the username of the player with id userId.
     /// </summary>
     /// <param name="userId"></param>

@@ -99,7 +99,7 @@ public static class NetworkHelper
             return;
         }
 
-        ConnectionSender.SendDisconnect(id.PlatformID, "Kicked from Server");
+        ServerManager.SendDisconnect(id.PlatformID, "Kicked from Server");
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public static class NetworkHelper
         }
 
         BanManager.Ban(new PlayerInfo(id), "Banned");
-        ConnectionSender.SendDisconnect(id.PlatformID, "Banned from Server");
+        ServerManager.SendDisconnect(id.PlatformID, "Banned from Server");
     }
 
     /// <summary>

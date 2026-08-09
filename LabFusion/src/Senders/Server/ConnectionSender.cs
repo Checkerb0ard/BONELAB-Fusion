@@ -1,46 +1,11 @@
 ﻿using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
-using LabFusion.Utilities;
 
 namespace LabFusion.Senders;
 
 public static class ConnectionSender
 {
-    public static void SendDisconnect(ClientPlatformID platformID, string reason = "")
-    {
-        if (!ServerManager.IsServerRunning)
-        {
-            return;
-        }
-
-        using var writer = NetWriter.Create();
-        var disconnect = DisconnectMessageData.Create(platformID, reason);
-        writer.SerializeValue(ref disconnect);
-
-        using var message = NetMessage.CreateNative(NativeMessageTag.Disconnect, writer, CommonMessageRoutes.None);
-        ServerManager.SendToClients(message, NetworkChannel.Reliable);
-
-        NetworkConnectionManager.TimeoutDisconnect(platformID);
-    }
-
-    public static void SendConnectionDeny(ClientPlatformID platformID, string reason = "")
-    {
-        if (!ServerManager.IsServerRunning)
-        {
-            return;
-        }
-
-        using var writer = NetWriter.Create();
-        var disconnect = DisconnectMessageData.Create(platformID, reason);
-        writer.SerializeValue(ref disconnect);
-        
-        using var message = NetMessage.CreateNative(NativeMessageTag.Disconnect, writer, CommonMessageRoutes.None);
-        ServerManager.SendToClient(message, NetworkChannel.Reliable, platformID);
-
-        NetworkConnectionManager.TimeoutDisconnect(platformID);
-    }
-
     public static void SendPlayerCatchup(ClientPlatformID newUser, PlayerID id)
     {
         using var writer = NetWriter.Create();

@@ -1,7 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Modules;
-using LabFusion.Senders;
 
 using System.Buffers;
 
@@ -203,6 +202,31 @@ public static class ServerManager
         ArrayPool<ClientPlatformID>.Shared.Return(clients);
     }
 
+    /// <summary>
+    /// Sends a message telling a client to disconnect and forcefully disconnects them if they are still connected within a short amount of time.
+    /// </summary>
+    /// <param name="client"></param>
+    public static void SendDisconnect(ClientPlatformID client) => SendDisconnect(client, string.Empty);
+
+    /// <summary>
+    /// Sends a message telling a client to disconnect with a given reason and forcefully disconnects them if they are still connected within a short amount of time.
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="reason"></param>
+    public static void SendDisconnect(ClientPlatformID client, string reason)
+    {
+        if (!IsServerRunning)
+        {
+            return;
+        }
+
+        var data = DisconnectMessageData.Create(client, reason);
+
+        SendToClientNative(data, NativeMessageTag.Disconnect, NetworkChannel.Reliable, client);
+
+        NetworkConnectionManager.TimeoutDisconnect(client);
+    }
+
     internal static void OnServerStarted()
     {
         InternalServerHelpers.OnStartServer();
@@ -222,9 +246,24 @@ public static class ServerManager
             // Update the mod so it knows this user has left
             InternalServerHelpers.OnPlayerLeft(client);
 
-            // Send disconnect notif to everyone
-            ConnectionSender.SendDisconnect(client);
+            BroadcastClientDisconnected(client);
         }
+    }
+
+    /// <summary>
+    /// Broadcasts that a client has disconnected to all currently connected clients.
+    /// </summary>
+    /// <param name="client"></param>
+    private static void BroadcastClientDisconnected(ClientPlatformID client)
+    {
+        if (!IsServerRunning)
+        {
+            return;
+        }
+
+        var data = DisconnectMessageData.Create(client);
+
+        SendToClientsNative(data, NativeMessageTag.Disconnect, NetworkChannel.Reliable);
     }
 
     private static ClientPlatformID[] RentClients(IEnumerable<PlayerID> playerIDs)

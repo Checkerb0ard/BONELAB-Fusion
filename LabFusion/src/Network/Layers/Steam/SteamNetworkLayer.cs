@@ -335,11 +335,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         throw new NotImplementedException();
     }
 
-    public override void DisconnectUser(ClientPlatformID platformID)
-    {
-        throw new NotImplementedException();
-    }
-
     public string ServerCode { get; private set; } = null;
 
     public override string GetServerCode()
