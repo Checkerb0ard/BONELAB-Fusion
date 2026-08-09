@@ -41,23 +41,6 @@ public static class ConnectionSender
         NetworkConnectionManager.TimeoutDisconnect(platformID);
     }
 
-    public static void SendConnectionRequest()
-    {
-        if (!ClientManager.IsClientConnecting)
-        {
-            FusionLogger.Error("Attempted to send a connection request, but we are not connecting to anyone!");
-            return;
-        }
-
-        using var writer = NetWriter.Create();
-
-        var data = ConnectionRequestData.Create(FusionMod.Version);
-        data.Serialize(writer);
-
-        using NetMessage message = NetMessage.CreateNative(NativeMessageTag.ConnectionRequest, writer, CommonMessageRoutes.None);
-        ClientManager.SendToServer(message, NetworkChannel.Reliable);
-    }
-
     public static void SendPlayerCatchup(ClientPlatformID newUser, PlayerID id)
     {
         using var writer = NetWriter.Create();

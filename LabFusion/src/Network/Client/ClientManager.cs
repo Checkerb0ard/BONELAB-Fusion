@@ -1,4 +1,6 @@
-﻿using LabFusion.Senders;
+﻿using LabFusion.Network.Serialization;
+using LabFusion.SDK.Modules;
+using LabFusion.Utilities;
 
 namespace LabFusion.Network;
 
@@ -38,6 +40,34 @@ public static class ClientManager
     private static bool _attemptingConnection = false;
 
     /// <summary>
+    /// Sends a native message directly from the client to the connected server given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="channel"></param>
+    public static void SendToServerNative<TData>(TData data, byte tag, NetworkChannel channel) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
+
+        SendToServer(message, channel);
+    }
+
+    /// <summary>
+    /// Sends a module message directly from the client to the connected server given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="channel"></param>
+    public static void SendToServerModule<TMessage, TData>(TData data, NetworkChannel channel) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
+
+        SendToServer(message, channel);
+    }
+
+    /// <summary>
     /// Sends a message from the client to the connected server.
     /// </summary>
     /// <param name="message"></param>
@@ -65,11 +95,24 @@ public static class ClientManager
     {
         _attemptingConnection = true;
 
-        ConnectionSender.SendConnectionRequest();
+        RequestConnection();
     }
 
     internal static void OnConnectionLost()
     {
         _attemptingConnection = false;
+    }
+
+    private static void RequestConnection()
+    {
+        if (!IsClientConnecting)
+        {
+            FusionLogger.Error("Attempted to send a connection request, but we are not connecting to anyone!");
+            return;
+        }
+
+        var data = ConnectionRequestData.Create(FusionMod.Version);
+
+        SendToServerNative(data, NativeMessageTag.ConnectionRequest, NetworkChannel.Reliable);
     }
 }

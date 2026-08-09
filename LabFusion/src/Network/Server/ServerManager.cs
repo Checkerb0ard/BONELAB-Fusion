@@ -1,4 +1,6 @@
-﻿using LabFusion.Player;
+﻿using LabFusion.Network.Serialization;
+using LabFusion.Player;
+using LabFusion.SDK.Modules;
 using LabFusion.Senders;
 
 using System.Buffers;
@@ -28,6 +30,94 @@ public static class ServerManager
     /// <param name="client"></param>
     /// <returns></returns>
     public static bool IsClientAccepted(ClientPlatformID client) => PlayerIDManager.HasSmallID(client);
+
+    /// <summary>
+    /// Sends a native message from the server to a specific client given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="channel"></param>
+    /// <param name="client"></param>
+    public static void SendToClientNative<TData>(TData data, byte tag, NetworkChannel channel, ClientPlatformID client) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
+
+        SendToClient(message, channel, client);
+    }
+
+    /// <summary>
+    /// Sends a native message from the server to multiple clients given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="channel"></param>
+    /// <param name="clients"></param>
+    public static void SendToClientsNative<TData>(TData data, byte tag, NetworkChannel channel, Span<ClientPlatformID> clients) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
+
+        SendToClients(message, channel, clients);
+    }
+
+    /// <summary>
+    /// Sends a native message from the server to all connected clients given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="channel"></param>
+    public static void SendToClientsNative<TData>(TData data, byte tag, NetworkChannel channel) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
+
+        SendToClients(message, channel);
+    }
+
+    /// <summary>
+    /// Sends a module message from the server to a specific client given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="channel"></param>
+    /// <param name="client"></param>
+    public static void SendToClientModule<TMessage, TData>(TData data, NetworkChannel channel, ClientPlatformID client) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
+
+        SendToClient(message, channel, client);
+    }
+
+    /// <summary>
+    /// Sends a module message from the server to multiple clients given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="channel"></param>
+    /// <param name="clients"></param>
+    public static void SendToClientsModule<TMessage, TData>(TData data, NetworkChannel channel, Span<ClientPlatformID> clients) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
+
+        SendToClients(message, channel, clients);
+    }
+
+    /// <summary>
+    /// Sends a module message from the server to all connected clients given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="channel"></param>
+    public static void SendToClientsModule<TMessage, TData>(TData data, NetworkChannel channel) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
+
+        SendToClients(message, channel);
+    }
 
     /// <summary>
     /// Sends a message from the server to a specific client.

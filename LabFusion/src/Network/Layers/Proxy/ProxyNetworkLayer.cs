@@ -371,7 +371,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         _isServerActive = false;
         _isConnectionActive = true;
 
-        ConnectionSender.SendConnectionRequest();
+        // ConnectionSender.SendConnectionRequest();
     }
 
     public override void Disconnect(string reason = "")
