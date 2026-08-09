@@ -7,15 +7,6 @@ namespace LabFusion.Network;
 
 public static class MessageRelay
 {
-    public static void RelayNative<TData>(TData data, byte tag, MessageRoute route) where TData : INetSerializable
-    {
-        ClientSmallID? sender = route.Type == RelayType.None ? null : PlayerIDManager.LocalSmallID;
-
-        using var message = NetMessage.CreateNative(data, tag, route, sender);
-
-        TryRelay(message, route, sender);
-    }
-
     public static void RelayModule<TMessage, TData>(TData data, MessageRoute route) where TMessage : ModuleMessageHandler where TData : INetSerializable
     {
         ClientSmallID? sender = route.Type == RelayType.None ? null : PlayerIDManager.LocalSmallID;

@@ -5,7 +5,6 @@ using LabFusion.Entities;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Serialization;
 using LabFusion.Safety;
-using LabFusion.Utilities;
 
 namespace LabFusion.Network;
 
@@ -49,6 +48,6 @@ public class SpawnRequestMessage : NativeMessageHandler
             SpawnData = data,
         };
 
-        MessageRelay.RelayNative(responseData, NativeMessageTag.SpawnResponse, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(responseData, NativeMessageTag.SpawnResponse, NetworkChannel.Reliable);
     }
 }

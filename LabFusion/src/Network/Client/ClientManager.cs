@@ -40,6 +40,20 @@ public static class ClientManager
     private static bool _attemptingConnection = false;
 
     /// <summary>
+    /// Relays a native message from the client to a target given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="route"></param>
+    public static void RelayNative<TData>(TData data, byte tag, MessageRoute route) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, route);
+
+        SendToServer(message, route.Channel);
+    }
+
+    /// <summary>
     /// Sends a native message directly from the client to the connected server given serializable data that is automatically written.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
@@ -51,6 +65,20 @@ public static class ClientManager
         using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
 
         SendToServer(message, channel);
+    }
+    
+    /// <summary>
+    /// Relays a module message from the client to a target given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="route"></param>
+    public static void RelayModule<TMessage, TData>(TData data, MessageRoute route) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, route);
+
+        SendToServer(message, route.Channel);
     }
 
     /// <summary>

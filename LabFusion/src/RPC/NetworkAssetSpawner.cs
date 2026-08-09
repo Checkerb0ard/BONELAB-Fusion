@@ -75,7 +75,7 @@ public static class NetworkAssetSpawner
             SpawnSource = info.SpawnSource,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.SpawnRequest, CommonMessageRoutes.ReliableToServer);
+        ClientManager.RelayNative(data, NativeMessageTag.SpawnRequest, CommonMessageRoutes.ReliableToServer);
     }
 
     public static void Despawn(DespawnRequestInfo info)
@@ -86,7 +86,7 @@ public static class NetworkAssetSpawner
             DespawnEffect = info.DespawnEffect,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.DespawnRequest, CommonMessageRoutes.ReliableToServer);
+        ClientManager.RelayNative(data, NativeMessageTag.DespawnRequest, CommonMessageRoutes.ReliableToServer);
     }
 
     public static bool TryDespawnAll()

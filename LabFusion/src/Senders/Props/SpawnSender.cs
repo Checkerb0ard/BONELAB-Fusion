@@ -2,6 +2,7 @@
 using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Marrow.Serialization;
+using LabFusion.Player;
 
 namespace LabFusion.Senders;
 
@@ -31,6 +32,11 @@ public static class SpawnSender
             }
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.SpawnResponse, new MessageRoute(playerID, NetworkChannel.Reliable));
+        if (!PlayerIDManager.TryGetPlatformID(playerID, out var platformID))
+        {
+            return;
+        }
+
+        ServerManager.SendToClientNative(data, NativeMessageTag.SpawnResponse, NetworkChannel.Reliable, platformID);
     }
 }

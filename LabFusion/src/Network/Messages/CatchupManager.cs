@@ -38,7 +38,7 @@ public static class CatchupManager
 
         var data = new EntityPlayerData() { PlayerID = PlayerIDManager.LocalSmallID, Entity = entityReference };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.EntityDataRequest, new MessageRoute(ownerID.SmallID, NetworkChannel.Reliable));
+        ClientManager.RelayNative(data, NativeMessageTag.EntityDataRequest, new MessageRoute(ownerID.SmallID, NetworkChannel.Reliable));
     }
 
     internal static void InvokePlayerServerCatchup(PlayerID playerID) => PlayerServerCatchingUp.InvokeSafe(playerID, "executing OnPlayerCatchup hook");

@@ -1,7 +1,6 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Combat;
 
-using LabFusion.Data;
 using LabFusion.Exceptions;
 using LabFusion.Marrow.Messages;
 using LabFusion.Network;
@@ -32,7 +31,7 @@ public static class PlayerSender
             Bytes = voiceData,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.PlayerVoiceChat, CommonMessageRoutes.UnreliableToOtherClients);
+        ClientManager.RelayNative(data, NativeMessageTag.PlayerVoiceChat, CommonMessageRoutes.UnreliableToOtherClients);
     }
 
     public static void SendPlayerTeleport(ClientSmallID target, Vector3 position)
@@ -48,7 +47,12 @@ public static class PlayerSender
             Position = position,
         };
 
-        MessageRelay.RelayModule<RigTeleportMessage, RigTeleportData>(data, new MessageRoute(target, NetworkChannel.Reliable));
+        if (!PlayerIDManager.TryGetPlatformID(target, out var targetPlatformID))
+        {
+            return;
+        }
+
+        ServerManager.SendToClientModule<RigTeleportMessage, RigTeleportData>(data, NetworkChannel.Reliable, targetPlatformID);
     }
 
     public static void SendPlayerDamage(ClientSmallID target, Attack attack)
@@ -66,7 +70,7 @@ public static class PlayerSender
             Part = part
         };
 
-        MessageRelay.RelayModule<RigDamageMessage, RigDamageData>(data, new MessageRoute(target, NetworkChannel.Reliable));
+        ClientManager.RelayModule<RigDamageMessage, RigDamageData>(data, new MessageRoute(target, NetworkChannel.Reliable));
     }
 
     public static void SendPlayerMetadataRequest(ClientSmallID smallID, string key, string value)
@@ -78,7 +82,7 @@ public static class PlayerSender
             Value = value,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.PlayerMetadataRequest, CommonMessageRoutes.ReliableToServer);
+        ClientManager.RelayNative(data, NativeMessageTag.PlayerMetadataRequest, CommonMessageRoutes.ReliableToServer);
     }
 
     public static void SendPlayerMetadataResponse(ClientSmallID smallID, string key, string value)
@@ -96,6 +100,6 @@ public static class PlayerSender
             Value = value,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.PlayerMetadataResponse, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(data, NativeMessageTag.PlayerMetadataResponse, NetworkChannel.Reliable);
     }
 }

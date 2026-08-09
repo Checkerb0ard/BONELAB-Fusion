@@ -1,5 +1,4 @@
 ﻿using LabFusion.Data;
-using LabFusion.Network.Serialization;
 using LabFusion.Preferences.Server;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
@@ -80,22 +79,18 @@ public static class LobbyInfoManager
 
         var data = ServerSettingsData.Create();
 
-        MessageRelay.RelayNative(data, NativeMessageTag.ServerSettings, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostNative(data, NativeMessageTag.ServerSettings, NetworkChannel.Reliable);
     }
 
-    internal static void SendLobbyInfo(ClientPlatformID platformID)
+    internal static void SendLobbyInfo(ClientPlatformID client)
     {
         if (!ServerManager.IsServerRunning)
         {
             return;
         }
 
-        using var writer = NetWriter.Create();
         var data = ServerSettingsData.Create();
-        writer.SerializeValue(ref data);
 
-        using var message = NetMessage.CreateNative(NativeMessageTag.ServerSettings, writer, CommonMessageRoutes.None);
-
-        ServerManager.SendToClient(message, NetworkChannel.Reliable, platformID);
+        ServerManager.SendToClientNative(data, NativeMessageTag.ServerSettings, NetworkChannel.Reliable, client);
     }
 }

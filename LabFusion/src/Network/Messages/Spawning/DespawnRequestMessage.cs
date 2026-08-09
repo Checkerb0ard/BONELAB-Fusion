@@ -39,6 +39,6 @@ public class DespawnRequestMessage : NativeMessageHandler
             DespawnEffect = data.DespawnEffect,
         };
 
-        MessageRelay.RelayNative(response, NativeMessageTag.DespawnResponse, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(response, NativeMessageTag.DespawnResponse, NetworkChannel.Reliable);
     }
 }

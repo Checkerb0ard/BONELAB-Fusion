@@ -1,6 +1,5 @@
 ﻿using LabFusion.Network;
 using LabFusion.Player;
-using LabFusion.Network.Serialization;
 
 using Il2CppSLZ.Marrow.Warehouse;
 
@@ -21,17 +20,15 @@ public static class LoadSender
             Title = crate.Title,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.LevelRequest, CommonMessageRoutes.ReliableToServer);
+        ClientManager.RelayNative(data, NativeMessageTag.LevelRequest, CommonMessageRoutes.ReliableToServer);
     }
 
-    public static void SendLevelLoad(string barcode, string loadBarcode, ClientPlatformID userId)
+    public static void SendLevelLoad(string barcode, string loadBarcode, ClientPlatformID client)
     {
         if (!ServerManager.IsServerRunning)
         {
             return;
         }
-
-        using var writer = NetWriter.Create();
 
         var data = new LevelLoadData()
         {
@@ -39,10 +36,7 @@ public static class LoadSender
             LoadingScreenBarcode = loadBarcode,
         };
 
-        writer.SerializeValue(ref data);
-
-        using var message = NetMessage.CreateNative(NativeMessageTag.SceneLoad, writer, CommonMessageRoutes.None);
-        ServerManager.SendToClient(message, NetworkChannel.Reliable, userId);
+        ServerManager.SendToClientNative(data, NativeMessageTag.SceneLoad, NetworkChannel.Reliable, client);
     }
 
     public static void SendLoadingState(bool isLoading)
@@ -63,6 +57,6 @@ public static class LoadSender
             LoadingScreenBarcode = loadBarcode,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.SceneLoad, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostNative(data, NativeMessageTag.SceneLoad, NetworkChannel.Reliable);
     }
 }

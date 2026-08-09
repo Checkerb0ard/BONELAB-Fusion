@@ -75,6 +75,35 @@ public static class ServerManager
     }
 
     /// <summary>
+    /// Sends a native message from the server to all connected clients except for a specified client given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="channel"></param>
+    /// <param name="client"></param>
+    public static void SendToClientsExceptNative<TData>(TData data, byte tag, NetworkChannel channel, ClientPlatformID client) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
+
+        SendToClientsExcept(message, channel, client);
+    }
+
+    /// <summary>
+    /// Sends a native message from the server to all connected clients except for the host, if they are a client, given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="tag"></param>
+    /// <param name="channel"></param>
+    public static void SendToClientsExceptHostNative<TData>(TData data, byte tag, NetworkChannel channel) where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
+
+        SendToClientsExceptHost(message, channel);
+    }
+
+    /// <summary>
     /// Sends a module message from the server to a specific client given serializable data that is automatically written.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
@@ -116,6 +145,35 @@ public static class ServerManager
         using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
 
         SendToClients(message, channel);
+    }
+
+    /// <summary>
+    /// Sends a module message from the server to all connected clients except for a specified client given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="channel"></param>
+    /// <param name="client"></param>
+    public static void SendToClientsExceptModule<TMessage, TData>(TData data, NetworkChannel channel, ClientPlatformID client) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
+
+        SendToClientsExcept(message, channel, client);
+    }
+
+    /// <summary>
+    /// Sends a module message from the server to all connected clients except for the host, if they are a client, given serializable data that is automatically written.
+    /// </summary>
+    /// <typeparam name="TMessage"></typeparam>
+    /// <typeparam name="TData"></typeparam>
+    /// <param name="data"></param>
+    /// <param name="channel"></param>
+    public static void SendToClientsExceptHostModule<TMessage, TData>(TData data, NetworkChannel channel) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    {
+        using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
+
+        SendToClientsExceptHost(message, channel);
     }
 
     /// <summary>
@@ -200,6 +258,23 @@ public static class ServerManager
         SendToClients(message, channel, new Span<ClientPlatformID>(clients, 0, idCount));
 
         ArrayPool<ClientPlatformID>.Shared.Return(clients);
+    }
+
+    /// <summary>
+    /// Sends a message from the server to all connected clients except for the host, if they are a client.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="channel"></param>
+    public static void SendToClientsExceptHost(NetMessage message, NetworkChannel channel)
+    {
+        if (ClientManager.IsClientConnected)
+        {
+            SendToClientsExcept(message, channel, PlayerIDManager.LocalPlatformID);
+        }
+        else
+        {
+            SendToClients(message, channel);
+        }
     }
 
     /// <summary>

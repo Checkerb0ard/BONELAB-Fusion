@@ -1,7 +1,6 @@
 ﻿using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Downloading.ModIO;
-using LabFusion.Extensions;
 using LabFusion.Marrow;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -85,6 +84,6 @@ public class ModInfoRequestMessage : NativeMessageHandler
 
         var writtenData = ModInfoResponseData.Create(modFile, data.TrackerID);
 
-        MessageRelay.RelayNative(writtenData, NativeMessageTag.ModInfoResponse, new MessageRoute(received.SenderSmallID.Value, NetworkChannel.Reliable));
+        ClientManager.RelayNative(writtenData, NativeMessageTag.ModInfoResponse, new MessageRoute(received.SenderSmallID.Value, NetworkChannel.Reliable));
     }
 }

@@ -41,6 +41,6 @@ public class EntityUnqueueRequestMessage : NativeMessageHandler
 
         var response = EntityUnqueueResponseData.Create(data.queuedId, allocatedId);
 
-        MessageRelay.RelayNative(response, NativeMessageTag.EntityUnqueueResponse, new MessageRoute(data.userId, NetworkChannel.Reliable));
+        ServerManager.SendToClientNative(response, NativeMessageTag.EntityUnqueueResponse, NetworkChannel.Reliable, received.SenderPlatformID.Value);
     }
 }

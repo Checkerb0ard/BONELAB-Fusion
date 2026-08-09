@@ -151,6 +151,6 @@ public static class NetworkModRequester
             TrackerID = trackerId,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.ModInfoRequest, new MessageRoute(info.Target, NetworkChannel.Reliable));
+        ClientManager.RelayNative(data, NativeMessageTag.ModInfoRequest, new MessageRoute(info.Target, NetworkChannel.Reliable));
     }
 }

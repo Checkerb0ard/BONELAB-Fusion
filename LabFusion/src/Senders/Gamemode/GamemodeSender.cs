@@ -1,5 +1,4 @@
-﻿using LabFusion.Exceptions;
-using LabFusion.Network;
+﻿using LabFusion.Network;
 
 namespace LabFusion.Senders;
 
@@ -14,7 +13,7 @@ public static class GamemodeSender
             TriggerValue = value,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.GamemodeTriggerResponse, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(data, NativeMessageTag.GamemodeTriggerResponse, NetworkChannel.Reliable);
     }
 
     public static void SendGamemodeMetadataSet(string gamemodeBarcode, string key, string value)
@@ -32,7 +31,7 @@ public static class GamemodeSender
             Value = value,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.GamemodeMetadataSet, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(data, NativeMessageTag.GamemodeMetadataSet, NetworkChannel.Reliable);
     }
 
     public static void SendGamemodeMetadataRemove(string gamemodeBarcode, string key)
@@ -49,6 +48,6 @@ public static class GamemodeSender
             Key = key,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.GamemodeMetadataRemove, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(data, NativeMessageTag.GamemodeMetadataRemove, NetworkChannel.Reliable);
     }
 }

@@ -1,6 +1,5 @@
 ﻿using LabFusion.Data;
 using LabFusion.Network;
-using LabFusion.Player;
 using LabFusion.Preferences.Client;
 using LabFusion.Preferences.Server;
 
@@ -26,7 +25,7 @@ public static class FusionPreferences
             Settings = SerializedPlayerSettings.Create()
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.PlayerSettings, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayNative(data, NativeMessageTag.PlayerSettings, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     internal static void OnInitializePreferences()

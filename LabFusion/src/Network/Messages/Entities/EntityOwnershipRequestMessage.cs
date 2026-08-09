@@ -46,6 +46,6 @@ public class EntityOwnershipRequestMessage : NativeMessageHandler
             Entity = new(entityID),
         };
 
-        MessageRelay.RelayNative(response, NativeMessageTag.EntityOwnershipResponse, CommonMessageRoutes.ReliableToClients);
+        ServerManager.SendToClientsNative(response, NativeMessageTag.EntityOwnershipResponse, NetworkChannel.Reliable);
     }
 }

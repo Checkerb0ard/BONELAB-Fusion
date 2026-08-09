@@ -12,6 +12,6 @@ public static class PermissionSender
             OtherPlayer = otherPlayer,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.PermissionCommandRequest, CommonMessageRoutes.ReliableToServer);
+        ClientManager.RelayNative(data, NativeMessageTag.PermissionCommandRequest, CommonMessageRoutes.ReliableToServer);
     }
 }

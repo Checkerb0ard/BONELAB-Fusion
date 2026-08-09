@@ -589,7 +589,7 @@ public class NetworkProp : IEntityExtender, IEntityPosableExtender, IEntityDespa
             Pose = CapturedPose,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.EntityPoseUpdate, route);
+        ClientManager.RelayNative(data, NativeMessageTag.EntityPoseUpdate, route);
 
         CapturedPose.WriteTo(SentPose);
     }
@@ -602,7 +602,7 @@ public class NetworkProp : IEntityExtender, IEntityPosableExtender, IEntityDespa
             IsCulled = isCulled,
         };
 
-        MessageRelay.RelayNative(data, NativeMessageTag.EntityCullStatus, route);
+        ClientManager.RelayNative(data, NativeMessageTag.EntityCullStatus, route);
     }
 
     void IParallelFixedUpdatable.OnPreParallelFixedUpdate(float deltaTime)
