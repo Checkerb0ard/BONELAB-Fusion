@@ -1,4 +1,5 @@
 ﻿using LabFusion.Player;
+using LabFusion.Senders;
 
 using System.Buffers;
 
@@ -110,6 +111,30 @@ public static class ServerManager
         SendToClients(message, channel, new Span<ClientPlatformID>(clients, 0, idCount));
 
         ArrayPool<ClientPlatformID>.Shared.Return(clients);
+    }
+
+    internal static void OnServerStarted()
+    {
+        InternalServerHelpers.OnStartServer();
+    }
+
+    internal static void OnServerStopped()
+    {
+        InternalServerHelpers.OnDisconnect();
+    }
+
+    internal static void OnServerClientDisconnected(ClientPlatformID client)
+    {
+        // TODO: Cleanup, this is just copied from where it was in the network layer
+        // Make sure the user hasn't previously disconnected
+        if (PlayerIDManager.HasPlayerID(client))
+        {
+            // Update the mod so it knows this user has left
+            InternalServerHelpers.OnPlayerLeft(client);
+
+            // Send disconnect notif to everyone
+            ConnectionSender.SendDisconnect(client);
+        }
     }
 
     private static ClientPlatformID[] RentClients(IEnumerable<PlayerID> playerIDs)

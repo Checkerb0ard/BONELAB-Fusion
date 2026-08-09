@@ -39,6 +39,11 @@ public abstract class NetworkLayer
     public static event Action ServerStopped;
 
     /// <summary>
+    /// Invoked whenever a client connected to the running server has disconnected.
+    /// </summary>
+    public static event Action<ClientPlatformID> ServerClientDisconnected;
+
+    /// <summary>
     /// Invoked when the client establishes a connection to the server and is able to send messages to the server.
     /// </summary>
     public static event Action ConnectionEstablished;
@@ -266,12 +271,39 @@ public abstract class NetworkLayer
         throw new NotImplementedException("The current NetworkLayer does not support joining by code!");
     }
 
+    /// <summary>
+    /// Invokes the <see cref="LogInCompleted"/> event. This should be invoked by the NetworkLayer when it has finished logging in.
+    /// </summary>
     protected void InvokeLoggedInEvent() => LogInCompleted?.Invoke(this);
+
+    /// <summary>
+    /// Invokes the <see cref="LogOutCompleted"/> event. This should be invoked by the NetworkLayer when it has finished logging out.
+    /// </summary>
     protected void InvokeLoggedOutEvent() => LogOutCompleted?.Invoke(this);
 
-    protected void InvokeServerStartedEvent() => ServerStarted?.Invoke();
-    protected void InvokeServerStoppedEvent() => ServerStopped?.Invoke();
+    /// <summary>
+    /// Invokes the <see cref="ServerStarted"/> event. This should be invoked by the NetworkLayer whenever it starts a server.
+    /// </summary>
+    public static void InvokeServerStartedEvent() => ServerStarted?.Invoke();
 
-    protected void InvokeConnectionEstablishedEvent() => ConnectionEstablished?.Invoke();
-    protected void InvokeConnectionLostEvent() => ConnectionLost?.Invoke();
+    /// <summary>
+    /// Invokes the <see cref="ServerStopped"/> event. This should be invoked by the NetworkLayer whenever a running server has stopped.
+    /// </summary>
+    public static void InvokeServerStoppedEvent() => ServerStopped?.Invoke();
+
+    /// <summary>
+    /// Invokes the <see cref="ServerClientDisconnected"/> event. This should be invoked by the NetworkLayer whenever a client connected to the currently running server has disconnected.
+    /// </summary>
+    /// <param name="client"></param>
+    public static void InvokeServerClientDisconnectedEvent(ClientPlatformID client) => ServerClientDisconnected?.Invoke(client);
+
+    /// <summary>
+    /// Invokes the <see cref="ConnectionEstablished"/> event. This should be invoked by the NetworkLayer whenever the client has connected to a server.
+    /// </summary>
+    public static void InvokeConnectionEstablishedEvent() => ConnectionEstablished?.Invoke();
+
+    /// <summary>
+    /// Invokes the <see cref="ConnectionLost"/> event. This should be invoked by the NetworkLayer whenever the client has disconnected or lost connection to a server.
+    /// </summary>
+    public static void InvokeConnectionLostEvent() => ConnectionLost?.Invoke();
 }

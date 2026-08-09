@@ -169,6 +169,7 @@ public static class NetworkLayerManager
 
         NetworkLayer.ServerStarted += OnServerStarted;
         NetworkLayer.ServerStopped += OnServerStopped;
+        NetworkLayer.ServerClientDisconnected += OnServerClientDisconnected;
 
         NetworkLayer.ConnectionEstablished += OnConnectionEstablished;
         NetworkLayer.ConnectionLost += OnConnectionLost;
@@ -204,14 +205,19 @@ public static class NetworkLayerManager
 
     private static void OnServerStarted()
     {
-        InternalServerHelpers.OnStartServer();
+        ServerManager.OnServerStarted();
     }
 
     private static void OnServerStopped()
     {
-        InternalServerHelpers.OnDisconnect();
+        ServerManager.OnServerStopped();
     }
-    
+
+    private static void OnServerClientDisconnected(ClientPlatformID client)
+    {
+        ServerManager.OnServerClientDisconnected(client);
+    }
+
     private static void OnConnectionEstablished()
     {
         ClientManager.OnConnectionEstablished();

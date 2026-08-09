@@ -7,6 +7,7 @@ namespace LabFusion.Network;
 public class DisconnectMessageData : INetSerializable
 {
     public ClientPlatformID PlatformID;
+
     public string Reason;
 
     public static DisconnectMessageData Create(ClientPlatformID platformID, string reason = "")

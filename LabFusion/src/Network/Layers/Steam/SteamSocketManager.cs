@@ -1,7 +1,4 @@
-﻿using LabFusion.Player;
-using LabFusion.Senders;
-
-using Steamworks;
+﻿using Steamworks;
 using Steamworks.Data;
 
 namespace LabFusion.Network;
@@ -23,19 +20,8 @@ public class SteamSocketManager : SocketManager
     public override void OnConnecting(Connection connection, ConnectionInfo data)
     {
         base.OnConnecting(connection, data);
+
         connection.Accept();
-    }
-
-    public override void OnConnected(Connection connection, ConnectionInfo data)
-    {
-        base.OnConnected(connection, data);
-
-        // If we aren't in the connected list yet, this is likely us
-        // SteamID is always 0 here
-        if (!ConnectedSteamIDs.ContainsKey(SteamClient.SteamId))
-        {
-            ConnectedSteamIDs[SteamClient.SteamId] = connection;
-        }
     }
 
     public override void OnDisconnected(Connection connection, ConnectionInfo data)
@@ -48,15 +34,8 @@ public class SteamSocketManager : SocketManager
 
         ConnectedSteamIDs.Remove(pair.Key);
 
-        // Make sure the user hasn't previously disconnected
-        if (PlayerIDManager.HasPlayerID(platformID))
-        {
-            // Update the mod so it knows this user has left
-            InternalServerHelpers.OnPlayerLeft(platformID);
-
-            // Send disconnect notif to everyone
-            ConnectionSender.SendDisconnect(platformID);
-        }
+        // Notify the NetworkLayer
+        NetworkLayer.InvokeServerClientDisconnectedEvent(platformID);
     }
 
     public override void OnMessage(Connection connection, NetIdentity identity, IntPtr data, int size, long messageNum, long recvTime, int channel)
