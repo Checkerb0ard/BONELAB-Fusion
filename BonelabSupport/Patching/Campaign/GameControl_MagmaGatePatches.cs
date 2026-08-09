@@ -1,8 +1,9 @@
 ﻿using HarmonyLib;
 
 using LabFusion.Network;
-using MarrowFusion.Bonelab.Messages;
 using LabFusion.Scene;
+
+using MarrowFusion.Bonelab.Messages;
 
 using Il2CppSLZ.Bonelab;
 
@@ -44,7 +45,7 @@ public static class GameControl_MagmaGatePatches
             return false;
         }
 
-        MessageRelay.RelayModule<MagmaGateEventMessage, MagmaGateEventData>(new MagmaGateEventData() { Type = type }, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostModule<MagmaGateEventMessage, MagmaGateEventData>(new MagmaGateEventData() { Type = type }, NetworkChannel.Reliable);
         return true;
     }
 }

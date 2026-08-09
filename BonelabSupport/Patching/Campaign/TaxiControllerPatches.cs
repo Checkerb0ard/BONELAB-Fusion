@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 
 using MarrowFusion.Bonelab.Messages;
+
 using LabFusion.Network;
 using LabFusion.Scene;
 
@@ -32,7 +33,7 @@ public static class TaxiControllerPatches
             return false;
         }
 
-        MessageRelay.RelayModule<HomeEventMessage, HomeEventData>(new HomeEventData() { Type = HomeEventType.SPLINE_LOOP_COUNTER, SelectionNumber = 0 }, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostModule<HomeEventMessage, HomeEventData>(new HomeEventData() { Type = HomeEventType.SPLINE_LOOP_COUNTER, SelectionNumber = 0 }, NetworkChannel.Reliable);
         return true;
     }
 }

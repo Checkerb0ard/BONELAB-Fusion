@@ -79,7 +79,7 @@ public class MineDiveEventHandler : GamemodeLevelEventHandler
             return;
         }
 
-        MessageRelay.RelayModule<MineDiveCartMessage, MineDiveCartData>(new MineDiveCartData() { Amount = _cartAmount }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
+        ServerManager.SendToClientModule<MineDiveCartMessage, MineDiveCartData>(new MineDiveCartData() { Amount = _cartAmount }, NetworkChannel.Reliable, playerID.PlatformID);
     }
 
     private static void GetCartReferences()
@@ -169,7 +169,7 @@ public class MineDiveEventHandler : GamemodeLevelEventHandler
 
         CreateExtraCarts(_cartAmount);
 
-        MessageRelay.RelayModule<MineDiveCartMessage, MineDiveCartData>(new MineDiveCartData() { Amount = _cartAmount }, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostModule<MineDiveCartMessage, MineDiveCartData>(new MineDiveCartData() { Amount = _cartAmount }, NetworkChannel.Reliable);
     }
 
     public static void CreateExtraCarts(int amount)

@@ -170,19 +170,19 @@ public class DescentEventHandler : GamemodeLevelEventHandler
         // Send all intro events
         foreach (var intro in _introEvents)
         {
-            MessageRelay.RelayModule<DescentIntroMessage, DescentIntroData>(new DescentIntroData() { Type = intro.Type, SelectionNumber = (byte)intro.SelectionNumber }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
+            ClientManager.RelayModule<DescentIntroMessage, DescentIntroData>(new DescentIntroData() { Type = intro.Type, SelectionNumber = (byte)intro.SelectionNumber }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
         }
 
         // Send all noose events
         foreach (var noose in _nooseEvents)
         {
-            MessageRelay.RelayModule<DescentNooseMessage, DescentNooseData>(new DescentNooseData() { Type = noose.Type, PlayerId = noose.PlayerId }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
+            ClientManager.RelayModule<DescentNooseMessage, DescentNooseData>(new DescentNooseData() { Type = noose.Type, PlayerId = noose.PlayerId }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
         }
 
         // Send all elevator events
         foreach (var elevator in _elevatorEvents)
         {
-            MessageRelay.RelayModule<DescentElevatorMessage, DescentElevatorData>(new DescentElevatorData() { Type = elevator.Type }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
+            ClientManager.RelayModule<DescentElevatorMessage, DescentElevatorData>(new DescentElevatorData() { Type = elevator.Type }, new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
         }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using HarmonyLib;
 
 using MarrowFusion.Bonelab.Scene;
-using LabFusion.Network;
 using MarrowFusion.Bonelab.Messages;
+
+using LabFusion.Network;
 using LabFusion.Scene;
 
 using Il2CppSLZ.Bonelab;
@@ -82,7 +83,7 @@ public static class TutorialElevatorPatches
 
         var elevatorEvent = DescentEventHandler.CreateElevatorEvent(type);
 
-        MessageRelay.RelayModule<DescentElevatorMessage, DescentElevatorData>(new DescentElevatorData() { Type = elevatorEvent.Type }, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<DescentElevatorMessage, DescentElevatorData>(new DescentElevatorData() { Type = elevatorEvent.Type }, CommonMessageRoutes.ReliableToOtherClients);
         return true;
     }
 }

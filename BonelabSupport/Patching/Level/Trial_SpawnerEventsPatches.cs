@@ -3,9 +3,9 @@
 using LabFusion.Network;
 using LabFusion.Data;
 using LabFusion.Marrow;
-using LabFusion.Utilities;
-using MarrowFusion.Bonelab.Messages;
 using LabFusion.Scene;
+
+using MarrowFusion.Bonelab.Messages;
 
 using Il2CppSLZ.Bonelab;
 
@@ -60,7 +60,7 @@ public static class Trial_SpawnerEventsPatches
         {
             var hashData = HashTable.GetDataFromComponent(__instance);
 
-            MessageRelay.RelayModule<TrialSpawnerEventsMessage, TrialSpawnerEventsData>(new() { HashData = hashData }, CommonMessageRoutes.ReliableToClients);
+            ServerManager.SendToClientsModule<TrialSpawnerEventsMessage, TrialSpawnerEventsData>(new() { HashData = hashData }, NetworkChannel.Reliable);
         }
 
         return false;
