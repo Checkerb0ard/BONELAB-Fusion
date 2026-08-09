@@ -214,7 +214,7 @@ public class NetworkRig : IEntityExtender, IMarrowEntityExtender
             Barcode = barcode,
         };
 
-        MessageRelay.RelayModule<RigAvatarMessage, RigAvatarData>(data, route);
+        ClientManager.RelayModule<RigAvatarMessage, RigAvatarData>(data, route);
     }
 
     public void OnPoseReceived(RigPose pose)
@@ -401,7 +401,7 @@ public class NetworkRig : IEntityExtender, IMarrowEntityExtender
             Pose = RigPose,
         };
 
-         MessageRelay.RelayModule<RigPoseUpdateMessage, RigPoseUpdateData>(data, CommonMessageRoutes.UnreliableToOtherClients);
+        ClientManager.RelayModule<RigPoseUpdateMessage, RigPoseUpdateData>(data, CommonMessageRoutes.UnreliableToOtherClients);
     }
 
     private void OnTickReceivedRig(float deltaTime)

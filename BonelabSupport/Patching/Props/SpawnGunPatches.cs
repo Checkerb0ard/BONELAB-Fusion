@@ -105,7 +105,7 @@ public static class SpawnGunPatches
             Barcode = barcode,
         };
 
-        MessageRelay.RelayModule<SpawnGunSelectMessage, SpawnGunSelectData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<SpawnGunSelectMessage, SpawnGunSelectData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     [HarmonyPrefix]

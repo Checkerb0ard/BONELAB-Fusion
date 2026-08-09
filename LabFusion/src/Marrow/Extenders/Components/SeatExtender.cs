@@ -78,7 +78,7 @@ public class SeatExtender : EntityComponentArrayExtender<Seat>
             IsSeated = true,
         };
 
-        MessageRelay.RelayModule<RigSeatMessage, RigSeatData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
+        ClientManager.RelayModule<RigSeatMessage, RigSeatData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
     }
 
     private void OnAfterTeleportToPose()

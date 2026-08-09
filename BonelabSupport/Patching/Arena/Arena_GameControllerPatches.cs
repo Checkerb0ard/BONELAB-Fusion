@@ -126,7 +126,7 @@ public static class Arena_GameControllerPatches
             return false;
         }
 
-        MessageRelay.RelayModule<ArenaTransitionMessage, ArenaTransitionData>(new ArenaTransitionData() { Type = type }, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostModule<ArenaTransitionMessage, ArenaTransitionData>(new ArenaTransitionData() { Type = type }, NetworkChannel.Reliable);
         return true;
     }
 }

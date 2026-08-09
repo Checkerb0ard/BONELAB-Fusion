@@ -72,7 +72,7 @@ public static class RigActionManager
             Type = type,
         };
 
-        MessageRelay.RelayModule<RigActionMessage, RigActionData>(data, CommonMessageRoutes.ReliableToClients);
+        ClientManager.RelayModule<RigActionMessage, RigActionData>(data, CommonMessageRoutes.ReliableToClients);
     }
 
     public static void OnRigAction(NetworkRig networkRig, RigActionType type)

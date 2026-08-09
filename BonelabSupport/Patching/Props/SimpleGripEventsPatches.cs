@@ -180,6 +180,6 @@ public static class SimpleGripEventsPatches
             Type = type,
         };
 
-        MessageRelay.RelayModule<SimpleGripEventMessage, SimpleGripEventData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<SimpleGripEventMessage, SimpleGripEventData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 }

@@ -68,13 +68,8 @@ public class CrateSpawnerMessage : ModuleMessageHandler
             PathData = ComponentPathData.CreateFromComponent<CrateSpawner, CrateSpawnerExtender>(crateSpawner, CrateSpawnerPatches.HashTable, CrateSpawnerExtender.Cache),
         };
 
-        if (target != null)
-        {
-            MessageRelay.RelayModule<CrateSpawnerMessage, CrateSpawnerData>(data, new MessageRoute(target.SmallID, NetworkChannel.Reliable));
-        }
-        else
-        {
-            MessageRelay.RelayModule<CrateSpawnerMessage, CrateSpawnerData>(data, CommonMessageRoutes.ReliableToClients);
-        }
+        var route = target != null ? new MessageRoute(target.SmallID, NetworkChannel.Reliable) : CommonMessageRoutes.ReliableToClients;
+
+        ClientManager.RelayModule<CrateSpawnerMessage, CrateSpawnerData>(data, route);
     }
 }

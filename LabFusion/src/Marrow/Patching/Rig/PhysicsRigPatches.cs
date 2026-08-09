@@ -159,6 +159,6 @@ public static class PhysicsRigPatches
             Enabled = enabled,
         };
 
-        MessageRelay.RelayModule<PhysicsRigStateMessage, PhysicsRigStateData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<PhysicsRigStateMessage, PhysicsRigStateData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 }

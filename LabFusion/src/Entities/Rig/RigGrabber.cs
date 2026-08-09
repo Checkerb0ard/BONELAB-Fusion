@@ -52,7 +52,7 @@ public class RigGrabber
 
         var route = target != null ? new MessageRoute(target.SmallID, NetworkChannel.Reliable) : CommonMessageRoutes.ReliableToOtherClients;
 
-        MessageRelay.RelayModule<RigGrabMessage, RigGrabData>(data, route);
+        ClientManager.RelayModule<RigGrabMessage, RigGrabData>(data, route);
 
         return true;
     }
@@ -75,7 +75,7 @@ public class RigGrabber
             Handedness = hand.handedness,
         };
 
-        MessageRelay.RelayModule<RigReleaseMessage, RigReleaseData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<RigReleaseMessage, RigReleaseData>(data, CommonMessageRoutes.ReliableToOtherClients);
 
         return true;
     }

@@ -58,6 +58,6 @@ public class MagazineExtender : EntityComponentExtender<Magazine>
         // Send claim message
         var data = new MagazineClaimData() { OwnerID = PlayerIDManager.LocalSmallID, EntityID = entity.ID, Handedness = Handedness.UNDEFINED };
 
-        MessageRelay.RelayModule<MagazineClaimMessage, MagazineClaimData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
+        ClientManager.RelayModule<MagazineClaimMessage, MagazineClaimData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
     }
 }

@@ -70,6 +70,6 @@ public static class BonelabPlayerManager
 
         var bodyVitals = new SerializedBodyVitals(PlayerRefs.Instance.PlayerBodyVitals);
 
-        MessageRelay.RelayModule<BodyVitalsMessage, SerializedBodyVitals>(bodyVitals, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<BodyVitalsMessage, SerializedBodyVitals>(bodyVitals, CommonMessageRoutes.ReliableToOtherClients);
     }
 }

@@ -40,6 +40,6 @@ public class EntityRepresentationRequestMessage : ModuleMessageHandler
             Representation = representation,
         };
 
-        MessageRelay.RelayModule<EntityRepresentationResponseMessage, EntityRepresentationResponseData>(responseData, new MessageRoute(sender.Value, NetworkChannel.Reliable));
+        ClientManager.RelayModule<EntityRepresentationResponseMessage, EntityRepresentationResponseData>(responseData, new MessageRoute(sender.Value, NetworkChannel.Reliable));
     }
 }

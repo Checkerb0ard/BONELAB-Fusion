@@ -3,9 +3,10 @@
 using Il2CppSLZ.Bonelab;
 
 using MarrowFusion.Bonelab.Scene;
+using MarrowFusion.Bonelab.Messages;
+
 using LabFusion.Network;
 using LabFusion.Scene;
-using MarrowFusion.Bonelab.Messages;
 
 namespace MarrowFusion.Bonelab.Patching;
 
@@ -45,7 +46,7 @@ public static class ChallengeSelectMenuPatches
             return false;
         }
 
-        MessageRelay.RelayModule<ChallengeSelectMessage, ChallengeSelectData>(new ChallengeSelectData() { MenuIndex = (byte)menuIndex, ChallengeNumber = (byte)challengeNumber, Type = type }, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostModule<ChallengeSelectMessage, ChallengeSelectData>(new ChallengeSelectData() { MenuIndex = (byte)menuIndex, ChallengeNumber = (byte)challengeNumber, Type = type }, NetworkChannel.Reliable);
         return true;
     }
 }

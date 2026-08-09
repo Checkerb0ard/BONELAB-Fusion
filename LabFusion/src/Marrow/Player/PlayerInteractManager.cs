@@ -49,7 +49,7 @@ public static class PlayerInteractManager
             Type = type,
         };
 
-        MessageRelay.RelayModule<PlayerInteractMessage, PlayerInteractData>(data, CommonMessageRoutes.ReliableToClients);
+        ClientManager.RelayModule<PlayerInteractMessage, PlayerInteractData>(data, CommonMessageRoutes.ReliableToClients);
     }
 
     public static void OnPlayerInteraction(PlayerID playerID, PlayerID otherPlayerID, PlayerInteractType type)

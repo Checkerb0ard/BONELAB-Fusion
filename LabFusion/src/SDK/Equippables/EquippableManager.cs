@@ -191,7 +191,7 @@ public static class EquippableManager
             IsEquipped = equipped,
         };
 
-        MessageRelay.RelayModule<EquippableEquipMessage, EquippableEquipData>(data, route);
+        ClientManager.RelayModule<EquippableEquipMessage, EquippableEquipData>(data, route);
     }
 
     private static void InvokeAllEquipEvents(IEquippableItem equippable)

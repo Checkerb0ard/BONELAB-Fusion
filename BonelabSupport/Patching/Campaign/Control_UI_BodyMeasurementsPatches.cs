@@ -1,8 +1,9 @@
 ﻿using HarmonyLib;
 
 using MarrowFusion.Bonelab.Scene;
-using LabFusion.Network;
 using MarrowFusion.Bonelab.Messages;
+
+using LabFusion.Network;
 using LabFusion.Scene;
 
 using Il2CppSLZ.Bonelab;
@@ -30,6 +31,6 @@ public static class Control_UI_BodyMeasurementsPatches
             return;
         }
 
-        MessageRelay.RelayModule<DescentIntroMessage, DescentIntroData>(new DescentIntroData() { Type = introEvent.Type, SelectionNumber = (byte)introEvent.SelectionNumber }, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<DescentIntroMessage, DescentIntroData>(new DescentIntroData() { Type = introEvent.Type, SelectionNumber = (byte)introEvent.SelectionNumber }, CommonMessageRoutes.ReliableToOtherClients);
     }
 }

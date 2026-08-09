@@ -71,7 +71,7 @@ public class InventorySlotReceiverPatches
         // Send a receiver drop message
         var data = new InventorySlotDropData() { SlotEntityID = slotEntity.ID, GrabberID = PlayerIDManager.LocalSmallID, SlotIndex = index.Value, Handedness = handedness };
 
-        MessageRelay.RelayModule<InventorySlotDropMessage, InventorySlotDropData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<InventorySlotDropMessage, InventorySlotDropData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     [HarmonyPrefix]
@@ -157,7 +157,7 @@ public class InventorySlotReceiverPatches
             SlotIndex = index.Value,
         };
 
-        MessageRelay.RelayModule<InventorySlotInsertMessage, InventorySlotInsertData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<InventorySlotInsertMessage, InventorySlotInsertData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     [HarmonyPrefix]

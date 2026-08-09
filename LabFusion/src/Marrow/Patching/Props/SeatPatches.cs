@@ -125,7 +125,7 @@ public static class SeatPatches
             IsSeated = true,
         };
 
-        MessageRelay.RelayModule<RigSeatMessage, RigSeatData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<RigSeatMessage, RigSeatData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     [HarmonyPrefix]
@@ -171,6 +171,6 @@ public static class SeatPatches
             IsSeated = false,
         };
 
-        MessageRelay.RelayModule<RigSeatMessage, RigSeatData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<RigSeatMessage, RigSeatData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 }

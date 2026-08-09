@@ -119,7 +119,7 @@ public static class GunPatches
                     Gun = ComponentIndexData.CreateFromEntity(gunEntity.ID, gunExtender.GetIndex(__instance).Value)
                 };
 
-                MessageRelay.RelayModule<GunShotMessage, GunShotData>(data, CommonMessageRoutes.ReliableToOtherClients);
+                ClientManager.RelayModule<GunShotMessage, GunShotData>(data, CommonMessageRoutes.ReliableToOtherClients);
             }
         }
         catch (Exception e)

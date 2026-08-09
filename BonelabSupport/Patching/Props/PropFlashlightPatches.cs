@@ -40,7 +40,7 @@ public static class PropFlashlightPatches
 
             var data = FlashlightToggleData.Create(new(entity), toggledLight);
 
-            MessageRelay.RelayModule<FlashlightToggleMessage, FlashlightToggleData>(data, CommonMessageRoutes.ReliableToClients);
+            ClientManager.RelayModule<FlashlightToggleMessage, FlashlightToggleData>(data, CommonMessageRoutes.ReliableToClients);
         }
 
         return false;

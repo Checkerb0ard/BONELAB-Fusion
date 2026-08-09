@@ -120,7 +120,7 @@ public static class BoardSpawnerAsyncPatches
                     EndPoint = endPoint,
                 };
 
-                MessageRelay.RelayModule<BoardGeneratorMessage, BoardGeneratorData>(data, CommonMessageRoutes.ReliableToClients);
+                ClientManager.RelayModule<BoardGeneratorMessage, BoardGeneratorData>(data, CommonMessageRoutes.ReliableToClients);
             }
         });
 

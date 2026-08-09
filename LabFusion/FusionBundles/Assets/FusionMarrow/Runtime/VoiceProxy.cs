@@ -320,7 +320,7 @@ namespace LabFusion.Marrow.Integration
                 Input = input,
             };
 
-            MessageRelay.RelayModule<VoiceProxyInputMessage, VoiceProxyInputData>(data, CommonMessageRoutes.ReliableToClients);
+            ClientManager.RelayModule<VoiceProxyInputMessage, VoiceProxyInputData>(data, CommonMessageRoutes.ReliableToClients);
         }
 
         private static void ProcessVoiceProxies()

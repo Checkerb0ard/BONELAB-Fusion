@@ -3,6 +3,7 @@
 using Il2CppSLZ.Bonelab;
 
 using MarrowFusion.Bonelab.Messages;
+
 using LabFusion.Network;
 using LabFusion.Scene;
 
@@ -79,7 +80,7 @@ public static class ArenaMenuControllerPatches
             return false;
         }
 
-        MessageRelay.RelayModule<ArenaMenuMessage, ArenaMenuData>(new ArenaMenuData() { SelectionNumber = selectionNumber, Type = type }, CommonMessageRoutes.ReliableToOtherClients);
+        ServerManager.SendToClientsExceptHostModule<ArenaMenuMessage, ArenaMenuData>(new ArenaMenuData() { SelectionNumber = selectionNumber, Type = type }, NetworkChannel.Reliable);
         return true;
     }
 }

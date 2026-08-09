@@ -132,7 +132,7 @@ namespace LabFusion.Marrow.Integration
                 NormalizedTime = normalizedTime,
             };
 
-            MessageRelay.RelayModule<AnimationStateMessage, AnimationStateData>(data, CommonMessageRoutes.UnreliableToOtherClients);
+            ClientManager.RelayModule<AnimationStateMessage, AnimationStateData>(data, CommonMessageRoutes.UnreliableToOtherClients);
         }
 #endif
     }

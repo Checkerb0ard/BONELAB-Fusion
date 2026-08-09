@@ -48,6 +48,6 @@ public static class PhysLimbPatches
             Left = left,
         };
 
-        MessageRelay.RelayModule<PhysicsRigStateMessage, PhysicsRigStateData>(data, CommonMessageRoutes.ReliableToOtherClients);
+        ClientManager.RelayModule<PhysicsRigStateMessage, PhysicsRigStateData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 }

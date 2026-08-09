@@ -51,7 +51,7 @@ public class ObjectDestructibleExtender : EntityComponentArrayExtender<ObjectDes
 
         var data = ComponentIndexData.CreateFromEntity(entity.ID, GetIndex(destructible).Value);
 
-        MessageRelay.RelayModule<ObjectDestructibleDestroyMessage, ComponentIndexData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
+        ClientManager.RelayModule<ObjectDestructibleDestroyMessage, ComponentIndexData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
     }
 
     private static bool IsDestroyed(ObjectDestructible destructible)
