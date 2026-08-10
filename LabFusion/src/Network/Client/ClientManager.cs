@@ -35,6 +35,11 @@ public static class ClientManager
     /// </summary>
     public static ServerID ConnectedServerID => NetworkLayerManager.Layer?.ConnectedServerID ?? ServerID.Empty;
 
+    /// <summary>
+    /// The last reason given for the client being disconnected, or null if there is none.
+    /// </summary>
+    public static string LastDisconnectReason { get; internal set; } = null;
+
     private static bool IsLayerConnected => NetworkLayerManager.Layer?.IsClientConnected ?? false;
 
     private static bool _attemptingConnection = false;
@@ -122,6 +127,7 @@ public static class ClientManager
     internal static void OnConnectionEstablished()
     {
         _attemptingConnection = true;
+        LastDisconnectReason = null;
 
         RequestConnection();
     }
