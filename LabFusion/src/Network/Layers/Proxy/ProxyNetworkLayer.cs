@@ -225,7 +225,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
 
     public override void OnDeinitializeLayer()
     {
-        Disconnect();
+        // Disconnect();
 
         UnHookSteamEvents();
 
@@ -233,72 +233,72 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         _voiceManager = null;
     }
 
-    public override void LogIn()
-    {
-        // If a client is currently running, cancel it
-        if (client != null)
-        {
-            client.Stop();
+    // public override void LogIn()
+    // {
+    //     // If a client is currently running, cancel it
+    //     if (client != null)
+    //     {
+    //         client.Stop();
+    // 
+    //         client = null;
+    //         serverConnection = null;
+    //     }
+    // 
+    //     EventBasedNetListener listener = new();
+    //     client = new NetManager(listener)
+    //     {
+    //         UnconnectedMessagesEnabled = true,
+    //         BroadcastReceiveEnabled = true,
+    //         DisconnectOnUnreachable = true,
+    //         DisconnectTimeout = 10000,
+    //         PingInterval = 5000,
+    //     };
+    //     listener.NetworkReceiveEvent += EvaluateMessage;
+    //     listener.PeerConnectedEvent += (peer) =>
+    //     {
+    //         // InvokeLoggedInEvent();
+    // 
+    //         serverConnection = peer;
+    //         NetDataWriter writer = NewWriter(MessageTypes.SteamID);
+    // 
+    //         listener.PeerDisconnectedEvent += (peer, disconnectInfo) =>
+    //         {
+    //             FusionLogger.Error("Proxy has disconnected, logging out!");
+    //             serverConnection = null;
+    // 
+    //             // InvokeLoggedOutEvent();
+    //         };
+    // 
+    //         writer.Put(ApplicationID);
+    //         SendToProxyServer(writer);
+    //     };
+    // 
+    //     listener.NetworkReceiveUnconnectedEvent += (endPoint, reader, messageType) =>
+    //     {
+    //         if (reader.TryGetString(out string data) && data == "YOU_FOUND_ME")
+    //         {
+    //             FusionLogger.Log("Found the proxy server!");
+    //             client.Connect(endPoint, "ProxyConnection");
+    //         }
+    // 
+    //         reader.Recycle();
+    //     };
+    // 
+    //     client.Start();
+    //     FusionLogger.Log("Beginning proxy discovery...");
+    //     MelonCoroutines.Start(DiscoverServer());
+    // }
 
-            client = null;
-            serverConnection = null;
-        }
-
-        EventBasedNetListener listener = new();
-        client = new NetManager(listener)
-        {
-            UnconnectedMessagesEnabled = true,
-            BroadcastReceiveEnabled = true,
-            DisconnectOnUnreachable = true,
-            DisconnectTimeout = 10000,
-            PingInterval = 5000,
-        };
-        listener.NetworkReceiveEvent += EvaluateMessage;
-        listener.PeerConnectedEvent += (peer) =>
-        {
-            InvokeLoggedInEvent();
-
-            serverConnection = peer;
-            NetDataWriter writer = NewWriter(MessageTypes.SteamID);
-
-            listener.PeerDisconnectedEvent += (peer, disconnectInfo) =>
-            {
-                FusionLogger.Error("Proxy has disconnected, logging out!");
-                serverConnection = null;
-
-                InvokeLoggedOutEvent();
-            };
-
-            writer.Put(ApplicationID);
-            SendToProxyServer(writer);
-        };
-
-        listener.NetworkReceiveUnconnectedEvent += (endPoint, reader, messageType) =>
-        {
-            if (reader.TryGetString(out string data) && data == "YOU_FOUND_ME")
-            {
-                FusionLogger.Log("Found the proxy server!");
-                client.Connect(endPoint, "ProxyConnection");
-            }
-
-            reader.Recycle();
-        };
-
-        client.Start();
-        FusionLogger.Log("Beginning proxy discovery...");
-        MelonCoroutines.Start(DiscoverServer());
-    }
-
-    public override void LogOut()
-    {
-        // End the running client
-        client.Stop();
-
-        client = null;
-        serverConnection = null;
-
-        InvokeLoggedOutEvent();
-    }
+    // public override void LogOut()
+    // {
+    //     // End the running client
+    //     client.Stop();
+    // 
+    //     client = null;
+    //     serverConnection = null;
+    // 
+    //     InvokeLoggedOutEvent();
+    // }
 
     public override void OnUpdateLayer()
     {
@@ -353,16 +353,11 @@ public abstract class ProxyNetworkLayer : NetworkLayer
             return false;
     }
 
-    public override void StartServer()
-    {
-        SendToProxyServer(MessageTypes.StartServer);
-    }
-
     public void JoinServer(SteamId serverId)
     {
         // Leave existing server
-        if (_isConnectionActive || _isServerActive)
-            Disconnect();
+        // if (_isConnectionActive || _isServerActive)
+        //     Disconnect();
 
         NetDataWriter writer = NewWriter(MessageTypes.JoinServer);
         writer.Put(serverId);
@@ -374,28 +369,28 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         // ConnectionSender.SendConnectionRequest();
     }
 
-    public override void Disconnect(string reason = "")
-    {
-        // Make sure we are currently in a server
-        if (!_isServerActive && !_isConnectionActive)
-        {
-            return;
-        }
-
-        try
-        {
-            SendToProxyServer(MessageTypes.Disconnect);
-        }
-        catch
-        {
-            FusionLogger.Log("Error closing socket server / connection manager");
-        }
-
-        _isServerActive = false;
-        _isConnectionActive = false;
-
-        InternalServerHelpers.OnDisconnect(reason);
-    }
+    // public override void Disconnect(string reason = "")
+    // {
+    //     // Make sure we are currently in a server
+    //     if (!_isServerActive && !_isConnectionActive)
+    //     {
+    //         return;
+    //     }
+    // 
+    //     try
+    //     {
+    //         SendToProxyServer(MessageTypes.Disconnect);
+    //     }
+    //     catch
+    //     {
+    //         FusionLogger.Log("Error closing socket server / connection manager");
+    //     }
+    // 
+    //     _isServerActive = false;
+    //     _isConnectionActive = false;
+    // 
+    //     InternalServerHelpers.OnDisconnect(reason);
+    // }
 
     public string ServerCode { get; private set; } = null;
 

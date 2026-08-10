@@ -293,6 +293,8 @@ public class FusionMod : MelonMod
 
         // Update delayed events at the very end of the frame
         DelayUtilities.OnProcessDelays();
+
+        ThreadHelper.Tick();
     }
 
     public override void OnFixedUpdate()

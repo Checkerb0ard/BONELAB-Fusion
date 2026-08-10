@@ -169,7 +169,7 @@ public static class NetworkLayerManager
 
         NetworkLayer.ServerStarted += OnServerStarted;
         NetworkLayer.ServerStopped += OnServerStopped;
-        NetworkLayer.ServerClientDisconnected += OnServerClientDisconnected;
+        NetworkLayer.ClientDisconnected += OnServerClientDisconnected;
 
         NetworkLayer.ConnectionEstablished += OnConnectionEstablished;
         NetworkLayer.ConnectionLost += OnConnectionLost;

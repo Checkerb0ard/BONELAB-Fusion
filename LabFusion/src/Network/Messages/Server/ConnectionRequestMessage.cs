@@ -70,6 +70,8 @@ public class ConnectionRequestMessage : NativeMessageHandler
 
         var newSmallId = PlayerIDManager.GetUniquePlayerID();
 
+        bool isListenServer = ClientManager.IsClientConnecting && platformID == PlayerIDManager.LocalPlatformID;
+
         // No unused ids available
         if (!newSmallId.HasValue)
         {
@@ -99,7 +101,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
         }
 
         // Make sure we aren't loading
-        if (FusionSceneManager.IsLoading())
+        if (!isListenServer && FusionSceneManager.IsLoading())
         {
             ServerManager.SendDisconnect(platformID, "Host is loading.");
             return;

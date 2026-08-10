@@ -108,18 +108,18 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _localLobby = default;
         _currentLobby = null;
 
-        Disconnect();
+        DisconnectClientAndServer();
 
         UnHookSteamEvents();
 
         SteamAPI.Shutdown();
     }
 
-    public override void LogIn()
+    protected override Task<bool> TryLogInAsync(CancellationToken cancellationToken)
     {
         if (SteamClient.IsValid)
         {
-            return;
+            return Task.FromResult(false);
         }
 
         // Shutdown the game's steam client, if available
@@ -155,18 +155,17 @@ public abstract class SteamNetworkLayer : NetworkLayer
                 PopupLength = 6f,
             });
 
-            InvokeLoggedOutEvent();
-            return;
+            return Task.FromResult(false);
         }
 
-        InvokeLoggedInEvent();
+        return Task.FromResult(true);
     }
 
-    public override void LogOut()
+    protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
     {
         SteamClient.Shutdown();
 
-        InvokeLoggedOutEvent();
+        return Task.FromResult(true);
     }
 
     private const string STEAMWORKS_ASSEMBLY_NAME = "Il2CppFacepunch.Steamworks.Win64";
@@ -251,23 +250,18 @@ public abstract class SteamNetworkLayer : NetworkLayer
         ClientSteamConnection.ClientSendToServer(channel, message);
     }
 
-    public override void StartServer()
+    protected override Task<bool> TryStartServerAsync(CancellationToken cancellationToken)
     {
         ServerSteamSocket = SteamNetworkingSockets.CreateRelaySocket<SteamSocketManager>();
         _runningServerID = new ServerID(ClientSteamID);
 
         RefreshServerCode();
 
-        InvokeServerStartedEvent();
+        return Task.FromResult(true);
     }
 
-    public override void StopServer()
+    protected override Task<bool> TryStopServerAsync(CancellationToken cancellationToken)
     {
-        if (!IsServerRunning)
-        {
-            return;
-        }
-
         try
         {
             ServerSteamSocket?.Close();
@@ -275,64 +269,82 @@ public abstract class SteamNetworkLayer : NetworkLayer
         catch (Exception e)
         {
             FusionLogger.LogException("stopping server", e);
+
+            return Task.FromResult(false);
         }
 
         ServerSteamSocket = null;
         _runningServerID = ServerID.Empty;
 
-        InvokeServerStoppedEvent();
+        return Task.FromResult(true);
     }
 
-    public override void ServerDisconnectClient(ClientPlatformID client)
+    protected override async Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
     {
-        if (!IsServerRunning)
-        {
-            return;
-        }
-
-        ServerSteamSocket.DisconnectUser((ulong)client);
-    }
-
-    public override void ConnectToServer(ServerID server)
-    {
-        if (IsClientConnected)
-        {
-            ClientDisconnectFromServer();
-        }
-
-        SteamId serverSteamID = (ulong)server;
-
-        ClientSteamConnection = SteamNetworkingSockets.ConnectRelay<SteamConnectionManager>(serverSteamID);
-        _connectedServerID = server;
-
-        InvokeConnectionEstablishedEvent();
-    }
-
-    public override void ClientDisconnectFromServer()
-    {
-        if (!IsClientConnected)
-        {
-            return;
-        }
-
         try
         {
-            ClientSteamConnection?.Close();
+            if (ClientSteamConnection.Connected)
+            {
+                ClientSteamConnection.Close();
+            }
         }
         catch (Exception e)
         {
             FusionLogger.LogException("disconnecting client from server", e);
+
+            return false;
+        }
+
+        while (ClientSteamConnection.Connected)
+        {
+            await Task.Delay(500, CancellationToken.None);
         }
 
         ClientSteamConnection = null;
         _connectedServerID = ServerID.Empty;
 
-        InvokeConnectionLostEvent();
+        return true;
     }
 
-    public override void Disconnect(string reason = "")
+    protected override Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        ServerSteamSocket.DisconnectUser((ulong)client);
+
+        return Task.FromResult(true);
+    }
+
+    protected override async Task<bool> TryConnectToServerAsync(ServerID server, CancellationToken cancellationToken)
+    {
+        SteamId serverSteamID = (ulong)server;
+
+        var connection = SteamNetworkingSockets.ConnectRelay<SteamConnectionManager>(serverSteamID);
+
+        while (connection.Connecting)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                connection.Close();
+                return false;
+            }
+
+            await Task.Delay(500, CancellationToken.None);
+        }
+
+        if (!connection.Connected)
+        {
+            return false;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            connection.Close();
+            return false;
+        }
+
+        ClientSteamConnection = connection;
+        _connectedServerID = server;
+
+        return true;
     }
 
     public string ServerCode { get; private set; } = null;

@@ -19,10 +19,6 @@ public class EmptyNetworkLayer : NetworkLayer
 
     public override ServerID ConnectedServerID => throw new NotImplementedException();
 
-    public override void Disconnect(string reason = "") { }
-
-    public override void StartServer() { }
-
     public override bool CheckSupported()
     {
 #if DEBUG
@@ -51,16 +47,6 @@ public class EmptyNetworkLayer : NetworkLayer
     {
     }
 
-    public override void LogIn()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void LogOut()
-    {
-        throw new NotImplementedException();
-    }
-
     public override void ServerSendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
     {
         throw new NotImplementedException();
@@ -76,22 +62,37 @@ public class EmptyNetworkLayer : NetworkLayer
         throw new NotImplementedException();
     }
 
-    public override void StopServer()
+    protected override Task<bool> TryConnectToServerAsync(ServerID server, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public override void ServerDisconnectClient(ClientPlatformID client)
+    protected override Task<bool> TryStartServerAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public override void ConnectToServer(ServerID server)
+    protected override Task<bool> TryStopServerAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public override void ClientDisconnectFromServer()
+    protected override Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryLogInAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

@@ -1,4 +1,5 @@
 ﻿
+
 namespace LabFusion.Network.Proxy;
 
 public sealed class ProxySteamVRNetworkLayer : ProxyNetworkLayer
@@ -17,22 +18,7 @@ public sealed class ProxySteamVRNetworkLayer : ProxyNetworkLayer
 
     public override ServerID ConnectedServerID => throw new NotImplementedException();
 
-    public override void ClientDisconnectFromServer()
-    {
-        throw new NotImplementedException();
-    }
-
     public override void ClientSendToServer(NetMessage message, NetworkChannel channel)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void ConnectToServer(ServerID server)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void ServerDisconnectClient(ClientPlatformID client)
     {
         throw new NotImplementedException();
     }
@@ -47,7 +33,37 @@ public sealed class ProxySteamVRNetworkLayer : ProxyNetworkLayer
         throw new NotImplementedException();
     }
 
-    public override void StopServer()
+    protected override Task<bool> TryConnectToServerAsync(ServerID server, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryLogInAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryStartServerAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<bool> TryStopServerAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

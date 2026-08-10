@@ -24,7 +24,7 @@ public static class NetworkHelper
     /// </summary>
     public static void Disconnect(string reason = "")
     {
-        NetworkLayerManager.Layer?.Disconnect(reason);
+        NetworkLayerManager.Layer?.DisconnectClientAndServer();
     }
 
     /// <summary>

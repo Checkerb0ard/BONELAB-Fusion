@@ -1,6 +1,7 @@
 ﻿using LabFusion.Network.Serialization;
 
 using LabFusion.Player;
+using LabFusion.Utilities;
 
 namespace LabFusion.Network;
 
@@ -35,6 +36,8 @@ public class DisconnectMessage : NativeMessageHandler
     protected override void OnHandleMessage(ReceivedMessage received)
     {
         var data = received.ReadData<DisconnectMessageData>();
+
+        FusionLogger.Log($"Received disconnect for reason {data.Reason}");
 
         // If this is our id, disconnect ourselves
         if (data.PlatformID == PlayerIDManager.LocalPlatformID)

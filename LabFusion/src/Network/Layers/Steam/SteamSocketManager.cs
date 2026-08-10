@@ -34,8 +34,7 @@ public class SteamSocketManager : SocketManager
 
         ConnectedSteamIDs.Remove(pair.Key);
 
-        // Notify the NetworkLayer
-        NetworkLayer.InvokeServerClientDisconnectedEvent(platformID);
+        NetworkLayerManager.Layer?.DisconnectClient(platformID);
     }
 
     public override void OnMessage(Connection connection, NetIdentity identity, IntPtr data, int size, long messageNum, long recvTime, int channel)

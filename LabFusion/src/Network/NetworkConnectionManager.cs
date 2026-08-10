@@ -43,7 +43,7 @@ public static class NetworkConnectionManager
 
         var layer = NetworkInfo.Layer;
 
-        layer.ServerDisconnectClient(platformID);
+        layer.DisconnectClient(platformID);
     }
 
     internal static void OnUpdate(float deltaTime)
