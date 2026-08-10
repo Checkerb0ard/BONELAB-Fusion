@@ -525,11 +525,20 @@ public abstract class NetworkLayer
             return false;
         }
 
-        bool clientConnected = await ConnectToServerAsync(RunningServerID, cancellationToken);
-
-        if (!clientConnected)
+        try
         {
-            return false;
+            bool clientConnected = await ConnectToServerAsync(RunningServerID, cancellationToken);
+
+            if (!clientConnected)
+            {
+                StopServer();
+                return false;
+            }
+        }
+        catch
+        {
+            StopServer();
+            throw;
         }
 
         return true;
