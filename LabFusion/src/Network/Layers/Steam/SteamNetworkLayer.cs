@@ -122,19 +122,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return false;
         }
 
-        var shutdownClientTask = new TaskCompletionSource();
-
-        ThreadHelper.RunOnMainThread(() =>
-        {
-            if (GameHasSteamworks())
-            {
-                ShutdownGameClient();
-            }
-
-            shutdownClientTask.SetResult();
-        });
-
-        await shutdownClientTask.Task;
+        await ThreadHelper.RunOnMainThreadAsTask(TryShutdownGameClient);
 
         bool succeeded;
 
@@ -191,6 +179,16 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
 
         return false;
+    }
+
+    private static void TryShutdownGameClient()
+    {
+        if (!GameHasSteamworks())
+        {
+            return;
+        }
+
+        ShutdownGameClient();
     }
 
     private static void ShutdownGameClient()

@@ -581,6 +581,11 @@ public abstract class NetworkLayer
         return closedConnections;
     }
 
+    /// <summary>
+    /// Ticks the network layer.
+    /// </summary>
+    public void Tick() => OnTick();
+
     /// Returns the username of the player with id userId.
     /// </summary>
     /// <param name="userId"></param>
@@ -696,6 +701,11 @@ public abstract class NetworkLayer
     /// <param name="cancellationToken">The cancellation token that will be checked prior to the client being disconnected.</param>
     /// <returns>Whether the client was disconnected from the server successfully.</returns>
     protected abstract Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Ran when the network layer is ticked, during log in and while the layer is active.
+    /// </summary>
+    protected abstract void OnTick();
 
     private void NotifyLogInCompleted() => ThreadHelper.RunOnMainThread(InvokeLogInCompleted);
     private void NotifyLogOutCompleted() => ThreadHelper.RunOnMainThread(InvokeLogOutCompleted);
