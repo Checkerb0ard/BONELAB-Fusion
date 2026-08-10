@@ -31,7 +31,7 @@ public static class MenuPopupsHelper
 
     private static void UpdateLogIn()
     {
-        if (NetworkLayerManager.LoggedIn)
+        if (NetworkLayerManager.IsLoggedIn)
         {
             OnLoggedIn();
         }

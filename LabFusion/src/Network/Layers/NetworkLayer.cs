@@ -541,7 +541,7 @@ public abstract class NetworkLayer
     /// </summary>
     public void DisconnectClientAndServer()
     {
-        Task.Run(async () => { await DisconnectFromServerAsync(); });
+        Task.Run(async () => { await DisconnectClientAndServerAsync(); });
     }
 
     /// <summary>
@@ -582,9 +582,30 @@ public abstract class NetworkLayer
     }
 
     /// <summary>
+    /// Initializes the network layer after it has logged in.
+    /// </summary>
+    public void Initialize()
+    {
+        OnInitialize();
+    }
+
+    /// <summary>
+    /// Deinitializes the network layer after it has logged out.
+    /// </summary>
+    public void Deinitialize()
+    {
+        OnDeinitialize();
+    }
+
+    /// <summary>
     /// Ticks the network layer.
     /// </summary>
     public void Tick() => OnTick();
+
+    /// <summary>
+    /// Ticks the network layer later in the frame.
+    /// </summary>
+    public void LateTick() => OnLateTick();
 
     /// Returns the username of the player with id userId.
     /// </summary>
@@ -621,21 +642,6 @@ public abstract class NetworkLayer
     /// <param name="message"></param>
     /// <param name="channel"></param>
     public abstract void ClientSendToServer(NetMessage message, NetworkChannel channel);
-
-    /// <summary>
-    /// Invoked on the layer after it has logged in to any necessary APIs.
-    /// </summary>
-    public abstract void OnInitializeLayer();
-
-    /// <summary>
-    /// Invoked on the layer after it has logged out of any necessary APIs.
-    /// <para>This is when you should clean up the layer.</para>
-    /// </summary>
-    public abstract void OnDeinitializeLayer();
-
-    public virtual void OnUpdateLayer() { }
-
-    public virtual void OnLateUpdateLayer() { }
 
     public virtual string GetServerCode()
     {
@@ -703,9 +709,24 @@ public abstract class NetworkLayer
     protected abstract Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken);
 
     /// <summary>
+    /// Initializes the network layer after it has completed logging in.
+    /// </summary>
+    protected virtual void OnInitialize() { }
+
+    /// <summary>
+    /// Deinitializes the network layer after it has completed logging out.
+    /// </summary>
+    protected virtual void OnDeinitialize() { }
+
+    /// <summary>
     /// Ran when the network layer is ticked, during log in and while the layer is active.
     /// </summary>
-    protected abstract void OnTick();
+    protected virtual void OnTick() { }
+
+    /// <summary>
+    /// Ran after the network layer is ticked later in the frame, during log in and while the layer is active.
+    /// </summary>
+    protected virtual void OnLateTick() { }
 
     private void NotifyLogInCompleted() => ThreadHelper.RunOnMainThread(InvokeLogInCompleted);
     private void NotifyLogOutCompleted() => ThreadHelper.RunOnMainThread(InvokeLogOutCompleted);

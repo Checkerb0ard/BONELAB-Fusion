@@ -33,19 +33,19 @@ public class EmptyNetworkLayer : NetworkLayer
         return true;
     }
 
-    public override void OnInitializeLayer()
-    {
-        FusionLogger.Log("Initialized mod with an empty networking layer!", ConsoleColor.Magenta);
-#if DEBUG
-        FusionLogger.Log("This is for debugging purposes only, and will not allow multiplayer!", ConsoleColor.Magenta);
-#else
-        FusionLogger.Log("This usually means all other network layers failed to initialize, or you selected Empty in the settings.", ConsoleColor.Magenta);
-#endif
-    }
+//     public override void OnInitializeLayer()
+//     {
+//         FusionLogger.Log("Initialized mod with an empty networking layer!", ConsoleColor.Magenta);
+// #if DEBUG
+//         FusionLogger.Log("This is for debugging purposes only, and will not allow multiplayer!", ConsoleColor.Magenta);
+// #else
+//         FusionLogger.Log("This usually means all other network layers failed to initialize, or you selected Empty in the settings.", ConsoleColor.Magenta);
+// #endif
+//     }
 
-    public override void OnDeinitializeLayer() 
-    {
-    }
+//     public override void OnDeinitializeLayer() 
+//     {
+//     }
 
     public override void ServerSendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
     {

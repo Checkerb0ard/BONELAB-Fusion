@@ -312,7 +312,7 @@ public static class ServerManager
         InternalServerHelpers.OnDisconnect();
     }
 
-    internal static void OnServerClientDisconnected(ClientPlatformID client)
+    internal static void OnClientDisconnected(ClientPlatformID client)
     {
         // TODO: Cleanup, this is just copied from where it was in the network layer
         // Make sure the user hasn't previously disconnected

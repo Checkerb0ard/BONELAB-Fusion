@@ -1,5 +1,4 @@
-﻿using LabFusion.Senders;
-using LabFusion.Utilities;
+﻿using LabFusion.Utilities;
 
 using System.Reflection;
 
@@ -26,7 +25,7 @@ public static class NetworkLayerManager
     public static readonly Dictionary<string, NetworkLayer> LayerTitleLookup = new();
 
     /// <summary>
-    /// The active network transport layer.
+    /// The active network layer.
     /// </summary>
     public static NetworkLayer Layer { get; private set; } = null;
 
@@ -36,14 +35,24 @@ public static class NetworkLayerManager
     public static bool HasLayer => Layer != null;
 
     /// <summary>
-    /// Returns if the user is logged into the active network layer.
+    /// Returns if the active layer is currently being logged in to.
     /// </summary>
-    public static bool LoggedIn
+    public static bool IsLoggingIn { get; private set; }
+
+    /// <summary>
+    /// Returns if the active layer is currently being logged out of.
+    /// </summary>
+    public static bool IsLoggingOut { get; private set; }
+
+    /// <summary>
+    /// Returns if the active layer is already logged in.
+    /// </summary>
+    public static bool IsLoggedIn
     {
-        get => _loggedIn;
+        get => _isLoggedIn;
         private set
         {
-            _loggedIn = value;
+            _isLoggedIn = value;
 
             LogInChanged?.Invoke(value);
         }
@@ -54,7 +63,7 @@ public static class NetworkLayerManager
     /// </summary>
     public static event Action<bool> LogInChanged;
 
-    private static bool _loggedIn = false;
+    private static bool _isLoggedIn = false;
 
     /// <summary>
     /// Registers all <see cref="NetworkLayer"/>s contained in an assembly.
@@ -140,67 +149,135 @@ public static class NetworkLayerManager
         return NetworkLayerDeterminer.LoadedLayer;
     }
 
-    /// <summary>
-    /// Attempts to log in to a NetworkLayer.
-    /// </summary>
-    /// <param name="layer"></param>
     public static void LogIn(NetworkLayer layer)
     {
-        layer.LogIn();
+        Task.Run(async () => { await LogInAsync(layer); });
     }
 
-    /// <summary>
-    /// Attempts to log out of the currently logged in NetworkLayer.
-    /// </summary>
-    public static void LogOut()
+    public static async Task<bool> LogInAsync(NetworkLayer layer) => await LogInAsync(layer, CancellationToken.None);
+
+    public static async Task<bool> LogInAsync(NetworkLayer layer, CancellationToken cancellationToken)
     {
-        if (Layer == null)
+        if (IsLoggingIn || IsLoggingOut)
+        {
+            return false;
+        }
+
+        if (IsLoggedIn)
+        {
+            bool loggedOut = await LogOutAsync(cancellationToken);
+
+            if (!loggedOut)
+            {
+                return false;
+            }
+        }
+
+        IsLoggingIn = true;
+        Layer = layer;
+
+        bool result = false;
+
+        try
+        {
+            result = await layer.LogInAsync(cancellationToken);
+        }
+        catch
+        {
+            Layer = null;
+        }
+        finally
+        {
+            IsLoggingIn = false;
+        }
+
+        if (result)
+        {
+            ThreadHelper.RunOnMainThread(OnLogInCompleted);
+        }
+
+        return result;
+    }
+
+    public static void LogOut() => Task.Run(async () => { await LogOutAsync(); });
+
+    public static async Task<bool> LogOutAsync() => await LogOutAsync(CancellationToken.None);
+
+    public static async Task<bool> LogOutAsync(CancellationToken cancellationToken)
+    {
+        if (IsLoggingIn || IsLoggingOut)
+        {
+            return false;
+        }
+
+        if (!IsLoggedIn)
+        {
+            return false;
+        }
+
+        IsLoggingOut = true;
+
+        bool result = false;
+
+        try
+        {
+            result = await Layer.LogOutAsync(cancellationToken);
+        }
+        finally
+        {
+            IsLoggingOut = false;
+        }
+
+        if (result)
+        {
+            ThreadHelper.RunOnMainThread(OnLogOutCompleted);
+        }
+
+        return result;
+    }
+
+    internal static void Tick()
+    {
+        if (!HasLayer)
         {
             return;
         }
 
-        Layer.LogOut();
+        try
+        {
+            Layer.Tick();
+        }
+        catch (Exception ex)
+        {
+            FusionLogger.LogException("ticking network layer", ex);
+        }
+    }
+
+    internal static void LateTick()
+    {
+        if (!HasLayer)
+        {
+            return;
+        }
+
+        try
+        {
+            Layer.LateTick();
+        }
+        catch (Exception ex)
+        {
+            FusionLogger.LogException("late ticking network layer", ex);
+        }
     }
 
     internal static void OnInitializeMelon()
     {
-        NetworkLayer.LogInCompleted += OnLoggedIn;
-        NetworkLayer.LogOutCompleted += OnLoggedOut;
-
         NetworkLayer.ServerStarted += OnServerStarted;
         NetworkLayer.ServerStopped += OnServerStopped;
-        NetworkLayer.ClientDisconnected += OnServerClientDisconnected;
+        NetworkLayer.ClientDisconnected += OnClientDisconnected;
 
         NetworkLayer.ConnectionEstablished += OnConnectionEstablished;
         NetworkLayer.ConnectionLost += OnConnectionLost;
-    }
-
-    private static void OnLoggedIn(NetworkLayer layer)
-    {
-        var previousLayer = Layer;
-
-        if (previousLayer != null && previousLayer != layer)
-        {
-            Layer = null;
-            previousLayer.LogOut();
-        }
-
-        Layer = layer;
-
-        layer.OnInitializeLayer();
-
-        LoggedIn = true;
-    }
-
-    private static void OnLoggedOut(NetworkLayer layer)
-    {
-        layer.OnDeinitializeLayer();
-
-        if (Layer == layer)
-        {
-            Layer = null;
-            LoggedIn = false;
-        }
     }
 
     private static void OnServerStarted()
@@ -213,9 +290,9 @@ public static class NetworkLayerManager
         ServerManager.OnServerStopped();
     }
 
-    private static void OnServerClientDisconnected(ClientPlatformID client)
+    private static void OnClientDisconnected(ClientPlatformID client)
     {
-        ServerManager.OnServerClientDisconnected(client);
+        ServerManager.OnClientDisconnected(client);
     }
 
     private static void OnConnectionEstablished()
@@ -228,5 +305,34 @@ public static class NetworkLayerManager
         ClientManager.OnConnectionLost();
 
         InternalServerHelpers.OnDisconnect();
+    }
+
+    private static void OnLogInCompleted()
+    {
+        try
+        {
+            Layer.Initialize();
+        }
+        catch (Exception ex)
+        {
+            FusionLogger.LogException("initializing NetworkLayer", ex);
+        }
+
+        IsLoggedIn = true;
+    }
+
+    private static void OnLogOutCompleted()
+    {
+        try
+        {
+            Layer.Deinitialize();
+        }
+        catch (Exception ex)
+        {
+            FusionLogger.LogException("deinitializing NetworkLayer", ex);
+        }
+
+        Layer = null;
+        IsLoggedIn = false;
     }
 }

@@ -69,7 +69,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         return SteamAPILoader.HasSteamAPI;
     }
 
-    public override void OnInitializeLayer()
+    protected override void OnInitialize()
     {
         if (!SteamClient.IsValid)
         {
@@ -98,7 +98,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _matchmaker = new SteamMatchmaker();
     }
 
-    public override void OnDeinitializeLayer()
+    protected override void OnDeinitialize()
     {
         _voiceManager.Disable();
         _voiceManager = null;
@@ -198,7 +198,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         Il2CppSteamworks.SteamClient.Shutdown();
     }
 
-    public override void OnUpdateLayer()
+    protected override void OnTick()
     {
         // Run callbacks for our client
         SteamClient.RunCallbacks();

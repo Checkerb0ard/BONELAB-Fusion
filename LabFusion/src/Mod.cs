@@ -281,7 +281,7 @@ public class FusionMod : MelonMod
         // Update and push all network messages
         VoiceHelper.OnVoiceChatUpdate();
 
-        InternalLayerHelpers.OnUpdateLayer();
+        NetworkLayerManager.Tick();
 
         NetworkConnectionManager.OnUpdate(deltaTime);
 
@@ -327,8 +327,7 @@ public class FusionMod : MelonMod
         NetworkPlayerManager.OnLateUpdate(deltaTime);
         NetworkEntityManager.OnLateUpdate(deltaTime);
 
-        // Flush any left over network messages
-        InternalLayerHelpers.OnLateUpdateLayer();
+        NetworkLayerManager.LateTick();
 
         // Late update hooks
         MultiplayerHooking.InvokeOnLateUpdate();

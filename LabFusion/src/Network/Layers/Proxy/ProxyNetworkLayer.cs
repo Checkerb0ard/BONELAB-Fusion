@@ -60,19 +60,19 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         return true;
     }
 
-    public override void OnInitializeLayer()
-    {
-        Instance = this;
-
-        _voiceManager = new UnityVoiceManager();
-        _voiceManager.Enable();
-
-        HookSteamEvents();
-
-        _lobbyManager = new ProxyLobbyManager(this);
-
-        _matchmaker = new ProxyMatchmaker(_lobbyManager);
-    }
+    // public override void OnInitializeLayer()
+    // {
+    //     Instance = this;
+    // 
+    //     _voiceManager = new UnityVoiceManager();
+    //     _voiceManager.Enable();
+    // 
+    //     HookSteamEvents();
+    // 
+    //     _lobbyManager = new ProxyLobbyManager(this);
+    // 
+    //     _matchmaker = new ProxyMatchmaker(_lobbyManager);
+    // }
 
     public IEnumerator DiscoverServer()
     {
@@ -223,15 +223,15 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         dataReader.Recycle();
     }
 
-    public override void OnDeinitializeLayer()
-    {
-        // Disconnect();
-
-        UnHookSteamEvents();
-
-        _voiceManager.Disable();
-        _voiceManager = null;
-    }
+    // public override void OnDeinitializeLayer()
+    // {
+    //     // Disconnect();
+    // 
+    //     UnHookSteamEvents();
+    // 
+    //     _voiceManager.Disable();
+    //     _voiceManager = null;
+    // }
 
     // public override void LogIn()
     // {
@@ -300,10 +300,10 @@ public abstract class ProxyNetworkLayer : NetworkLayer
     //     InvokeLoggedOutEvent();
     // }
 
-    public override void OnUpdateLayer()
-    {
-        client.PollEvents();
-    }
+    // public override void OnUpdateLayer()
+    // {
+    //     client.PollEvents();
+    // }
 
     internal static NetDataWriter NewWriter(MessageTypes type)
     {
