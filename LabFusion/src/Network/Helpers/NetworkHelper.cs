@@ -16,7 +16,7 @@ public static class NetworkHelper
     /// </summary>
     public static void StartServer()
     {
-        NetworkLayerManager.Layer?.StartServer();
+        NetworkLayerManager.Layer?.StartListenServer();
     }
 
     /// <summary>

@@ -115,18 +115,26 @@ public abstract class SteamNetworkLayer : NetworkLayer
         SteamAPI.Shutdown();
     }
 
-    protected override Task<bool> TryLogInAsync(CancellationToken cancellationToken)
+    protected override async Task<bool> TryLogInAsync(CancellationToken cancellationToken)
     {
         if (SteamClient.IsValid)
         {
-            return Task.FromResult(false);
+            return false;
         }
 
-        // Shutdown the game's steam client, if available
-        if (GameHasSteamworks())
+        var shutdownClientTask = new TaskCompletionSource();
+
+        ThreadHelper.RunOnMainThread(() =>
         {
-            ShutdownGameClient();
-        }
+            if (GameHasSteamworks())
+            {
+                ShutdownGameClient();
+            }
+
+            shutdownClientTask.SetResult();
+        });
+
+        await shutdownClientTask.Task;
 
         bool succeeded;
 
@@ -155,10 +163,10 @@ public abstract class SteamNetworkLayer : NetworkLayer
                 PopupLength = 6f,
             });
 
-            return Task.FromResult(false);
+            return false;
         }
 
-        return Task.FromResult(true);
+        return true;
     }
 
     protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
@@ -297,7 +305,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         while (ClientSteamConnection.Connected)
         {
-            await Task.Delay(500, CancellationToken.None);
+            await Task.Delay(50, CancellationToken.None);
         }
 
         ClientSteamConnection = null;
@@ -327,7 +335,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
                 return false;
             }
 
-            await Task.Delay(500, CancellationToken.None);
+            await Task.Delay(50, CancellationToken.None);
         }
 
         if (!connection.Connected)
@@ -358,7 +366,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
     {
         ServerCode = RandomCodeGenerator.GetString(8);
 
-        LobbyInfoManager.PushLobbyUpdate();
+        ThreadHelper.RunOnMainThread(LobbyInfoManager.PushLobbyUpdate);
     }
 
     public override void JoinServerByCode(string code)

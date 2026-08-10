@@ -501,6 +501,41 @@ public abstract class NetworkLayer
     }
 
     /// <summary>
+    /// Starts a server and connects the client to the server, acting as a listen-server.
+    /// </summary>
+    public void StartListenServer() => Task.Run(async () => { await StartListenServerAsync(); });
+
+    /// <summary>
+    /// Starts a server and connects the client to the server asynchronously, acting as a listen-server.
+    /// </summary>
+    /// <returns>Whether or not both a client and server were started successfully.</returns>
+    public async Task<bool> StartListenServerAsync() => await StartListenServerAsync(CancellationToken.None);
+
+    /// <summary>
+    /// Starts a server and connects the client to the server asynchronously, acting as a listen-server.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token that will be checked before the server is started and before the client is connected.</param>
+    /// <returns>Whether or not both a client and server were started successfully.</returns>
+    public async Task<bool> StartListenServerAsync(CancellationToken cancellationToken)
+    {
+        bool serverStarted = await StartServerAsync(cancellationToken);
+
+        if (!serverStarted)
+        {
+            return false;
+        }
+
+        bool clientConnected = await ConnectToServerAsync(RunningServerID, cancellationToken);
+
+        if (!clientConnected)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// <para>If the client is connected to a server, disconnect the client.</para>
     /// <para>If a server is running, stop the server.</para>
     /// </summary>
