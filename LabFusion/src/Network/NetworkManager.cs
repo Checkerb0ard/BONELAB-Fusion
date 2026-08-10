@@ -21,4 +21,39 @@ public static class NetworkManager
         ClientManager.IsClientConnected ? ClientManager.ConnectedServerID :
         ServerManager.IsServerRunning ? ServerManager.RunningServerID :
         ServerID.Empty;
+
+    /// <summary>
+    /// Starts a server.
+    /// <para>This opens a server without connecting the host as a client. To connect the host as a client, use <see cref="StartListenServer"/>.</para>
+    /// </summary>
+    public static void StartServer()
+    {
+        NetworkLayerManager.Layer?.StartServer();
+    }
+
+    /// <summary>
+    /// Stops the currently running server.
+    /// </summary>
+    public static void StopServer()
+    {
+        NetworkLayerManager.Layer?.StopServer();
+    }
+
+    /// <summary>
+    /// Starts a listen server.
+    /// <para>This opens a server and connects the host client to the server.</para>
+    /// </summary>
+    public static void StartListenServer()
+    {
+        NetworkLayerManager.Layer?.StartListenServer();
+    }
+
+    /// <summary>
+    /// If the client is connected to a server, disconnect the client.
+    /// <para>If a server is running, stop the server.</para>
+    /// </summary>
+    public static void DisconnectClientAndServer()
+    {
+        NetworkLayerManager.Layer?.DisconnectClientAndServer();
+    }
 }

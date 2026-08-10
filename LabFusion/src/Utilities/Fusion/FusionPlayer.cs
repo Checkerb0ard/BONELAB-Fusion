@@ -65,7 +65,8 @@ public static class FusionPlayer
 
         if (NetworkManager.HasServer && !ServerManager.IsServerRunning)
         {
-            NetworkHelper.Disconnect("Left Bounds");
+            // NetworkHelper.Disconnect("Left Bounds");
+            NetworkManager.DisconnectClientAndServer();
         }
 
         SceneStreamer.Reload();

@@ -173,7 +173,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
                     break;
                 }
             case (ulong)MessageTypes.OnConnectionDisconnected:
-                NetworkHelper.Disconnect();
+                NetworkManager.DisconnectClientAndServer();
                 break;
             case (ulong)MessageTypes.OnConnectionMessage:
                 {

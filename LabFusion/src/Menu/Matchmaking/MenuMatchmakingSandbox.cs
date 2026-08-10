@@ -102,12 +102,7 @@ public static class MenuMatchmakingSandbox
 
     private static void CreateSandboxServer()
     {
-        if (NetworkManager.HasServer)
-        {
-            NetworkHelper.Disconnect();
-        }
-
-        NetworkHelper.StartServer();
+        NetworkManager.StartListenServer();
     }
 
     public static void PopulateSandbox(Transform sandboxTransform)

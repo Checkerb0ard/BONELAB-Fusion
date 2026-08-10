@@ -9,7 +9,7 @@ namespace LabFusion.Network
         {
             base.OnDisconnected(info);
 
-            NetworkHelper.Disconnect();
+            NetworkManager.DisconnectClientAndServer();
 
 #if DEBUG
             FusionLogger.Log("Client was disconnected.");

@@ -12,22 +12,6 @@ namespace LabFusion.Network;
 public static class NetworkHelper
 {
     /// <summary>
-    /// Starts a server if there is currently none active.
-    /// </summary>
-    public static void StartServer()
-    {
-        NetworkLayerManager.Layer?.StartListenServer();
-    }
-
-    /// <summary>
-    /// Disconnects the network layer and cleans up.
-    /// </summary>
-    public static void Disconnect(string reason = "")
-    {
-        NetworkLayerManager.Layer?.DisconnectClientAndServer();
-    }
-
-    /// <summary>
     /// Attempts to join a server given a server code.
     /// </summary>
     /// <param name="code"></param>

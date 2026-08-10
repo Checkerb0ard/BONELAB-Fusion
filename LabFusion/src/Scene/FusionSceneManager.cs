@@ -183,7 +183,9 @@ public static partial class FusionSceneManager
 
     private static void OnDownloadFailed()
     {
-        NetworkHelper.Disconnect("The server's level failed to install!");
+        //NetworkHelper.Disconnect("The server's level failed to install!");
+
+        NetworkManager.DisconnectClientAndServer();
 
         _hasStartedDownloadingTarget = false;
     }

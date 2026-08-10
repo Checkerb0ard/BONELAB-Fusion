@@ -76,7 +76,7 @@ public static class MenuLocation
         element.ServerActionElement
             .Cleared()
             .WithTitle("Create Server")
-            .Do(NetworkHelper.StartServer);
+            .Do(NetworkManager.StartListenServer);
 
         UpdateLobbyIcons(element);
 
@@ -88,7 +88,7 @@ public static class MenuLocation
         element.ServerActionElement
             .Cleared()
             .WithTitle("Disconnect")
-            .Do(() => { NetworkHelper.Disconnect(); });
+            .Do(NetworkManager.DisconnectClientAndServer);
 
         UpdateLobbyIcons(element);
 

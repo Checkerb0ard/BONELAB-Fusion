@@ -19,12 +19,7 @@ public static class GamemodeHelper
     /// <param name="gamemode">The Gamemode to select upon starting the server.</param>
     public static void StartGamemodeServer(Gamemode gamemode)
     {
-        if (NetworkManager.HasServer)
-        {
-            NetworkHelper.Disconnect();
-        }
-
-        NetworkHelper.StartServer();
+        NetworkManager.StartListenServer();
 
         DelayUtilities.InvokeDelayed(() =>
         {

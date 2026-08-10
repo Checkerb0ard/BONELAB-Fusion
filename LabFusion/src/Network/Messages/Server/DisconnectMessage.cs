@@ -42,7 +42,9 @@ public class DisconnectMessage : NativeMessageHandler
         // If this is our id, disconnect ourselves
         if (data.PlatformID == PlayerIDManager.LocalPlatformID)
         {
-            NetworkHelper.Disconnect(data.Reason);
+            //NetworkHelper.Disconnect(data.Reason);
+
+            NetworkManager.DisconnectClientAndServer();
         }
         // Otherwise, disconnect the other person in the lobby
         else
