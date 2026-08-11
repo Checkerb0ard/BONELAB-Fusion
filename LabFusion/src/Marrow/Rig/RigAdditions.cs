@@ -44,12 +44,12 @@ public static class RigAdditions
 
     internal static void Initialize()
     {
-        MultiplayerHooking.OnJoinedServer += ApplyAdditions;
-        MultiplayerHooking.OnStartedServer += ApplyAdditions;
-        MultiplayerHooking.OnDisconnected += RemoveAdditions;
+        ClientManager.ClientConnected += OnClientConnected;
+        ClientManager.ClientDisconnected += OnClientDisconnected;
+
         LocalPlayer.OnLocalRigCreated += OnLocalRigCreated;
 
-        void ApplyAdditions()
+        void OnClientConnected()
         {
             if (!RigData.HasPlayer)
             {
@@ -59,7 +59,7 @@ public static class RigAdditions
             ApplyLocalRigAdditions(RigData.Refs.RigManager);
         }
 
-        void RemoveAdditions()
+        void OnClientDisconnected(string reason)
         {
             if (!RigData.HasPlayer)
             {

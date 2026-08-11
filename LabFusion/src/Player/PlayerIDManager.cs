@@ -1,6 +1,9 @@
 ﻿using LabFusion.Network;
+using LabFusion.Extensions;
 
 namespace LabFusion.Player;
+
+public delegate void PlayerDelegate(PlayerID playerID);
 
 public static class PlayerIDManager
 {
@@ -8,6 +11,9 @@ public static class PlayerIDManager
 
     public const int MinPlayerID = 0;
     public const int MaxPlayerID = byte.MaxValue;
+
+    public static event PlayerDelegate PlayerRegistered;
+    public static event PlayerDelegate PlayerUnregistered;
 
     public static readonly HashSet<PlayerID> PlayerIDs = new();
 
@@ -25,43 +31,102 @@ public static class PlayerIDManager
 
     public static readonly ClientSmallID HostSmallID = new(0);
 
-    public static void InsertPlayerID(PlayerID playerID)
+    /// <summary>
+    /// Registers a new player after their client has been authorized.
+    /// </summary>
+    /// <param name="platformID"></param>
+    /// <param name="smallID"></param>
+    /// <param name="metadata"></param>
+    /// <param name="playerID"></param>
+    /// <returns></returns>
+    public static bool RegisterPlayer(ClientPlatformID platformID, ClientSmallID smallID, Dictionary<string, string> metadata, out PlayerID playerID)
     {
-        if (SmallIDLookup.TryGetValue(playerID.SmallID, out var conflictingPlayer))
+        playerID = GetPlayerID(platformID);
+
+        if (playerID != null)
         {
-            conflictingPlayer.Cleanup();
+            return false;
         }
+
+        playerID = GetPlayerID(smallID);
+
+        if (playerID != null)
+        {
+            return false;
+        }
+
+        playerID = new PlayerID(platformID, smallID, metadata);
 
         PlayerIDs.Add(playerID);
         SmallIDLookup[playerID.SmallID] = playerID;
         PlatformIDLookup[playerID.PlatformID] = playerID;
 
         ReserveSmallID(playerID.SmallID);
+
+        if (platformID == LocalPlatformID)
+        {
+            LocalID = playerID;
+        }
+
+        playerID.OnRegister();
+
+        PlayerRegistered?.InvokeSafe(playerID, "invoking PlayerRegistered event");
+
+        return true;
     }
 
-    public static void RemovePlayerID(PlayerID playerID)
+    /// <summary>
+    /// Unregisters a player after they have lost connection.
+    /// </summary>
+    /// <param name="platformID"></param>
+    /// <returns></returns>
+    public static bool UnregisterPlayer(ClientPlatformID platformID)
     {
+        var playerID = GetPlayerID(platformID);
+
+        if (playerID == null)
+        {
+            return false;
+        }
+
+        var smallID = playerID.SmallID;
+
         PlayerIDs.Remove(playerID);
-        SmallIDLookup.Remove(playerID.SmallID);
-        PlatformIDLookup.Remove(playerID.PlatformID);
+        SmallIDLookup.Remove(smallID);
+        PlatformIDLookup.Remove(platformID);
 
-        UnreserveSmallID(playerID.SmallID);
+        UnreserveSmallID(smallID);
+
+        playerID.OnUnregister();
+
+        PlayerUnregistered?.InvokeSafe(playerID, "invoking PlayerUnregistered event");
+
+        if (playerID == LocalID)
+        {
+            LocalID = null;
+        }
+
+        return true;
     }
 
-    public static void ReserveSmallID(ClientSmallID smallID)
+    /// <summary>
+    /// Unregisters all players when the connection is closed.
+    /// </summary>
+    public static void UnregisterPlayers()
     {
-        ReservedSmallIDs.Add(smallID);
+        var playerIDs = PlayerIDs.ToList();
+
+        foreach (var playerID in playerIDs)
+        {
+            UnregisterPlayer(playerID.PlatformID);
+        }
     }
 
-    public static void UnreserveSmallID(ClientSmallID smallID)
-    {
-        ReservedSmallIDs.Remove(smallID);
-    }
+    public static void ReserveSmallID(ClientSmallID smallID) => ReservedSmallIDs.Add(smallID);
 
-    public static bool IsSmallIDReserved(ClientSmallID smallID)
-    {
-        return ReservedSmallIDs.Contains(smallID);
-    }
+    public static void UnreserveSmallID(ClientSmallID smallID) => ReservedSmallIDs.Remove(smallID);
+
+    public static bool IsSmallIDReserved(ClientSmallID smallID) => ReservedSmallIDs.Contains(smallID);
 
     public static ClientSmallID? GetUniquePlayerID()
     {
@@ -147,27 +212,6 @@ public static class PlayerIDManager
     public static bool HasPlayerID(ClientSmallID smallID) => SmallIDLookup.ContainsKey(smallID);
 
     public static bool HasPlayerID(ClientPlatformID platformID) => PlatformIDLookup.ContainsKey(platformID);
-
-    internal static void ApplyLocalID()
-    {
-        var id = GetPlayerID(LocalPlatformID);
-
-        if (id != null)
-        {
-            LocalID = id;
-            LocalSmallID = id.SmallID;
-        }
-        else
-        {
-            LocalID = null;
-            LocalSmallID = ClientSmallID.Empty;
-        }
-    }
-
-    internal static void RemoveLocalID()
-    {
-        LocalID = null;
-    }
 
     public static void SetPlatformID(ClientPlatformID platformID)
     {

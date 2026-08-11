@@ -88,7 +88,7 @@ public static class GamemodeManager
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
         MultiplayerHooking.OnTargetLevelLoaded += OnTargetLevelLoaded;
 
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        NetworkManager.ServerLost += OnServerLost;
     }
 
     private static void OnTargetLevelLoaded()
@@ -108,7 +108,7 @@ public static class GamemodeManager
         }
     }
 
-    private static void OnDisconnect()
+    private static void OnServerLost()
     {
         StopGamemode();
 

@@ -8,7 +8,6 @@ using Il2CppUltEvents;
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 
 using LabFusion.Network;
-using LabFusion.Utilities;
 using LabFusion.Player;
 #else
 using UltEvents;
@@ -30,10 +29,9 @@ namespace LabFusion.Marrow.Integration
 
         private void Awake()
         {
-            MultiplayerHooking.OnJoinedServer += OnServerJoined;
-            MultiplayerHooking.OnStartedServer += OnServerJoined;
-            MultiplayerHooking.OnDisconnected += OnServerLeft;
-            
+            NetworkManager.ServerEstablished += OnServerJoined;
+            NetworkManager.ServerLost += OnServerLeft;
+
             // If we're already in a server, invoke the UltEvent
             if (HasServer())
             {
@@ -43,9 +41,8 @@ namespace LabFusion.Marrow.Integration
 
         private void OnDestroy()
         {
-            MultiplayerHooking.OnJoinedServer -= OnServerJoined;
-            MultiplayerHooking.OnStartedServer -= OnServerJoined;
-            MultiplayerHooking.OnDisconnected -= OnServerLeft;
+            NetworkManager.ServerEstablished -= OnServerJoined;
+            NetworkManager.ServerLost -= OnServerLeft;
         }
 
         private void OnServerJoined()

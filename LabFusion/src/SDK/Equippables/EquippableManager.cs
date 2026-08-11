@@ -68,7 +68,7 @@ public static class EquippableManager
 
     internal static void Initialize()
     {
-        MultiplayerHooking.OnJoinedServer += OnJoinedServer;
+        ClientManager.ClientConnected += OnClientConnected;
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
     }
 
@@ -155,10 +155,7 @@ public static class EquippableManager
         NetEquippedItems.Remove(smallID);
     }
 
-    private static void OnJoinedServer()
-    {
-        SendAllEquippables(CommonMessageRoutes.ReliableToOtherClients);
-    }
+    private static void OnClientConnected() => SendAllEquippables(CommonMessageRoutes.ReliableToOtherClients);
 
     private static void OnPlayerJoined(PlayerID playerID)
     {

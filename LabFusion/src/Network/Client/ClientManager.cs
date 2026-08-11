@@ -1,14 +1,27 @@
 ﻿using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
+using LabFusion.Extensions;
 
 namespace LabFusion.Network;
+
+public delegate void DisconnectDelegate(string reason);
 
 /// <summary>
 /// Manages state and data transfer for the client connected to the server.
 /// </summary>
 public static class ClientManager
 {
+    /// <summary>
+    /// Invoked whenever the client connects to a server and has been authorized.
+    /// </summary>
+    public static event Action ClientConnected;
+
+    /// <summary>
+    /// Invoked whenever the client disconnects from a server.
+    /// </summary>
+    public static event DisconnectDelegate ClientDisconnected;
+
     /// <summary>
     /// Returns true if the client is actively connecting to a server and can send messages, but hasn't been accepted by the server yet.
     /// </summary>
@@ -135,16 +148,20 @@ public static class ClientManager
         RequestConnection();
     }
 
-    internal static void OnConnectionLost()
-    {
-        _connectionRequested = false;
-        _connectionAuthorized = false;
-    }
-
     internal static void OnConnectionAuthorized()
     {
         _connectionRequested = false;
         _connectionAuthorized = true;
+
+        ClientConnected?.InvokeSafe("invoking Connected event");
+    }
+
+    internal static void OnConnectionLost()
+    {
+        _connectionRequested = false;
+        _connectionAuthorized = false;
+
+        ClientDisconnected?.InvokeSafe(LastDisconnectReason, "invoking Disconnected event");
     }
 
     private static void RequestConnection()

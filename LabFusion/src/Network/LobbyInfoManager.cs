@@ -31,8 +31,8 @@ public static class LobbyInfoManager
         MultiplayerHooking.OnMainSceneInitialized += PushLobbyUpdate;
         MultiplayerHooking.OnPlayerJoined += (_) => { PushLobbyUpdate(); };
         MultiplayerHooking.OnPlayerLeft += (_) => { PushLobbyUpdate(); };
-        MultiplayerHooking.OnStartedServer += PushLobbyUpdate;
-        MultiplayerHooking.OnDisconnected += PushLobbyUpdate;
+        ServerManager.ServerStarted += PushLobbyUpdate;
+        NetworkManager.ServerLost += PushLobbyUpdate;
 
         SavedServerSettings.OnSavedServerSettingsChanged += PushLobbyUpdate;
 

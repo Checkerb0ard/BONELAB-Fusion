@@ -161,14 +161,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
         data.InitialMetadata[nameof(PlayerMetadata.PermissionLevel)] = level.ToString();
 
         // Create new PlayerID
-        var playerID = new PlayerID(platformID, newSmallId.Value, data.InitialMetadata);
-
-        // Finally, check for dynamic connection disallowing
-        if (!MultiplayerHooking.CheckShouldAllowConnection(playerID, out string reason))
-        {
-            ServerManager.SendDisconnect(platformID, reason);
-            return;
-        }
+        PlayerIDManager.RegisterPlayer(platformID, newSmallId.Value, data.InitialMetadata, out var playerID);
 
         // All checks have succeeded, let the player into the server
         OnConnectionAllowed(playerID, platformID);
@@ -176,8 +169,6 @@ public class ConnectionRequestMessage : NativeMessageHandler
 
     private static void OnConnectionAllowed(PlayerID playerID, ClientPlatformID platformID)
     {
-        playerID.Insert();
-
         // Reserve the player's smallID so that other players don't steal it
         PlayerIDManager.ReserveSmallID(playerID.SmallID);
 

@@ -14,36 +14,8 @@ public delegate void PlayerUpdate(PlayerID playerId);
 /// </summary>
 public static class MultiplayerHooking
 {
-    // Confirmation hooks
-    public static event UserAccessEvent OnShouldAllowConnection;
-
     // Server hooks
-    public static event ServerEvent OnStartedServer, OnJoinedServer, OnDisconnected;
     public static event PlayerUpdate OnPlayerJoined, OnPlayerLeft;
-
-    internal static bool CheckShouldAllowConnection(PlayerID playerId, out string reason)
-    {
-        reason = "";
-
-        if (OnShouldAllowConnection == null)
-            return true;
-
-        foreach (var invocation in OnShouldAllowConnection.GetInvocationList())
-        {
-            var accessEvent = (UserAccessEvent)invocation;
-
-            if (!accessEvent.Invoke(playerId, out reason))
-                return false;
-        }
-
-        return true;
-    }
-
-    internal static void InvokeOnStartedServer() => OnStartedServer.InvokeSafe("executing OnStartedServer hook");
-
-    internal static void InvokeOnJoinedServer() => OnJoinedServer.InvokeSafe("executing OnJoinedServer hook");
-
-    internal static void InvokeOnDisconnected() => OnDisconnected.InvokeSafe("executing OnDisconnected hook");
 
     internal static void InvokeOnPlayerJoined(PlayerID id) => OnPlayerJoined.InvokeSafe(id, "executing OnPlayerJoined hook");
 

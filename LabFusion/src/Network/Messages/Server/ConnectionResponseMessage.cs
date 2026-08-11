@@ -36,20 +36,12 @@ public class ConnectionResponseMessage : NativeMessageHandler
     {
         var data = received.ReadData<ConnectionResponseData>();
 
-        PlayerID playerID = PlayerIDManager.GetPlayerID(data.PlatformID);
-
-        if (playerID == null)
-        {
-            playerID = new PlayerID(data.PlatformID, data.SmallID, data.InitialMetadata);
-            playerID.Insert();
-        }
+        PlayerIDManager.RegisterPlayer(data.PlatformID, data.SmallID, data.InitialMetadata, out var playerID);
 
         // Check the id to see if its our own
         // If it is, just update our self reference
         if (playerID.PlatformID == PlayerIDManager.LocalPlatformID)
         {
-            PlayerIDManager.ApplyLocalID();
-
             ClientManager.OnConnectionAuthorized();
 
             NetworkPlayerManager.CreateLocalPlayer();

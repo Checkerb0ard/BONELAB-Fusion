@@ -8,7 +8,7 @@ using ClientPlatformID = LabFusion.Network.ClientPlatformID;
 
 namespace LabFusion.Player;
 
-public class PlayerID : INetSerializable, IEquatable<PlayerID>
+public class PlayerID : IEquatable<PlayerID>
 {
     /// <summary>
     /// Invoked when any PlayerID's metadata changes. Passes in the PlayerID, key, and value.
@@ -67,15 +67,25 @@ public class PlayerID : INetSerializable, IEquatable<PlayerID>
         {
             Metadata.Metadata.ForceSetLocalMetadata(pair.Key, pair.Value);
         }
-
-        OnAfterCreateID();
     }
 
-    private void OnAfterCreateID()
+    public void OnRegister()
     {
         HookMetadata();
 
         _isValid = true;
+    }
+
+    public void OnUnregister()
+    {
+        UnhookMetadata();
+
+        _isValid = false;
+
+        _onDestroyedEvent?.Invoke();
+        _onDestroyedEvent = null;
+
+        UnhookMetadata();
     }
 
     private void HookMetadata()
@@ -152,62 +162,5 @@ public class PlayerID : INetSerializable, IEquatable<PlayerID>
     public static bool IsNullOrInvalid(PlayerID id)
     {
         return id == null || !id.IsValid;
-    }
-
-    public void Insert() => PlayerIDManager.InsertPlayerID(this);
-
-    public void Cleanup()
-    {
-        if (!_isValid)
-        {
-            FusionLogger.Warn("Attempted to cleanup a PlayerId that was not valid!");
-            return;
-        }
-
-        PlayerIDManager.RemovePlayerID(this);
-
-        if (PlayerIDManager.LocalID == this)
-        {
-            PlayerIDManager.RemoveLocalID();
-        }
-
-        _isValid = false;
-
-        _onDestroyedEvent?.Invoke();
-        _onDestroyedEvent = null;
-
-        UnhookMetadata();
-    }
-
-    public int? GetSize() => sizeof(ulong) + sizeof(byte) + Metadata.Metadata.LocalDictionary.GetSize();
-
-    public void Serialize(INetSerializer serializer)
-    {
-        if (serializer.IsReader)
-        {
-            Metadata.CreateMetadata();
-        }
-
-        var platformID = PlatformID;
-        var smallID = SmallID;
-        var metadata = Metadata.Metadata.LocalDictionary;
-
-        serializer.SerializeValue(ref platformID);
-        serializer.SerializeValue(ref smallID);
-
-        serializer.SerializeValue(ref metadata);
-
-        if (serializer.IsReader)
-        {
-            PlatformID = platformID;
-            SmallID = smallID;
-
-            foreach (var pair in metadata)
-            {
-                Metadata.Metadata.ForceSetLocalMetadata(pair.Key, pair.Value);
-            }
-
-            OnAfterCreateID();
-        }
     }
 }

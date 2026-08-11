@@ -1,6 +1,7 @@
 ﻿using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Modules;
+using LabFusion.Extensions;
 
 using System.Buffers;
 
@@ -11,6 +12,16 @@ namespace LabFusion.Network;
 /// </summary>
 public static class ServerManager
 {
+    /// <summary>
+    /// Invoked whenever a server has started running and is ready for clients to join.
+    /// </summary>
+    public static event Action ServerStarted;
+
+    /// <summary>
+    /// Invoked whenever the running server has stopped and clients can no longer join.
+    /// </summary>
+    public static event Action ServerStopped;
+
     /// <summary>
     /// Returns true if a server is currently running on this instance.
     /// <para>This will not return true if this instance is only a client that has joined the server.
@@ -305,11 +316,15 @@ public static class ServerManager
     internal static void OnServerStarted()
     {
         InternalServerHelpers.OnStartServer();
+
+        ServerStarted?.InvokeSafe("invoking ServerStarted event");
     }
 
     internal static void OnServerStopped()
     {
         InternalServerHelpers.OnDisconnect();
+
+        ServerStopped?.InvokeSafe("invoking ServerStopped event");
     }
 
     internal static void OnClientDisconnected(ClientPlatformID client)

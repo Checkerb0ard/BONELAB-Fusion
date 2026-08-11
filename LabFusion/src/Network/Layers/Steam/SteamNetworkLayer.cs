@@ -404,7 +404,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         // Add server hooks
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        NetworkManager.ServerLost += OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnUpdateLobby;
 
@@ -450,7 +450,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         // Remove server hooks
         MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
         MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
-        MultiplayerHooking.OnDisconnected -= OnDisconnect;
+        NetworkManager.ServerLost -= OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged -= OnUpdateLobby;
 

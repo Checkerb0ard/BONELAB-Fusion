@@ -22,7 +22,7 @@ public static class BonelabPlayerManager
         NetworkPlayer.OnNetworkPlayerRegistered += OnNetworkPlayerRegistered;
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer += OnJoinedServer;
+        ClientManager.ClientConnected += OnClientConnected;
         RigStripper.OnStripRigManager += OnStripBonelabRigManager;
 
         MarrowGameReferences.CalibrationAvatarReference = BonelabAvatarReferences.PolyBlankReference;
@@ -34,7 +34,7 @@ public static class BonelabPlayerManager
         NetworkPlayer.OnNetworkPlayerRegistered -= OnNetworkPlayerRegistered;
         MultiplayerHooking.OnMainSceneInitialized -= OnMainSceneInitialized;
         MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer -= OnJoinedServer;
+        ClientManager.ClientConnected -= OnClientConnected;
         RigStripper.OnStripRigManager -= OnStripBonelabRigManager;
     }
 
@@ -59,7 +59,7 @@ public static class BonelabPlayerManager
 
     private static void OnPlayerJoined(PlayerID playerID) => OnVitalsChanged();
 
-    private static void OnJoinedServer() => OnVitalsChanged();
+    private static void OnClientConnected() => OnVitalsChanged();
 
     private static void OnVitalsChanged()
     {

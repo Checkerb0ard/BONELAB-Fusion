@@ -40,7 +40,7 @@ public static class WearableManager
     {
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
-        MultiplayerHooking.OnDisconnected += OnDisconnected;
+        NetworkManager.ServerLost += OnServerLost;
 
         LocalPlayer.OnLocalRigCreated += OnLocalRigCreated;
         NetworkPlayer.OnNetworkRigCreated += OnNetRigCreated;
@@ -75,10 +75,7 @@ public static class WearableManager
         ClearNetDisplayer(playerID.SmallID);
     }
 
-    private static void OnDisconnected()
-    {
-        ClearNetDisplayers();
-    }
+    private static void OnServerLost() => ClearNetDisplayers();
 
     private static void OnLocalEquipped(WearableItem item, bool equipped)
     {

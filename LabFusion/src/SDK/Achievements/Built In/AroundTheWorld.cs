@@ -18,32 +18,43 @@ public class AroundTheWorld : Achievement
     protected override void OnRegister()
     {
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        ClientManager.ClientDisconnected += OnClientDisconnected;
     }
 
     protected override void OnUnregister()
     {
         MultiplayerHooking.OnMainSceneInitialized -= OnMainSceneInitialized;
-        MultiplayerHooking.OnDisconnected -= OnDisconnect;
+        ClientManager.ClientDisconnected -= OnClientDisconnected;
     }
 
     private void OnMainSceneInitialized()
     {
-        // Make sure we have a server and this level hasn't already been visited
-        if (NetworkManager.HasServer && PlayerIDManager.HasOtherPlayers && !_levels.Contains(FusionSceneManager.Barcode))
+        if (!ClientManager.IsClientConnected)
         {
-            _levels.Add(FusionSceneManager.Barcode);
+            return;
+        }
 
-            // If we have over 10 unique levels, reward the achievement
-            if (_levels.Count >= 10)
-            {
-                IncrementTask();
-                _levels.Clear();
-            }
+        if (!PlayerIDManager.HasOtherPlayers)
+        {
+            return;
+        }
+
+        if (_levels.Contains(FusionSceneManager.Barcode))
+        {
+            return;
+        }
+
+        _levels.Add(FusionSceneManager.Barcode);
+
+        // If we have over 10 unique levels, reward the achievement
+        if (_levels.Count >= 10)
+        {
+            IncrementTask();
+            _levels.Clear();
         }
     }
 
-    private void OnDisconnect()
+    private void OnClientDisconnected(string reason)
     {
         // Clear our visited levels
         _levels.Clear();

@@ -1,28 +1,25 @@
 ﻿using UnityEngine;
 
 using MelonLoader;
-using LabFusion.Utilities;
 
-namespace LabFusion.MonoBehaviours
+using LabFusion.Network;
+
+namespace LabFusion.MonoBehaviours;
+
+[RegisterTypeInIl2Cpp]
+public class DestroyOnDisconnect : MonoBehaviour
 {
-    [RegisterTypeInIl2Cpp]
-    public class DestroyOnDisconnect : MonoBehaviour
+    public DestroyOnDisconnect(IntPtr intPtr) : base(intPtr) { }
+
+    private void Awake()
     {
-        public DestroyOnDisconnect(IntPtr intPtr) : base(intPtr) { }
-
-        private void Awake()
-        {
-            MultiplayerHooking.OnDisconnected += OnDisconnect;
-        }
-
-        private void OnDestroy()
-        {
-            MultiplayerHooking.OnDisconnected -= OnDisconnect;
-        }
-
-        private void OnDisconnect()
-        {
-            GameObject.Destroy(gameObject);
-        }
+        NetworkManager.ServerLost += OnServerLost;
     }
+
+    private void OnDestroy()
+    {
+        NetworkManager.ServerLost -= OnServerLost;
+    }
+
+    private void OnServerLost() => Destroy(gameObject);
 }

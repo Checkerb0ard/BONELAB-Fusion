@@ -195,7 +195,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
                     _isConnectionActive = true;
 
                     // Call server setup
-                    InternalServerHelpers.OnStartServer();
+                    // InternalServerHelpers.OnStartServer();
 
                     RefreshServerCode();
                     break;
@@ -433,7 +433,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         // Add server hooks
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        NetworkManager.ServerLost += OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnUpdateLobby;
 
@@ -463,7 +463,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
         // Remove server hooks
         MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
         MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
-        MultiplayerHooking.OnDisconnected -= OnDisconnect;
+        NetworkManager.ServerLost -= OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged -= OnUpdateLobby;
     }

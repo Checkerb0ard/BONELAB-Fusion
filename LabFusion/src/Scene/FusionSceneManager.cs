@@ -18,8 +18,8 @@ public static partial class FusionSceneManager
     internal static void Internal_OnInitializeMelon()
     {
         // Hook into events
-        MultiplayerHooking.OnStartedServer += Internal_OnCleanup;
-        MultiplayerHooking.OnDisconnected += Internal_OnCleanup;
+        ServerManager.ServerStarted += Internal_OnCleanup;
+        NetworkManager.ServerLost += Internal_OnCleanup;
 
         // Prepare level downloading
         LevelDownloaderManager.OnInitializeMelon();

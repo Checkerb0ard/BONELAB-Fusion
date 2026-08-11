@@ -1,4 +1,6 @@
-﻿namespace LabFusion.Network;
+﻿using LabFusion.Extensions;
+
+namespace LabFusion.Network;
 
 /// <summary>
 /// Manages general state for the network.
@@ -7,6 +9,17 @@
 /// </summary>
 public static class NetworkManager
 {
+    /// <summary>
+    /// Invoked whenever a server is established in any form, either from the client connecting to a server or a server being started.
+    /// <para>If the host is a client, this will only be invoked when the server is started.</para>
+    /// </summary>
+    public static event Action ServerEstablished;
+
+    /// <summary>
+    /// Invoked whenever all connections to a server have been lost, so that no server is running and the client is not connected to any server.
+    /// </summary>
+    public static event Action ServerLost;
+
     /// <summary>
     /// Returns true if a server exists, whether it is being ran or the client is connected to it.
     /// <para>If checking whether messages should be sent, it is recommended to instead check either <see cref="ServerManager.IsServerRunning"/> or <see cref="ClientManager.IsClientConnected"/> depending on whether you are sending from the server or client.</para>
@@ -22,6 +35,8 @@ public static class NetworkManager
         ClientManager.IsClientConnected ? ClientManager.ConnectedServerID :
         ServerManager.IsServerRunning ? ServerManager.RunningServerID :
         ServerID.Empty;
+
+    private static bool _isServerEstablished = false;
 
     /// <summary>
     /// Starts a server.
@@ -83,5 +98,41 @@ public static class NetworkManager
         ClientManager.LastDisconnectReason = reason;
 
         NetworkLayerManager.Layer?.DisconnectClientAndServer();
+    }
+
+    internal static void OnInitializeMelon()
+    {
+        ServerManager.ServerStarted += OnServerStarted;
+        ServerManager.ServerStopped += OnServerStopped;
+
+        ClientManager.ClientConnected += OnClientConnected;
+        ClientManager.ClientDisconnected += OnClientDisconnected;
+    }
+
+    private static void OnServerStarted() => CheckServerEstablished();
+    private static void OnServerStopped() => CheckServerEstablished();
+    private static void OnClientConnected() => CheckServerEstablished();
+    private static void OnClientDisconnected(string reason) => CheckServerEstablished();
+
+    private static void CheckServerEstablished()
+    {
+        bool hadServer = _isServerEstablished;
+        bool hasServer = HasServer;
+
+        if (hadServer == hasServer)
+        {
+            return;
+        }
+
+        if (hasServer)
+        {
+            ServerEstablished?.InvokeSafe("invoking ServerEstablished event");
+        }
+        else
+        {
+            ServerLost?.InvokeSafe("invoking ServerLost event");
+        }
+
+        _isServerEstablished = hasServer;
     }
 }

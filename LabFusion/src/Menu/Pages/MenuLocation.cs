@@ -43,15 +43,14 @@ public static class MenuLocation
 
     public static void OnInitializeMelon()
     {
-        MultiplayerHooking.OnStartedServer += OnConnect;
-        MultiplayerHooking.OnJoinedServer += OnConnect;
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        NetworkManager.ServerEstablished += OnServerEstablished;
+        NetworkManager.ServerLost += OnServerLost;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnServerSettingsChanged;
         LocalPlayer.OnUsernameChanged += OnUsernameChanged;
     }
 
-    private static void OnConnect()
+    private static void OnServerEstablished()
     {
         if (LobbyElement == null)
         {
@@ -61,7 +60,7 @@ public static class MenuLocation
         PopulateLobbyAsServer(LobbyElement);
     }
 
-    private static void OnDisconnect()
+    private static void OnServerLost()
     {
         if (LobbyElement == null)
         {
@@ -786,11 +785,11 @@ public static class MenuLocation
         // Update server status
         if (NetworkManager.HasServer)
         {
-            OnConnect();
+            OnServerEstablished();
         }
         else
         {
-            OnDisconnect();
+            OnServerLost();
         }
     }
 

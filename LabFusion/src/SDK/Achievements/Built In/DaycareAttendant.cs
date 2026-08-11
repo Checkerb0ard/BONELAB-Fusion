@@ -1,4 +1,5 @@
-﻿using LabFusion.Player;
+﻿using LabFusion.Network;
+using LabFusion.Player;
 using LabFusion.Utilities;
 
 namespace LabFusion.SDK.Achievements;
@@ -16,22 +17,20 @@ public class DaycareAttendant : Achievement
 
     protected override void OnRegister()
     {
-        MultiplayerHooking.OnJoinedServer += OnJoinServer;
-        MultiplayerHooking.OnStartedServer += OnJoinServer;
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        ClientManager.ClientConnected += OnClientConnected;
+        ClientManager.ClientDisconnected += OnClientDisconnected;
     }
 
     protected override void OnUnregister()
     {
-        MultiplayerHooking.OnJoinedServer -= OnJoinServer;
-        MultiplayerHooking.OnStartedServer -= OnJoinServer;
-        MultiplayerHooking.OnDisconnected -= OnDisconnect;
+        ClientManager.ClientConnected -= OnClientConnected;
+        ClientManager.ClientDisconnected -= OnClientDisconnected;
 
         // Incase it wasn't removed
         MultiplayerHooking.OnLateUpdate -= OnLateUpdate;
     }
 
-    private void OnJoinServer()
+    private void OnClientConnected()
     {
         _timeElapsed = 0f;
         _oneHourPassed = false;
@@ -39,7 +38,7 @@ public class DaycareAttendant : Achievement
         MultiplayerHooking.OnLateUpdate += OnLateUpdate;
     }
 
-    private void OnDisconnect()
+    private void OnClientDisconnected(string reason)
     {
         _timeElapsed = 0f;
         _oneHourPassed = false;

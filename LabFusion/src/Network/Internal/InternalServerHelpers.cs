@@ -1,10 +1,7 @@
 ﻿using LabFusion.Player;
 using LabFusion.Utilities;
 using LabFusion.Preferences;
-using LabFusion.SDK.Points;
 using LabFusion.SDK.Achievements;
-using LabFusion.SDK.Modules;
-using LabFusion.UI.Popups;
 using LabFusion.Entities;
 
 using Il2CppSLZ.Marrow.SceneStreaming;
@@ -16,27 +13,11 @@ namespace LabFusion.Network;
 /// </summary>
 public static class InternalServerHelpers
 {
-    private static void DisposeUser(PlayerID id)
-    {
-        id?.Cleanup();
-    }
-
-    private static void DisposeUsers()
-    {
-        foreach (var id in PlayerIDManager.PlayerIDs.ToList())
-        {
-            DisposeUser(id);
-        }
-    }
-
     /// <summary>
     /// Initializes information about the server, such as module types.
     /// </summary>
     public static void OnStartServer()
     {
-        // Update hooks
-        MultiplayerHooking.InvokeOnStartedServer();
-
         NetworkNotifications.SendStartedServerNotification();
 
         // Unlock achievement
@@ -57,9 +38,6 @@ public static class InternalServerHelpers
         // Send settings
         FusionPreferences.SendClientSettings();
 
-        // Update hooks
-        MultiplayerHooking.InvokeOnJoinedServer();
-
         NetworkNotifications.SendJoinedServerNotification();
 
         // Unlock achievement
@@ -73,11 +51,8 @@ public static class InternalServerHelpers
     public static void OnDisconnect(string reason = "")
     {
         // Cleanup information
-        DisposeUsers();
+        PlayerIDManager.UnregisterPlayers();
         NetworkEntityManager.CleanupEntities();
-
-        // Update hooks
-        MultiplayerHooking.InvokeOnDisconnected();
 
         NetworkNotifications.SendDisconnectedNotification(reason);
     }
@@ -119,7 +94,7 @@ public static class InternalServerHelpers
             NetworkNotifications.SendPlayerLeftNotification(name);
         }
 
-        DisposeUser(playerId);
+        PlayerIDManager.UnregisterPlayer(platformID);
 
         MultiplayerHooking.InvokeOnPlayerLeft(playerId);
     }

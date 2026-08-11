@@ -38,10 +38,10 @@ public static class LevelDownloaderManager
     {
         MultiplayerHooking.OnUpdate += OnUpdate;
 
-        MultiplayerHooking.OnDisconnected += OnDisconnect;
+        NetworkManager.ServerLost += OnServerLost;
     }
 
-    private static void OnDisconnect()
+    private static void OnServerLost()
     {
         // Incase the player gets stuck in purgatory, disable it on disconnect
         NetworkSceneManager.Purgatory = false;
