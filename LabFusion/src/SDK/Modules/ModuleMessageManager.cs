@@ -1,10 +1,10 @@
-﻿using System.Buffers.Binary;
-using System.Reflection;
-
-using LabFusion.Extensions;
+﻿using LabFusion.Extensions;
 using LabFusion.Math;
 using LabFusion.Network;
+using LabFusion.Network.Serialization;
 using LabFusion.Utilities;
+using System.Buffers.Binary;
+using System.Reflection;
 
 namespace LabFusion.SDK.Modules;
 
@@ -137,7 +137,24 @@ public static class ModuleMessageManager
         }
     }
 
+    public static string GetDescriptor(byte[] bytes)
+    {
+        long tag = GetTag(bytes);
+
+        if (TagToHandlerLookup.TryGetValue(tag, out var handler))
+        {
+            return $"Module Type {handler.GetType().Name}";
+        }
+
+        return $"Module Tag {tag}";
+    }
+
     private static long GetTag(byte[] bytes)
+    {
+        return BinaryPrimitives.ReadInt64BigEndian(bytes);
+    }
+
+    private static long GetTag(ReadOnlySpan<byte> bytes)
     {
         return BinaryPrimitives.ReadInt64BigEndian(bytes);
     }

@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 
-using LabFusion.Data;
 using LabFusion.Network;
 using LabFusion.Utilities;
 using LabFusion.Entities;
@@ -28,7 +27,7 @@ public static class PullCordDevicePatches
 
         // If this is a networked player,
         // We need to disable the avatars inside the body log
-        // This way, the player reps won't accidentally change their avatar
+        // This way, the net players won't accidentally change their avatar
         if (NetworkPlayerManager.HasExternalPlayer(__instance.rm))
         {
             for (var i = 0; i < __instance.avatarCrateRefs.Length; i++)
@@ -42,49 +41,79 @@ public static class PullCordDevicePatches
     [HarmonyPatch(nameof(PullCordDevice.EnableBall))]
     public static void EnableBall(PullCordDevice __instance)
     {
-        if (NetworkManager.HasServer && __instance.rm.IsLocalPlayer())
+        if (!IsPullCordNetworked(__instance))
         {
-            ClientManager.RelayModule<BodyLogToggleMessage, BodyLogToggleData>(new() { IsEnabled = true, }, CommonMessageRoutes.ReliableToOtherClients);
+            return;
         }
+
+        ClientManager.RelayModule<BodyLogToggleMessage, BodyLogToggleData>(new() { IsEnabled = true, }, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(nameof(PullCordDevice.DisableBall))]
     public static void DisableBall(PullCordDevice __instance)
     {
-        if (NetworkManager.HasServer && __instance.rm.IsLocalPlayer())
+        if (!IsPullCordNetworked(__instance))
         {
-            ClientManager.RelayModule<BodyLogToggleMessage, BodyLogToggleData>(new() { IsEnabled = false, }, CommonMessageRoutes.ReliableToOtherClients);
+            return;
         }
+
+        ClientManager.RelayModule<BodyLogToggleMessage, BodyLogToggleData>(new() { IsEnabled = false, }, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(nameof(PullCordDevice.PlayAvatarParticleEffects))]
     public static void PlayAvatarParticleEffects(PullCordDevice __instance)
     {
-        if (NetworkManager.HasServer && __instance.rm.IsLocalPlayer())
+        if (!IsPullCordNetworked(__instance))
         {
-            ClientManager.RelayModule<BodyLogEffectMessage, EmptyData>(new(), CommonMessageRoutes.UnreliableToOtherClients);
+            return;
         }
+
+        ClientManager.RelayModule<BodyLogEffectMessage, EmptyData>(new(), CommonMessageRoutes.UnreliableToOtherClients);
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(nameof(PullCordDevice.OnBallGripDetached))]
     public static void OnBallGripDetached(PullCordDevice __instance, Hand hand)
     {
-        // Prevent player rep body logs from inserting into the body mall
-        if (NetworkManager.HasServer && __instance.rm != RigData.Refs.RigManager)
+        if (!IsPullCordExternal(__instance))
         {
-            var apv = __instance.apv;
-
-            if (apv != null && apv.bodyLog == __instance)
-            {
-                apv.bodyLog = null;
-            }
-
-            __instance.apv = null;
-            __instance.isHandleInReceiver = false;
-            __instance.isBallInReceiver = false;
+            return;
         }
+
+        // External rigs shouldn't be able to insert their body log
+        var avatarPanelView = __instance.apv;
+
+        if (avatarPanelView != null && avatarPanelView.bodyLog == __instance)
+        {
+            avatarPanelView.bodyLog = null;
+        }
+
+        __instance.apv = null;
+        __instance.isHandleInReceiver = false;
+        __instance.isBallInReceiver = false;
+    }
+
+    private static bool IsPullCordNetworked(PullCordDevice pullCordDevice)
+    {
+        return ClientManager.IsClientConnected && pullCordDevice.rm.IsLocalPlayer();
+    }
+
+    private static bool IsPullCordExternal(PullCordDevice pullCordDevice)
+    {
+        if (!NetworkManager.HasServer)
+        {
+            return false;
+        }
+
+        var rigManager = pullCordDevice.rm;
+
+        if (NetworkRig.Cache.TryGet(rigManager, out var networkRig) && !networkRig.NetworkEntity.IsOwner)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

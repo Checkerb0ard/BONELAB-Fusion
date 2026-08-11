@@ -12,12 +12,12 @@ public static class ClientManager
     /// <summary>
     /// Returns true if the client is actively connecting to a server and can send messages, but hasn't been accepted by the server yet.
     /// </summary>
-    public static bool IsClientConnecting => IsLayerConnected && _attemptingConnection;
+    public static bool IsClientConnecting => IsLayerConnected && _connectionRequested;
 
     /// <summary>
     /// Returns true if the client is actively connected to a server.
     /// </summary>
-    public static bool IsClientConnected => IsLayerConnected && !_attemptingConnection;
+    public static bool IsClientConnected => IsLayerConnected && _connectionAuthorized;
 
     /// <summary>
     /// Returns true if the client is also hosting the server they are connected to.
@@ -42,7 +42,8 @@ public static class ClientManager
 
     private static bool IsLayerConnected => NetworkLayerManager.Layer?.IsClientConnected ?? false;
 
-    private static bool _attemptingConnection = false;
+    private static bool _connectionRequested = false;
+    private static bool _connectionAuthorized = false;
 
     /// <summary>
     /// Relays a native message from the client to a target given serializable data that is automatically written.
@@ -126,7 +127,9 @@ public static class ClientManager
 
     internal static void OnConnectionEstablished()
     {
-        _attemptingConnection = true;
+        _connectionRequested = true;
+        _connectionAuthorized = false;
+
         LastDisconnectReason = null;
 
         RequestConnection();
@@ -134,7 +137,14 @@ public static class ClientManager
 
     internal static void OnConnectionLost()
     {
-        _attemptingConnection = false;
+        _connectionRequested = false;
+        _connectionAuthorized = false;
+    }
+
+    internal static void OnConnectionAuthorized()
+    {
+        _connectionRequested = false;
+        _connectionAuthorized = true;
     }
 
     private static void RequestConnection()

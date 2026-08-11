@@ -82,7 +82,7 @@ public abstract class NativeMessageHandler : MessageHandler
                 return;
             }
 
-            if (!handler.ValidateMessageSender(message, prefix, out var senderPlatformID, out var senderSmallID))
+            if (!handler.ValidateMessageSender(message, prefix, bytes, out var senderPlatformID, out var senderSmallID))
             {
                 return;
             }
@@ -104,19 +104,19 @@ public abstract class NativeMessageHandler : MessageHandler
         }
     }
 
-    private bool ValidateMessageSender(ReadableMessage message, MessagePrefix prefix, out ClientPlatformID? senderPlatformID, out ClientSmallID? senderSmallID)
+    private bool ValidateMessageSender(ReadableMessage message, MessagePrefix prefix, byte[] bytes, out ClientPlatformID? senderPlatformID, out ClientSmallID? senderSmallID)
     {
         bool isServerHandled = message.IsServerHandled;
 
         if (isServerHandled)
         {
-            return ServerValidateMessageSender(message, out senderPlatformID, out senderSmallID);
+            return ServerValidateMessageSender(message, bytes, out senderPlatformID, out senderSmallID);
         }
 
         return ClientValidateMessageSender(prefix, out senderPlatformID, out senderSmallID);
     }
 
-    private bool ServerValidateMessageSender(ReadableMessage message, out ClientPlatformID? senderPlatformID, out ClientSmallID? senderSmallID)
+    private bool ServerValidateMessageSender(ReadableMessage message, byte[] bytes, out ClientPlatformID? senderPlatformID, out ClientSmallID? senderSmallID)
     {
         senderPlatformID = message.SenderPlatformID;
         senderSmallID = null;
@@ -134,7 +134,7 @@ public abstract class NativeMessageHandler : MessageHandler
 
         if (!senderSmallID.HasValue && !AllowConnectingClients)
         {
-            FusionLogger.Warn($"Server received an unauthorized message of tag {Tag} from client with PlatformID {senderPlatformID.Value} while they were still connecting! Disconnecting client!");
+            FusionLogger.Warn($"Server received an unauthorized message {GetDescriptor(bytes)} from client with PlatformID {senderPlatformID.Value} while they were still connecting! Disconnecting client!");
             
             NetworkConnectionManager.DisconnectUser(senderPlatformID.Value);
 
@@ -221,6 +221,8 @@ public abstract class NativeMessageHandler : MessageHandler
 
         OnHandleMessage(received);
     }
+
+    protected virtual string GetDescriptor(byte[] bytes) => $"Native Tag {Tag}";
 
     public static readonly NativeMessageHandler[] Handlers = new NativeMessageHandler[byte.MaxValue];
 }

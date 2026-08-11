@@ -50,6 +50,8 @@ public class ConnectionResponseMessage : NativeMessageHandler
         {
             PlayerIDManager.ApplyLocalID();
 
+            ClientManager.OnConnectionAuthorized();
+
             NetworkPlayerManager.CreateLocalPlayer();
 
             InternalServerHelpers.OnJoinServer();

@@ -15,4 +15,9 @@ public class ModuleMessage : NativeMessageHandler
     {
         ModuleMessageManager.ReadMessage(received);
     }
+
+    protected override string GetDescriptor(byte[] bytes)
+    {
+        return ModuleMessageManager.GetDescriptor(bytes);
+    }
 }

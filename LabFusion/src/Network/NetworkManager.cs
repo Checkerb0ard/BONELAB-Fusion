@@ -9,6 +9,7 @@ public static class NetworkManager
 {
     /// <summary>
     /// Returns true if a server exists, whether it is being ran or the client is connected to it.
+    /// <para>If checking whether messages should be sent, it is recommended to instead check either <see cref="ServerManager.IsServerRunning"/> or <see cref="ClientManager.IsClientConnected"/> depending on whether you are sending from the server or client.</para>
     /// </summary>
     public static bool HasServer => ServerManager.IsServerRunning || ClientManager.IsClientConnected;
 
