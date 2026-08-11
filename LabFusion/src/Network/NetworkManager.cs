@@ -40,6 +40,24 @@ public static class NetworkManager
     }
 
     /// <summary>
+    /// If the client is connected to a server, disconnect the client.
+    /// <para>This will only disconnect the client. If a server is also running, the server will remain open.</para>
+    /// </summary>
+    public static void DisconnectFromServer() => DisconnectFromServer(null);
+
+    /// <summary>
+    /// If the client is connected to a server, disconnect the client with a given reason.
+    /// <para>This will only disconnect the client. If a server is also running, the server will remain open.</para>
+    /// </summary>
+    /// <param name="reason"></param>
+    public static void DisconnectFromServer(string reason)
+    {
+        ClientManager.LastDisconnectReason = reason;
+
+        NetworkLayerManager.Layer?.DisconnectFromServer();
+    }
+
+    /// <summary>
     /// Starts a listen server.
     /// <para>This opens a server and connects the host client to the server.</para>
     /// </summary>
@@ -52,8 +70,17 @@ public static class NetworkManager
     /// If the client is connected to a server, disconnect the client.
     /// <para>If a server is running, stop the server.</para>
     /// </summary>
-    public static void DisconnectClientAndServer()
+    public static void DisconnectClientAndServer() => DisconnectClientAndServer(null);
+
+    /// <summary>
+    /// If the client is connected to a server, disconnect the client with a given reason.
+    /// <para>If a server is running, stop the server.</para>
+    /// </summary>
+    /// <param name="reason"></param>
+    public static void DisconnectClientAndServer(string reason)
     {
+        ClientManager.LastDisconnectReason = reason;
+
         NetworkLayerManager.Layer?.DisconnectClientAndServer();
     }
 }
