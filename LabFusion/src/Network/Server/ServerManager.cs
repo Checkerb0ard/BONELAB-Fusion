@@ -198,7 +198,7 @@ public static class ServerManager
 
         NetworkInfo.BytesUp += message.Length;
 
-        layer.ServerSendToClient(message, channel, client);
+        layer.SendToClient(message, channel, client);
     }
 
     /// <summary>
@@ -222,7 +222,7 @@ public static class ServerManager
 
         NetworkInfo.BytesUp += message.Length;
 
-        layer.ServerSendToClients(message, channel, clients);
+        layer.SendToClients(message, channel, clients);
     }
 
     /// <summary>

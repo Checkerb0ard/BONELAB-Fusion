@@ -18,17 +18,17 @@ public sealed class ProxySteamVRNetworkLayer : ProxyNetworkLayer
 
     public override ServerID ConnectedServerID => throw new NotImplementedException();
 
-    public override void ClientSendToServer(NetMessage message, NetworkChannel channel)
+    public override void SendToServer(NetMessage message, NetworkChannel channel)
     {
         throw new NotImplementedException();
     }
 
-    public override void ServerSendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
+    public override void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
     {
         throw new NotImplementedException();
     }
 
-    public override void ServerSendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
+    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
     {
         throw new NotImplementedException();
     }

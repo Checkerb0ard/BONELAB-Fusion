@@ -591,6 +591,92 @@ public abstract class NetworkLayer
     }
 
     /// <summary>
+    /// Gets the username of the local client or null if none is found and invokes a callback with the result.
+    /// </summary>
+    /// <param name="usernameFound"></param>
+    public void GetLocalUsername(Action<string> usernameFound)
+    {
+        Task.Run(GetLocalUsernameAsync).ContinueWith(OnTaskComplete);
+
+        void OnTaskComplete(Task<string> task)
+        {
+            string username = task.IsCompletedSuccessfully ? task.Result : null;
+
+            ThreadHelper.RunOnMainThread(() =>
+            {
+                usernameFound(username);
+            });
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the username of the local client asynchronously, or null if none is found.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<string> GetLocalUsernameAsync()
+    {
+        return await TryGetLocalUsernameAsync();
+    }
+
+    /// <summary>
+    /// Gets the username of another client or null if none is found and invokes a callback with the result.
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="usernameFound"></param>
+    public void GetClientUsername(ClientPlatformID client, Action<string> usernameFound)
+    {
+        Task.Run(OnTaskRun).ContinueWith(OnTaskComplete);
+
+        async Task<string> OnTaskRun()
+        {
+            return await GetClientUsernameAsync(client);
+        }
+
+        void OnTaskComplete(Task<string> task)
+        {
+            string username = task.IsCompletedSuccessfully ? task.Result : null;
+
+            ThreadHelper.RunOnMainThread(() =>
+            {
+                usernameFound(username);
+            });
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the username of another client asynchronously, or null if none is found.
+    /// </summary>
+    /// <param name="client"></param>
+    /// <returns></returns>
+    public async Task<string> GetClientUsernameAsync(ClientPlatformID client)
+    {
+        return await TryGetClientUsernameAsync(client);
+    }
+
+    /// <summary>
+    /// If a server is running, send a message from the server to a specific client.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="channel"></param>
+    /// <param name="client"></param>
+    public abstract void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID client);
+
+    /// <summary>
+    /// If a server is running, send a message from the server to multiple clients.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="channel"></param>
+    /// <param name="client"></param>
+    public abstract void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> client);
+
+    /// <summary>
+    /// If the client is connected to a server, send a message from the client to the server.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="channel"></param>
+    public abstract void SendToServer(NetMessage message, NetworkChannel channel);
+
+    /// <summary>
     /// Initializes the network layer after it has logged in.
     /// </summary>
     public void Initialize()
@@ -628,29 +714,6 @@ public abstract class NetworkLayer
     /// <param name="userId"></param>
     /// <returns></returns>
     public virtual bool IsFriend(ClientPlatformID platformID) => false;
-
-    /// <summary>
-    /// If a server is running, send a message from the server to a specific client.
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="channel"></param>
-    /// <param name="clientPlatformID"></param>
-    public abstract void ServerSendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID);
-
-    /// <summary>
-    /// If a server is running, send a message from the server to multiple clients.
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="channel"></param>
-    /// <param name="clientPlatformIDs"></param>
-    public abstract void ServerSendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs);
-
-    /// <summary>
-    /// If a client is connected to a server, send a message from the client to the server.
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="channel"></param>
-    public abstract void ClientSendToServer(NetMessage message, NetworkChannel channel);
 
     public virtual string GetServerCode()
     {
@@ -716,6 +779,20 @@ public abstract class NetworkLayer
     /// <param name="cancellationToken">The cancellation token that will be checked prior to the client being disconnected.</param>
     /// <returns>Whether the client was disconnected from the server successfully.</returns>
     protected abstract Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Attempts to get the username of the local client, or null if none is found.
+    /// </summary>
+    /// <param name="client"></param>
+    /// <returns></returns>
+    protected virtual Task<string> TryGetLocalUsernameAsync() => null;
+
+    /// <summary>
+    /// Attempts to get the username of another client, or null if none is found.
+    /// </summary>
+    /// <param name="client"></param>
+    /// <returns></returns>
+    protected virtual Task<string> TryGetClientUsernameAsync(ClientPlatformID client) => null;
 
     /// <summary>
     /// Initializes the network layer after it has completed logging in.

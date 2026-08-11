@@ -122,7 +122,7 @@ public static class ClientManager
 
         NetworkInfo.BytesUp += message.Length;
 
-        layer.ClientSendToServer(message, channel);
+        layer.SendToServer(message, channel);
     }
 
     internal static void OnConnectionEstablished()

@@ -83,7 +83,11 @@ public abstract class SteamNetworkLayer : NetworkLayer
         var platformID = new ClientPlatformID(ClientSteamID.Value);
 
         PlayerIDManager.SetPlatformID(platformID);
-        LocalPlayer.Username = GetUsername(platformID);
+
+        GetLocalUsername(username =>
+        {
+            LocalPlayer.Username = username;
+        });
 
         FusionLogger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {ApplicationID}!");
 
@@ -216,9 +220,15 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
     }
 
-    public override string GetUsername(ClientPlatformID platformID)
+    protected override async Task<string> TryGetLocalUsernameAsync() => await TryGetClientUsernameAsync(new ClientPlatformID(ClientSteamID));
+
+    protected override async Task<string> TryGetClientUsernameAsync(ClientPlatformID client)
     {
-        return new Friend((ulong)platformID).Name;
+        var friend = new Friend((ulong)client);
+
+        await friend.RequestInfoAsync();
+
+        return friend.Name;
     }
 
     public override bool IsFriend(ClientPlatformID platformID)
@@ -226,7 +236,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         return platformID == PlayerIDManager.LocalPlatformID || new Friend((ulong)platformID).IsFriend;
     }
 
-    public override void ServerSendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
+    public override void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
     {
         if (!IsServerRunning)
         {
@@ -236,7 +246,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         ServerSteamSocket.SendToClient(clientPlatformID, channel, message);
     }
 
-    public override void ServerSendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
+    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
     {
         if (!IsServerRunning)
         {
@@ -246,7 +256,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         ServerSteamSocket.ServerSendToClients(clientPlatformIDs, channel, message);
     }
 
-    public override void ClientSendToServer(NetMessage message, NetworkChannel channel)
+    public override void SendToServer(NetMessage message, NetworkChannel channel)
     {
         if (!IsClientConnected)
         {
