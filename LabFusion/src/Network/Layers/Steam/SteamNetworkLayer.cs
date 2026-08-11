@@ -220,7 +220,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
     }
 
-    protected override async Task<string> TryGetLocalUsernameAsync() => await TryGetClientUsernameAsync(new ClientPlatformID(ClientSteamID));
+    protected override Task<string> TryGetLocalUsernameAsync() => Task.FromResult(SteamClient.Name);
 
     protected override async Task<string> TryGetClientUsernameAsync(ClientPlatformID client)
     {
