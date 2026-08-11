@@ -702,12 +702,6 @@ public abstract class NetworkLayer
     /// </summary>
     public void LateTick() => OnLateTick();
 
-    /// Returns the username of the player with id userId.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    public virtual string GetUsername(ClientPlatformID platformID) => "Unknown";
-
     /// <summary>
     /// Returns true if this is a friend (ex. steam friends).
     /// </summary>
