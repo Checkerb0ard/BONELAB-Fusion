@@ -61,8 +61,6 @@ public class PlayerID : IEquatable<PlayerID>
         UnhookMetadata();
 
         _isValid = false;
-
-        UnhookMetadata();
     }
 
     private void HookMetadata()
