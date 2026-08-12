@@ -1,14 +1,16 @@
 ﻿using LabFusion.Data;
 using LabFusion.Player;
-using LabFusion.Utilities;
 using LabFusion.UI.Popups;
+using LabFusion.Utilities;
 using LabFusion.Voice;
 using LabFusion.Voice.Unity;
+using LabFusion.Network;
 
 using Steamworks;
 using Steamworks.Data;
+using System.Reflection;
 
-namespace LabFusion.Network;
+namespace MarrowFusion.Steam;
 
 public abstract class SteamNetworkLayer : NetworkLayer
 {
@@ -73,7 +75,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
     {
         if (!SteamClient.IsValid)
         {
-            FusionLogger.Error("Steamworks failed to initialize!");
+            SteamModule.Logger.Error("Steamworks failed to initialize!");
             return;
         }
 
@@ -89,7 +91,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             LocalPlayer.Username = username;
         });
 
-        FusionLogger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {ApplicationID}!");
+        SteamModule.Logger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {ApplicationID}!");
 
         SteamNetworkingUtils.InitRelayNetworkAccess();
 
@@ -126,7 +128,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return false;
         }
 
-        await ThreadHelper.RunOnMainThreadAsTask(TryShutdownGameClient);
+        await ThreadHelper.RunOnMainThreadAsTask(ShutdownGameSteamClient);
 
         bool succeeded;
 
@@ -138,7 +140,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
         catch (Exception e)
         {
-            FusionLogger.LogException("initializing Steamworks", e);
+            SteamModule.Logger.LogException("initializing Steamworks", e);
 
             succeeded = false;
         }
@@ -168,16 +170,41 @@ public abstract class SteamNetworkLayer : NetworkLayer
         return Task.FromResult(true);
     }
 
-    private const string STEAMWORKS_ASSEMBLY_NAME = "Il2CppFacepunch.Steamworks.Win64";
+    private const string GameSteamworksAssemblyName = "Il2CppFacepunch.Steamworks.Win64";
 
-    private static bool GameHasSteamworks()
+    private const string GameSteamClientTypeName = "Il2CppSteamworks.SteamClient";
+
+    private const string GameSteamClientShutdownName = "Shutdown";
+
+    private static void ShutdownGameSteamClient()
     {
+        if (!TryGetGameSteamworksAssembly(out var steamworksAssembly))
+        {
+            return;
+        }
+
+        bool success = TryShutdownGameSteamClient(steamworksAssembly);
+
+        if (success)
+        {
+            SteamModule.Logger.Log("Successfully shut down the game's Steamworks instance!");
+        }
+        else
+        {
+            SteamModule.Logger.Warn("Failed to shut down the game's Steamworks instance.");
+        }
+    }
+
+    private static bool TryGetGameSteamworksAssembly(out Assembly result)
+    {
+        result = null;
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
         foreach (var assembly in assemblies)
         {
-            if (assembly.FullName.StartsWith(STEAMWORKS_ASSEMBLY_NAME))
+            if (assembly.FullName.StartsWith(GameSteamworksAssemblyName))
             {
+                result = assembly;
                 return true;
             }
         }
@@ -185,21 +212,24 @@ public abstract class SteamNetworkLayer : NetworkLayer
         return false;
     }
 
-    private static void TryShutdownGameClient()
+    private static bool TryShutdownGameSteamClient(Assembly steamworksAssembly)
     {
-        if (!GameHasSteamworks())
+        var steamClientType = steamworksAssembly.GetType(GameSteamClientTypeName);
+
+        if (steamClientType == null)
         {
-            return;
+            return false;
         }
 
-        ShutdownGameClient();
-    }
+        var shutdownMethod = steamClientType.GetMethod(GameSteamClientShutdownName, BindingFlags.Static | BindingFlags.Public);
 
-    private static void ShutdownGameClient()
-    {
-        FusionLogger.Log("Shutting down the game's Steamworks instance...");
+        if (shutdownMethod == null)
+        {
+            return false;
+        }
 
-        Il2CppSteamworks.SteamClient.Shutdown();
+        shutdownMethod.Invoke(null, null);
+        return true;
     }
 
     protected override void OnTick()
@@ -216,7 +246,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
         catch (Exception e)
         {
-            FusionLogger.LogException("receiving data on Socket and Connection", e);
+            SteamModule.Logger.LogException("receiving data on Socket and Connection", e);
         }
     }
 
@@ -284,7 +314,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
         catch (Exception e)
         {
-            FusionLogger.LogException("stopping server", e);
+            SteamModule.Logger.LogException("stopping server", e);
 
             return Task.FromResult(false);
         }
@@ -306,7 +336,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
         catch (Exception e)
         {
-            FusionLogger.LogException("disconnecting client from server", e);
+            SteamModule.Logger.LogException("disconnecting client from server", e);
 
             return false;
         }

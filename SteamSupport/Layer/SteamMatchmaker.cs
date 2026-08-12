@@ -1,4 +1,5 @@
-﻿using LabFusion.Utilities;
+﻿using LabFusion;
+using LabFusion.Network;
 using LabFusion.Support;
 
 using MelonLoader;
@@ -8,7 +9,7 @@ using Steamworks.Data;
 
 using System.Collections;
 
-namespace LabFusion.Network;
+namespace MarrowFusion.Steam;
 
 public sealed class SteamMatchmaker : IMatchmaker
 {
@@ -42,7 +43,7 @@ public sealed class SteamMatchmaker : IMatchmaker
         // If the lobby search errored, return an empty list and log the reason why
         if (!task.IsCompletedSuccessfully)
         {
-            FusionLogger.LogException("searching for lobbies", task.Exception);
+            SteamModule.Logger.LogException("searching for lobbies", task.Exception);
             callback?.Invoke(IMatchmaker.MatchmakerCallbackInfo.Empty);
             yield break;
         }

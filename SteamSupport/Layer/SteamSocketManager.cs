@@ -1,7 +1,9 @@
 ﻿using Steamworks;
 using Steamworks.Data;
 
-namespace LabFusion.Network;
+using LabFusion.Network;
+
+namespace MarrowFusion.Steam;
 
 public class SteamSocketManager : SocketManager
 {

@@ -1,9 +1,9 @@
-﻿using LabFusion.Utilities;
+﻿using LabFusion.Network;
 
 using Steamworks;
 using Steamworks.Data;
 
-namespace LabFusion.Network;
+namespace MarrowFusion.Steam;
 
 public static class SteamSocketHandler
 {
@@ -85,7 +85,7 @@ public static class SteamSocketHandler
         }
         catch (Exception e)
         {
-            FusionLogger.LogException("sending message to socket server", e);
+            SteamModule.Logger.LogException("sending message to socket server", e);
         }
     }
 
@@ -109,7 +109,7 @@ public static class SteamSocketHandler
         }
         catch (Exception e)
         {
-            FusionLogger.Error($"Failed reading message from socket server with reason: {e.Message}\nTrace:{e.StackTrace}");
+            SteamModule.Logger.Error($"Failed reading message from socket server with reason: {e.Message}\nTrace:{e.StackTrace}");
         }
     }
 }

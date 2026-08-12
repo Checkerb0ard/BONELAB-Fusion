@@ -146,7 +146,7 @@ public class FusionMod : MelonMod
         NetworkSceneManager.Initialize();
 
         // Initialize the networking manager
-        NetworkLayerManager.OnInitializeMelon();
+        NetworkLayerManager.Initialize();
 
         NetworkManager.Initialize();
 
@@ -161,7 +161,7 @@ public class FusionMod : MelonMod
     {
         ModuleManager.LoadModules(FusionAssembly);
 
-        SupportManager.LoadGameModule(FusionAssembly);
+        SupportManager.LoadModules(FusionAssembly);
     }
 
     public override void OnLateInitializeMelon()

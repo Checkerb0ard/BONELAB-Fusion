@@ -56,10 +56,11 @@ public static class TrustedListManager
 
     public static TrustedStatus VerifyPlayer(ClientPlatformID platformID, string name)
     {
-        if (NetworkLayerManager.Layer is SteamNetworkLayer)
-        {
-            return VerifyPlayer(_steamPlayers, platformID, name);
-        }
+        // TODO: Add back without layer type dependency
+        // if (NetworkLayerManager.Layer is SteamNetworkLayer)
+        // {
+        //     return VerifyPlayer(_steamPlayers, platformID, name);
+        // }
 
         return TrustedStatus.None;
     }

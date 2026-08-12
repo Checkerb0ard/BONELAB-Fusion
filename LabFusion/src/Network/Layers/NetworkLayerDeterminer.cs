@@ -1,6 +1,4 @@
-﻿using LabFusion.Network.Proxy;
-using LabFusion.Preferences.Client;
-using LabFusion.Utilities;
+﻿using LabFusion.Preferences.Client;
 
 namespace LabFusion.Network;
 
@@ -9,25 +7,13 @@ public static class NetworkLayerDeterminer
     public static NetworkLayer LoadedLayer { get; private set; }
     public static string LoadedTitle { get; private set; }
 
-    public static NetworkLayer GetDefaultLayer()
-    {
-        if (PlatformHelper.IsAndroid)
-        {
-            return NetworkLayerManager.GetLayer<ProxySteamVRNetworkLayer>();
-        }
-
-        return NetworkLayerManager.GetLayer<SteamVRNetworkLayer>();
-    }
+    public static NetworkLayer GetDefaultLayer() => NetworkLayerManager.SupportedLayers.FirstOrDefault();
 
     public static NetworkLayer VerifyLayer(NetworkLayer layer)
     {
         if (layer.CheckSupported() && layer.CheckValidation())
         {
             return layer;
-        }
-        else if (layer.TryGetFallback(out var fallback))
-        {
-            return VerifyLayer(fallback);
         }
         else
         {

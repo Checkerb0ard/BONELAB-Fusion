@@ -150,17 +150,6 @@ public abstract class NetworkLayer
     public abstract bool CheckValidation();
 
     /// <summary>
-    /// Returns a fallback layer if it exists in the event this layer fails.
-    /// </summary>
-    /// <param name="fallback"></param>
-    /// <returns></returns>
-    public virtual bool TryGetFallback(out NetworkLayer fallback)
-    {
-        fallback = null;
-        return false;
-    }
-
-    /// <summary>
     /// Attempts to log in to the network layer.
     /// <para>The <see cref="LogInCompleted"/> event will be invoked if the layer logs in successfully.</para>
     /// </summary>

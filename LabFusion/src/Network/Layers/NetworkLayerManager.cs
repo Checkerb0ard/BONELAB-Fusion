@@ -270,7 +270,7 @@ public static class NetworkLayerManager
         }
     }
 
-    internal static void OnInitializeMelon()
+    internal static void Initialize()
     {
         NetworkLayer.ServerStarted += OnServerStarted;
         NetworkLayer.ServerStopped += OnServerStopped;
