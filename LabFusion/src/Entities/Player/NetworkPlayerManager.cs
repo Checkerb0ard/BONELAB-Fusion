@@ -2,25 +2,13 @@
 using Il2CppSLZ.Marrow.Interaction;
 
 using LabFusion.Player;
-using LabFusion.Utilities;
-using LabFusion.Data;
 using LabFusion.Network;
 
 namespace LabFusion.Entities;
 
 public static class NetworkPlayerManager
 {
-    private static readonly EntityUpdatableManager _updatableManager = new();
-    public static EntityUpdatableManager UpdatableManager => _updatableManager;
-
-    public static void OnInitializeManager()
-    {
-        // Reserve all player ids
-        for (var i = PlayerIDManager.MinPlayerID; i <= PlayerIDManager.MaxPlayerID; i++)
-        {
-            NetworkEntityManager.IDManager.RegisteredEntities.ReserveID((ushort)i);
-        }
-    }
+    public static EntityUpdatableManager UpdatableManager { get; } = new();
 
     public static bool HasExternalPlayer(RigManager rigManager)
     {
@@ -92,12 +80,32 @@ public static class NetworkPlayerManager
         return player != null;
     }
 
-    public static NetworkPlayer CreateLocalPlayer()
+    internal static void Initialize()
     {
-        return CreateNetworkPlayer(PlayerIDManager.LocalID);
+        ReserveIDs(PlayerIDManager.MinPlayerID, PlayerIDManager.MaxPlayerID);
+
+        PlayerIDManager.PlayerRegistered += OnPlayerRegistered;
     }
 
-    public static NetworkPlayer CreateNetworkPlayer(PlayerID playerID)
+    internal static void OnUpdate(float deltaTime) => UpdatableManager.OnEntityUpdate(deltaTime);
+    internal static void OnFixedUpdate(float deltaTime) => UpdatableManager.OnEntityFixedUpdate(deltaTime);
+
+    internal static void OnLateUpdate(float deltaTime) => UpdatableManager.OnEntityLateUpdate(deltaTime);
+
+    private static void ReserveIDs(int min, int max)
+    {
+        for (var i = min; i <= max; i++)
+        {
+            NetworkEntityManager.IDManager.RegisteredEntities.ReserveID((ushort)i);
+        }
+    }
+
+    private static void OnPlayerRegistered(PlayerID playerID)
+    {
+        CreateNetworkPlayer(playerID);
+    }
+
+    private static NetworkPlayer CreateNetworkPlayer(PlayerID playerID)
     {
         NetworkEntity networkEntity = new();
         NetworkPlayer networkPlayer = NetworkPlayer.CreatePlayer(networkEntity, playerID);
@@ -105,20 +113,5 @@ public static class NetworkPlayerManager
         NetworkEntityManager.IDManager.RegisterEntity((ushort)playerID.SmallID, networkEntity);
 
         return networkPlayer;
-    }
-
-    public static void OnUpdate(float deltaTime)
-    {
-        UpdatableManager.OnEntityUpdate(deltaTime);
-    }
-
-    public static void OnFixedUpdate(float deltaTime)
-    {
-        UpdatableManager.OnEntityFixedUpdate(deltaTime);
-    }
-
-    public static void OnLateUpdate(float deltaTime)
-    {
-        UpdatableManager.OnEntityLateUpdate(deltaTime);
     }
 }

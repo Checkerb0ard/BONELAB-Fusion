@@ -1,5 +1,4 @@
-﻿using LabFusion.Entities;
-using LabFusion.Network.Serialization;
+﻿using LabFusion.Network.Serialization;
 using LabFusion.Player;
 
 namespace LabFusion.Network;
@@ -38,18 +37,9 @@ public class ConnectionResponseMessage : NativeMessageHandler
 
         PlayerIDManager.RegisterPlayer(data.PlatformID, data.SmallID, data.InitialMetadata, data.IsJoining, out var playerID);
 
-        // Check the id to see if its our own
-        // If it is, just update our self reference
         if (playerID.PlatformID == PlayerIDManager.LocalPlatformID)
         {
             ClientManager.OnConnectionAuthorized();
-
-            NetworkPlayerManager.CreateLocalPlayer();
-        }
-        // Otherwise, create a network player
-        else
-        {
-            NetworkPlayerManager.CreateNetworkPlayer(playerID);
         }
 
         // Send catchup messages now that the user is registered
