@@ -38,6 +38,16 @@ public static class NetworkManager
         ServerManager.IsServerRunning ? ServerManager.RunningServerID :
         ServerID.Empty;
 
+    /// <summary>
+    /// The amount of bytes received this frame.
+    /// </summary>
+    public static int BytesDownloaded { get; internal set; }
+
+    /// <summary>
+    /// The amount of bytes sent this frame.
+    /// </summary>
+    public static int BytesUploaded { get; internal set; }
+
     private static bool _isServerEstablished = false;
 
     /// <summary>

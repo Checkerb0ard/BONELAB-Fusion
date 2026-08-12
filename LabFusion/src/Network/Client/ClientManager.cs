@@ -133,7 +133,7 @@ public static class ClientManager
             return;
         }
 
-        NetworkInfo.BytesUp += message.Length;
+        NetworkManager.BytesUploaded += message.Length;
 
         layer.SendToServer(message, channel);
     }

@@ -41,7 +41,7 @@ public static class NetworkConnectionManager
             return;
         }
 
-        var layer = NetworkInfo.Layer;
+        var layer = NetworkLayerManager.Layer;
 
         layer.DisconnectClient(platformID);
     }

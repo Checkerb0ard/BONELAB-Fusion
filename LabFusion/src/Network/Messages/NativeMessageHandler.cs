@@ -55,7 +55,7 @@ public abstract class NativeMessageHandler : MessageHandler
         bool isServerHandled = message.IsServerHandled;
 
         int size = message.Buffer.Length;
-        NetworkInfo.BytesDown += size;
+        NetworkManager.BytesDownloaded += size;
 
         byte tag = 0;
 

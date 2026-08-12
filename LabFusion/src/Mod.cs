@@ -250,8 +250,8 @@ public class FusionMod : MelonMod
     public override void OnUpdate()
     {
         // Reset byte counts
-        NetworkInfo.BytesDown = 0;
-        NetworkInfo.BytesUp = 0;
+        NetworkManager.BytesDownloaded = 0;
+        NetworkManager.BytesUploaded = 0;
 
         // Process mod downloads
         ModIODownloader.UpdateQueue();
