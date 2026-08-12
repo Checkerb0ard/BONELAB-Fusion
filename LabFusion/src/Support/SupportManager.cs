@@ -13,13 +13,22 @@ public static class SupportManager
         { SupportGameNames.BonelabName, SupportResourcePaths.BonelabSupportPath },
     };
 
-    public static readonly Dictionary<GamePlatform, string> PlatformToModule = new()
+    public static readonly Dictionary<GamePlatform, List<string>> PlatformToModules = new()
     {
+        { GamePlatform.Steam, new()
+        {
+            SupportResourcePaths.SteamSupportPath,
+        } 
+        },
+        { GamePlatform.MetaPCVR, new()
+        {
+            SupportResourcePaths.SteamSupportPath,
+        } 
+        },
     };
 
     public static readonly List<string> UniversalModules = new()
     {
-        SupportResourcePaths.SteamSupportPath,
     };
 
     public static void LoadModules(Assembly assembly)
@@ -43,9 +52,14 @@ public static class SupportManager
     {
         var platform = PlatformHelper.GetPlatform();
 
-        if (PlatformToModule.TryGetValue(platform, out var platformModulePath))
+        if (!PlatformToModules.TryGetValue(platform, out var platformModules))
         {
-            LoadModuleFromPath(assembly, platformModulePath);
+            return;
+        }
+
+        foreach (var modulePath in platformModules)
+        {
+            LoadModuleFromPath(assembly, modulePath);
         }
     }
 
