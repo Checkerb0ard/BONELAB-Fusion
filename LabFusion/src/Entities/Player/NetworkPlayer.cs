@@ -297,7 +297,11 @@ public class NetworkPlayer : IEntityExtender, IEntityUpdatable, IEntityFixedUpda
         NetworkEntity.UnlockOwner();
 
         // Unhook from the player's events
-        PlayerID.Metadata.Metadata.OnMetadataChanged -= OnMetadataChanged;
+        if (PlayerID.IsValid)
+        {
+            PlayerID.Metadata.Metadata.OnMetadataChanged -= OnMetadataChanged;
+        }
+
         PlayerIDManager.PlayerUnregistered -= OnPlayerUnregistered;
 
         LobbyInfoManager.OnLobbyInfoChanged -= OnServerSettingsChanged;
