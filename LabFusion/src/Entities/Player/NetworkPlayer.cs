@@ -135,7 +135,14 @@ public class NetworkPlayer : IEntityExtender, IEntityUpdatable, IEntityFixedUpda
     {
         if (NetworkEntity.IsOwner)
         {
-            OnRigManagerFound(RigData.Refs.RigManager);
+            if (!RigData.HasPlayer)
+            {
+                return;
+            }
+
+            var rigManager = RigData.Refs.RigManager;
+
+            OnRigManagerFound(rigManager);
         }
         else
         {
