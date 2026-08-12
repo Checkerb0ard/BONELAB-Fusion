@@ -11,7 +11,7 @@ public interface IMatchmaker
 
     public struct LobbyInfo
     {
-        public INetworkLobby Lobby;
+        public NetworkLobby Lobby;
         public LobbyMetadataInfo Metadata;
     }
 

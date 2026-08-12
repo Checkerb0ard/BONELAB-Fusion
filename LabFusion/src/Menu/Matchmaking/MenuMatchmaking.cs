@@ -449,7 +449,7 @@ public static class MenuMatchmaking
         return serverName;
     }
 
-    private static void ApplyServerMetadataToLobby(LobbyElement element, INetworkLobby lobby, LobbyMetadataInfo info)
+    private static void ApplyServerMetadataToLobby(LobbyElement element, NetworkLobby lobby, LobbyMetadataInfo info)
     {
         var lobbyColor = Color.white;
         var levelColor = Color.white;
@@ -477,7 +477,7 @@ public static class MenuMatchmaking
         element.ServerActionElement
             .Cleared()
             .WithTitle("Join")
-            .Do(info.CreateJoinDelegate(lobby))
+            .Do(info.CreateJoinDelegate())
             .WithColor(lobbyColor);
 
         element.LevelNameElement

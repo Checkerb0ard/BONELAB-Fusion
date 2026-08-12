@@ -13,30 +13,12 @@ public class SteamLobby : NetworkLobby
         _lobby = lobby;
     }
 
-    public override void SetMetadata(string key, string value)
+    protected override void OnSetMetadata(string key, string value)
     {
         value ??= string.Empty;
 
         _lobby.SetData(key, value);
-        SaveKey(key);
     }
 
-    public override bool TryGetMetadata(string key, out string value)
-    {
-        value = _lobby.GetData(key);
-        return !string.IsNullOrWhiteSpace(value);
-    }
-
-    public override string GetMetadata(string key)
-    {
-        return _lobby.GetData(key);
-    }
-
-    public override Action CreateJoinDelegate(ServerID lobbyId)
-    {
-        return () =>
-        {
-            NetworkLayerManager.Layer?.ConnectToServer(lobbyId);
-        };
-    }
+    protected override string OnGetMetadata(string key) => _lobby.GetData(key);
 }

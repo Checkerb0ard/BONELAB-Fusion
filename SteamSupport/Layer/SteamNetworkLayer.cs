@@ -7,15 +7,14 @@ using LabFusion.Network;
 
 using Steamworks;
 using Steamworks.Data;
-using System.Reflection;
 
 namespace MarrowFusion.Steam;
 
 public abstract class SteamNetworkLayer : NetworkLayer
 {
-    public abstract uint ApplicationID { get; }
-
     public const int ReceiveBufferSize = 32;
+
+    public abstract uint AppID { get; }
 
     public override string Title => "Steam";
 
@@ -29,13 +28,10 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
     public override ServerID ConnectedServerID => _connectedServerID;
 
-    private INetworkLobby _currentLobby;
-    public override INetworkLobby Lobby => _currentLobby;
+    public override NetworkLobby Lobby => _currentLobby;
 
-    private IVoiceManager _voiceManager = null;
     public override IVoiceManager VoiceManager => _voiceManager;
 
-    private IMatchmaker _matchmaker = null;
     public override IMatchmaker Matchmaker => _matchmaker;
 
     /// <summary>
@@ -60,6 +56,10 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private ServerID _runningServerID = ServerID.Empty;
     private ServerID _connectedServerID = ServerID.Empty;
 
+    private IMatchmaker _matchmaker = null;
+    private IVoiceManager _voiceManager = null;
+    private NetworkLobby _currentLobby;
+
     public override bool CheckSupported()
     {
         return !PlatformHelper.IsAndroid;
@@ -68,184 +68,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
     public override bool CheckValidation()
     {
         return SteamAPILoader.HasSteamAPI;
-    }
-
-    protected override void OnInitialize()
-    {
-        if (!SteamClient.IsValid)
-        {
-            SteamModule.Logger.Error("Steamworks failed to initialize!");
-            return;
-        }
-
-        // Get steam information
-        ClientSteamID = SteamClient.SteamId;
-
-        var platformID = new ClientPlatformID(ClientSteamID.Value);
-
-        PlayerIDManager.SetPlatformID(platformID);
-
-        GetLocalUsername(username =>
-        {
-            LocalPlayer.Username = username;
-        });
-
-        SteamModule.Logger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {ApplicationID}!");
-
-        SteamNetworkingUtils.InitRelayNetworkAccess();
-
-        HookSteamEvents();
-
-        // Create managers
-        _voiceManager = new UnityVoiceManager();
-        _voiceManager.Enable();
-
-        _matchmaker = new SteamMatchmaker();
-    }
-
-    protected override void OnDeinitialize()
-    {
-        _voiceManager.Disable();
-        _voiceManager = null;
-
-        _matchmaker = null;
-
-        _localLobby = default;
-        _currentLobby = null;
-
-        UnHookSteamEvents();
-
-        SteamAPI.Shutdown();
-    }
-
-    protected override async Task<bool> TryLogInAsync(CancellationToken cancellationToken)
-    {
-        if (SteamClient.IsValid)
-        {
-            return false;
-        }
-
-        await ThreadHelper.RunOnMainThreadAsTask(ShutdownGameSteamClient);
-
-        bool succeeded;
-
-        try
-        {
-            SteamClient.Init(ApplicationID, false);
-
-            succeeded = true;
-        }
-        catch (Exception e)
-        {
-            SteamModule.Logger.LogException("initializing Steamworks", e);
-
-            succeeded = false;
-        }
-
-        return succeeded;
-    }
-
-    protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
-    {
-        SteamClient.Shutdown();
-
-        return Task.FromResult(true);
-    }
-
-    private const string GameSteamworksAssemblyName = "Il2CppFacepunch.Steamworks.Win64";
-
-    private const string GameSteamClientTypeName = "Il2CppSteamworks.SteamClient";
-
-    private const string GameSteamClientShutdownName = "Shutdown";
-
-    private static void ShutdownGameSteamClient()
-    {
-        if (!TryGetGameSteamworksAssembly(out var steamworksAssembly))
-        {
-            return;
-        }
-
-        bool success = TryShutdownGameSteamClient(steamworksAssembly);
-
-        if (success)
-        {
-            SteamModule.Logger.Log("Successfully shut down the game's Steamworks instance!");
-        }
-        else
-        {
-            SteamModule.Logger.Warn("Failed to shut down the game's Steamworks instance.");
-        }
-    }
-
-    private static bool TryGetGameSteamworksAssembly(out Assembly result)
-    {
-        result = null;
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-        foreach (var assembly in assemblies)
-        {
-            if (assembly.FullName.StartsWith(GameSteamworksAssemblyName))
-            {
-                result = assembly;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool TryShutdownGameSteamClient(Assembly steamworksAssembly)
-    {
-        var steamClientType = steamworksAssembly.GetType(GameSteamClientTypeName);
-
-        if (steamClientType == null)
-        {
-            return false;
-        }
-
-        var shutdownMethod = steamClientType.GetMethod(GameSteamClientShutdownName, BindingFlags.Static | BindingFlags.Public);
-
-        if (shutdownMethod == null)
-        {
-            return false;
-        }
-
-        shutdownMethod.Invoke(null, null);
-        return true;
-    }
-
-    protected override void OnTick()
-    {
-        // Run callbacks for our client
-        SteamClient.RunCallbacks();
-
-        // Receive any needed messages
-        try
-        {
-            ServerSteamSocket?.Receive(ReceiveBufferSize);
-
-            ClientSteamConnection?.Receive(ReceiveBufferSize);
-        }
-        catch (Exception e)
-        {
-            SteamModule.Logger.LogException("receiving data on Socket and Connection", e);
-        }
-    }
-
-    protected override Task<string> TryGetLocalUsernameAsync() => Task.FromResult(SteamClient.Name);
-
-    protected override async Task<string> TryGetClientUsernameAsync(ClientPlatformID client)
-    {
-        var friend = new Friend((ulong)client);
-
-        await friend.RequestInfoAsync();
-
-        return friend.Name;
-    }
-
-    public override bool IsFriend(ClientPlatformID platformID)
-    {
-        return platformID == PlayerIDManager.LocalPlatformID || new Friend((ulong)platformID).IsFriend;
     }
 
     public override void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
@@ -278,6 +100,40 @@ public abstract class SteamNetworkLayer : NetworkLayer
         ClientSteamConnection.ClientSendToServer(channel, message);
     }
 
+    protected override async Task<bool> TryLogInAsync(CancellationToken cancellationToken)
+    {
+        if (SteamClient.IsValid)
+        {
+            return false;
+        }
+
+        await ThreadHelper.RunOnMainThreadAsTask(SteamGameClientManager.Shutdown);
+
+        bool succeeded;
+
+        try
+        {
+            SteamClient.Init(AppID, false);
+
+            succeeded = true;
+        }
+        catch (Exception e)
+        {
+            SteamModule.Logger.LogException("initializing Steamworks", e);
+
+            succeeded = false;
+        }
+
+        return succeeded;
+    }
+
+    protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
+    {
+        SteamClient.Shutdown();
+
+        return Task.FromResult(true);
+    }
+
     protected override Task<bool> TryStartServerAsync(CancellationToken cancellationToken)
     {
         ServerSteamSocket = SteamNetworkingSockets.CreateRelaySocket<SteamSocketManager>();
@@ -305,38 +161,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _runningServerID = ServerID.Empty;
 
         return Task.FromResult(true);
-    }
-
-    protected override async Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
-    {
-        if (ClientSteamConnection == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            if (ClientSteamConnection.Connected)
-            {
-                ClientSteamConnection.Close();
-            }
-        }
-        catch (Exception e)
-        {
-            SteamModule.Logger.LogException("disconnecting client from server", e);
-
-            return false;
-        }
-
-        while (ClientSteamConnection != null && ClientSteamConnection.Connected)
-        {
-            await Task.Delay(50, CancellationToken.None);
-        }
-
-        ClientSteamConnection = null;
-        _connectedServerID = ServerID.Empty;
-
-        return true;
     }
 
     protected override Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
@@ -378,6 +202,120 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _connectedServerID = server;
 
         return true;
+    }
+
+    protected override async Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
+    {
+        if (ClientSteamConnection == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            if (ClientSteamConnection.Connected)
+            {
+                ClientSteamConnection.Close();
+            }
+        }
+        catch (Exception e)
+        {
+            SteamModule.Logger.LogException("disconnecting client from server", e);
+
+            return false;
+        }
+
+        while (ClientSteamConnection != null && ClientSteamConnection.Connected)
+        {
+            await Task.Delay(50, CancellationToken.None);
+        }
+
+        ClientSteamConnection = null;
+        _connectedServerID = ServerID.Empty;
+
+        return true;
+    }
+
+    protected override Task<string> TryGetLocalUsernameAsync() => Task.FromResult(SteamClient.Name);
+
+    protected override async Task<string> TryGetClientUsernameAsync(ClientPlatformID client)
+    {
+        var friend = new Friend((ulong)client);
+
+        await friend.RequestInfoAsync();
+
+        return friend.Name;
+    }
+
+    protected override void OnInitialize()
+    {
+        if (!SteamClient.IsValid)
+        {
+            SteamModule.Logger.Error("Steamworks failed to initialize!");
+            return;
+        }
+
+        // Get steam information
+        ClientSteamID = SteamClient.SteamId;
+
+        var platformID = new ClientPlatformID(ClientSteamID.Value);
+
+        PlayerIDManager.SetPlatformID(platformID);
+
+        GetLocalUsername(username =>
+        {
+            LocalPlayer.Username = username;
+        });
+
+        SteamModule.Logger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {AppID}!");
+
+        SteamNetworkingUtils.InitRelayNetworkAccess();
+
+        HookSteamEvents();
+
+        // Create managers
+        _voiceManager = new UnityVoiceManager();
+        _voiceManager.Enable();
+
+        _matchmaker = new SteamMatchmaker();
+    }
+
+    protected override void OnDeinitialize()
+    {
+        _voiceManager.Disable();
+        _voiceManager = null;
+
+        _matchmaker = null;
+
+        _localLobby = default;
+        _currentLobby = null;
+
+        UnHookSteamEvents();
+
+        SteamAPI.Shutdown();
+    }
+
+    protected override void OnTick()
+    {
+        // Run callbacks for our client
+        SteamClient.RunCallbacks();
+
+        // Receive any needed messages
+        try
+        {
+            ServerSteamSocket?.Receive(ReceiveBufferSize);
+
+            ClientSteamConnection?.Receive(ReceiveBufferSize);
+        }
+        catch (Exception e)
+        {
+            SteamModule.Logger.LogException("receiving data on Socket and Connection", e);
+        }
+    }
+
+    public override bool IsFriend(ClientPlatformID platformID)
+    {
+        return platformID == PlayerIDManager.LocalPlatformID || new Friend((ulong)platformID).IsFriend;
     }
 
     public string ServerCode { get; private set; } = null;
@@ -481,7 +419,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private async void AwaitLobbyCreation()
     {
         var lobbyTask = await SteamMatchmaking.CreateLobbyAsync();
-
+        
         if (!lobbyTask.HasValue)
         {
 #if DEBUG

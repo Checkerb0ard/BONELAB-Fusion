@@ -4,12 +4,12 @@ namespace LabFusion.Network;
 
 public static class LobbyMetadataSerializer
 {
-    public static void WriteInfo(INetworkLobby lobby)
+    public static void WriteInfo(NetworkLobby lobby)
     {
         LobbyMetadataInfo.Create().Write(lobby);
     }
 
-    public static LobbyMetadataInfo ReadInfo(INetworkLobby lobby)
+    public static LobbyMetadataInfo ReadInfo(NetworkLobby lobby)
     {
         try
         {

@@ -65,4 +65,10 @@ public static class PlatformHelper
             _ => GamePlatform.None,
         };
     }
+
+    /// <summary>
+    /// Gets the AppID for the game on its current platform.
+    /// </summary>
+    /// <returns></returns>
+    public static string GetAppID() => PlatformSelectionData.AppId();
 }

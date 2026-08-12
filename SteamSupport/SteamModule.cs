@@ -25,6 +25,8 @@ public class SteamModule : Module
 
         ModuleAssembly = Assembly.GetExecutingAssembly();
 
+        SteamAppManager.LoadGameAppID();
+
         NetworkLayerManager.LoadLayers(ModuleAssembly);
     }
 }

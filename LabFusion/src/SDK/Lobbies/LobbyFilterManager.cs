@@ -43,7 +43,7 @@ public static class LobbyFilterManager
         OnAddedFilter?.Invoke(filter);
     }
 
-    public static bool CheckOptionalFilters(INetworkLobby lobby, LobbyMetadataInfo info)
+    public static bool CheckOptionalFilters(NetworkLobby lobby, LobbyMetadataInfo info)
     {
         foreach (var filter in LobbyFilters)
         {
@@ -56,7 +56,7 @@ public static class LobbyFilterManager
         return true;
     }
 
-    public static bool CheckPersistentFilters(INetworkLobby lobby, LobbyMetadataInfo info)
+    public static bool CheckPersistentFilters(NetworkLobby lobby, LobbyMetadataInfo info)
     {
         var lobbyInfo = info.LobbyInfo;
 

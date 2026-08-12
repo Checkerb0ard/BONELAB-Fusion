@@ -63,7 +63,7 @@ public struct LobbyMetadataInfo
         };
     }
 
-    public readonly void Write(INetworkLobby lobby)
+    public readonly void Write(NetworkLobby lobby)
     {
         lobby.SetMetadata(LobbyKeys.IdentifierKey, bool.TrueString);
         lobby.SetMetadata(LobbyKeys.HasLobbyOpenKey, HasLobbyOpen.ToString());
@@ -76,10 +76,10 @@ public struct LobbyMetadataInfo
         lobby.SetMetadata(nameof(LobbyInfo), JsonSerializer.Serialize(LobbyInfo));
 
         // Now, write all the keys into an array in the metadata
-        lobby.WriteKeyCollection();
+        lobby.WriteKeysToCollection();
     }
 
-    public static LobbyMetadataInfo Read(INetworkLobby lobby)
+    public static LobbyMetadataInfo Read(NetworkLobby lobby)
     {
         var info = new LobbyMetadataInfo()
         {
@@ -127,11 +127,13 @@ public struct LobbyMetadataInfo
         return info;
     }
 
-    public readonly Action CreateJoinDelegate(INetworkLobby lobby)
+    public readonly Action CreateJoinDelegate()
     {
-        // If the user does not have the host's level, it will automatically download
-        // If it fails, the user will be disconnected
-        // So, we no longer need to check if the client has the level here
-        return lobby.CreateJoinDelegate(LobbyInfo.LobbyID);
+        var lobbyID = LobbyInfo.LobbyID;
+
+        return () =>
+        {
+            NetworkLayerManager.Layer?.ConnectToServer(lobbyID);
+        };
     }
 }

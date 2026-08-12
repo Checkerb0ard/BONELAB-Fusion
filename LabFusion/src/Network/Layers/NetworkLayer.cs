@@ -121,7 +121,7 @@ public abstract class NetworkLayer
     /// <summary>
     /// Returns the active lobby.
     /// </summary>
-    public virtual INetworkLobby Lobby => null;
+    public virtual NetworkLobby Lobby => null;
 
     /// <summary>
     /// Returns the used voice manager.

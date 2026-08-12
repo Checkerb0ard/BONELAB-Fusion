@@ -2,7 +2,7 @@
 
 namespace LabFusion.SDK.Lobbies;
 
-public delegate bool GenericLobbyDelegate(INetworkLobby lobby, LobbyMetadataInfo info);
+public delegate bool GenericLobbyDelegate(NetworkLobby lobby, LobbyMetadataInfo info);
 
 public class GenericLobbyFilter : ILobbyFilter
 {
@@ -18,7 +18,7 @@ public class GenericLobbyFilter : ILobbyFilter
         this.OnFilter = onFilter;
     }
 
-    public bool FilterLobby(INetworkLobby lobby, LobbyMetadataInfo info)
+    public bool FilterLobby(NetworkLobby lobby, LobbyMetadataInfo info)
     {
         return OnFilter(lobby, info);
     }

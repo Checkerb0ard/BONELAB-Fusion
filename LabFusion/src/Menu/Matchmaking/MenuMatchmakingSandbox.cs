@@ -96,7 +96,7 @@ public static class MenuMatchmakingSandbox
         // Otherwise, join a random one
         var randomLobby = validLobbies.GetRandom();
 
-        randomLobby.Metadata.CreateJoinDelegate(randomLobby.Lobby)?.Invoke();
+        randomLobby.Metadata.CreateJoinDelegate()?.Invoke();
 
     }
 

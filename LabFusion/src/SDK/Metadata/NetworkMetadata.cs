@@ -9,8 +9,7 @@ public delegate bool MetadataRemoveDelegate(string key);
 
 public class NetworkMetadata
 {
-    private readonly Dictionary<string, string> _localDictionary = new();
-    public Dictionary<string, string> LocalDictionary => _localDictionary;
+    public Dictionary<string, string> LocalDictionary { get; } = new();
 
     // Change callbacks
     public event Action<string, string> OnMetadataChanged, OnMetadataRemoved;
@@ -43,12 +42,12 @@ public class NetworkMetadata
 
     public bool TryGetMetadata(string key, out string value)
     {
-        return _localDictionary.TryGetValue(key, out value);
+        return LocalDictionary.TryGetValue(key, out value);
     }
 
     public string GetMetadata(string key)
     {
-        if (_localDictionary.TryGetValue(key, out string value))
+        if (LocalDictionary.TryGetValue(key, out string value))
         {
             return value;
         }
@@ -58,36 +57,36 @@ public class NetworkMetadata
 
     public void ForceSetLocalMetadata(string key, string value)
     {
-        _localDictionary[key] = value;
+        LocalDictionary[key] = value;
 
         OnMetadataChanged?.InvokeSafe(key, value, "executing OnMetadataChanged");
     }
 
     public void ForceRemoveLocalMetadata(string key)
     {
-        if (_localDictionary.TryGetValue(key, out var value))
+        if (LocalDictionary.TryGetValue(key, out var value))
         {
             OnMetadataRemoved?.InvokeSafe(key, value, "executing OnMetadataRemoved");
 
-            _localDictionary.Remove(key);
+            LocalDictionary.Remove(key);
         }
     }
 
     public void ClearLocalMetadata()
     {
-        var keys = _localDictionary.Keys.ToArray();
+        var keys = LocalDictionary.Keys.ToArray();
 
         foreach (var key in keys)
         {
-            OnMetadataRemoved?.InvokeSafe(key, _localDictionary[key], "executing OnMetadataRemoved");
+            OnMetadataRemoved?.InvokeSafe(key, LocalDictionary[key], "executing OnMetadataRemoved");
 
-            _localDictionary.Remove(key);
+            LocalDictionary.Remove(key);
         }
     }
 
     public void ClearLocalMetadataExcept(Predicate<string> predicate)
     {
-        var keys = _localDictionary.Keys.ToArray();
+        var keys = LocalDictionary.Keys.ToArray();
 
         foreach (var key in keys)
         {
@@ -96,9 +95,9 @@ public class NetworkMetadata
                 continue;
             }
 
-            OnMetadataRemoved?.InvokeSafe(key, _localDictionary[key], "executing OnMetadataRemoved");
+            OnMetadataRemoved?.InvokeSafe(key, LocalDictionary[key], "executing OnMetadataRemoved");
 
-            _localDictionary.Remove(key);
+            LocalDictionary.Remove(key);
         }
     }
 }
