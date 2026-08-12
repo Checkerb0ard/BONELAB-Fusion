@@ -131,7 +131,7 @@ public abstract class NetworkLayer
     /// <summary>
     /// Returns the layer's matchmaker for finding lobbies.
     /// </summary>
-    public virtual IMatchmaker Matchmaker => null;
+    public virtual Matchmaker Matchmaker => null;
 
     /// <summary>
     /// Returns true if this NetworkLayer is supported on the current platform.

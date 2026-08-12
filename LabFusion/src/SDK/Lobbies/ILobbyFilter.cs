@@ -10,5 +10,5 @@ public interface ILobbyFilter
 
     void SetActive(bool active);
 
-    bool FilterLobby(NetworkLobby lobby, LobbyMetadataInfo info);
+    bool FilterLobby(LobbyMetadata metadata);
 }

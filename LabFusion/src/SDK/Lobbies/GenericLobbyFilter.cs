@@ -2,39 +2,27 @@
 
 namespace LabFusion.SDK.Lobbies;
 
-public delegate bool GenericLobbyDelegate(NetworkLobby lobby, LobbyMetadataInfo info);
+public delegate bool GenericLobbyDelegate(LobbyMetadata metadata);
 
 public class GenericLobbyFilter : ILobbyFilter
 {
-    public GenericLobbyDelegate OnFilter;
+    public string Title { get; set; }
 
-    public string Title;
+    public GenericLobbyDelegate OnFilter { get; set; }
 
-    private bool _active = false;
+    public bool Active { get; set; } = false;
 
     public GenericLobbyFilter(string title, GenericLobbyDelegate onFilter)
     {
-        this.Title = title;
-        this.OnFilter = onFilter;
+        Title = title;
+        OnFilter = onFilter;
     }
 
-    public bool FilterLobby(NetworkLobby lobby, LobbyMetadataInfo info)
-    {
-        return OnFilter(lobby, info);
-    }
+    public bool FilterLobby(LobbyMetadata metadata) => OnFilter(metadata);
 
-    public string GetTitle()
-    {
-        return Title;
-    }
+    public string GetTitle() => Title;
 
-    public bool IsActive()
-    {
-        return _active;
-    }
+    public bool IsActive() => Active;
 
-    public void SetActive(bool active)
-    {
-        _active = active;
-    }
+    public void SetActive(bool active) => Active = active;
 }

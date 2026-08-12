@@ -1,144 +1,56 @@
-﻿using LabFusion;
-using LabFusion.Network;
-using LabFusion.Support;
-
-using MelonLoader;
+﻿using LabFusion.Network;
 
 using Steamworks;
-using Steamworks.Data;
-
-using System.Collections;
 
 namespace MarrowFusion.Steam;
 
-public sealed class SteamMatchmaker : IMatchmaker
+public sealed class SteamMatchmaker : Matchmaker
 {
-    private delegate Task<Lobby[]> LobbySearchDelegate(MatchmakerFilters filters);
+    public override ILobbyQuery CreateQuery() => new SteamLobbyQuery(SteamMatchmaking.LobbyList);
 
-    public void RequestLobbies(Action<IMatchmaker.MatchmakerCallbackInfo> callback) => RequestLobbies(MatchmakerFilters.Empty, callback);
-
-    public void RequestLobbies(MatchmakerFilters filters, Action<IMatchmaker.MatchmakerCallbackInfo> callback)
+    protected override async Task<MatchmakerResult> TrySearchLobbiesAsync(ILobbyQuery query, CancellationToken cancellationToken)
     {
-        MelonCoroutines.Start(FindLobbies(FetchLobbies, filters, callback));
-    }
-
-    public void RequestLobbiesByCode(string code, Action<IMatchmaker.MatchmakerCallbackInfo> callback)
-    {
-        MelonCoroutines.Start(FindLobbies(FetchLobbies, MatchmakerFilters.Empty, callback));
-
-        Task<Lobby[]> FetchLobbies(MatchmakerFilters filters) => FetchLobbiesByCode(code);
-    }
-
-    private static IEnumerator FindLobbies(LobbySearchDelegate searchDelegate, MatchmakerFilters filters, Action<IMatchmaker.MatchmakerCallbackInfo> callback)
-    {
-        // Fetch lobbies
-        var task = searchDelegate(filters);
-
-        // Wait for the lobby search to complete
-        while (!task.IsCompleted)
+        if (query is not SteamLobbyQuery steamLobbyQuery)
         {
-            yield return null;
+            throw new ArgumentException(null, nameof(query));
         }
 
-        // If the lobby search errored, return an empty list and log the reason why
-        if (!task.IsCompletedSuccessfully)
+        var lobbies = await steamLobbyQuery.LobbyQuery.RequestAsync();
+
+        if (lobbies == null || lobbies.Length <= 0)
         {
-            SteamModule.Logger.LogException("searching for lobbies", task.Exception);
-            callback?.Invoke(IMatchmaker.MatchmakerCallbackInfo.Empty);
-            yield break;
+            return MatchmakerResult.Empty;
         }
 
-        var lobbies = task.Result;
-
-        // Steam can return null if none are available
-        if (lobbies == null)
-        {
-            callback?.Invoke(IMatchmaker.MatchmakerCallbackInfo.Empty);
-            yield break;
-        }
-
-        List<IMatchmaker.LobbyInfo> netLobbies = new();
+        var results = new LobbyMetadata[lobbies.Length];
+        int resultCount = 0;
 
         foreach (var lobby in lobbies)
         {
-            // Make sure this is not us
-            if (lobby.Owner.IsMe)
+            try
             {
-                continue;
+                if (lobby.Owner.IsMe)
+                {
+                    continue;
+                }
+
+                using var networkLobby = new SteamLobby(lobby);
+
+                if (!LobbyMetadata.TryReadFromLobby(networkLobby, out var metadata))
+                {
+                    continue;
+                }
+
+                results[resultCount++] = metadata;
             }
-
-            var networkLobby = new SteamLobby(lobby);
-            var metadata = LobbyMetadataSerializer.ReadInfo(networkLobby);
-
-            if (!metadata.HasLobbyOpen)
+            catch (Exception ex)
             {
-                continue;
+                SteamModule.Logger.LogException("parsing lobby result", ex);
             }
-
-            netLobbies.Add(new IMatchmaker.LobbyInfo()
-            {
-                Lobby = networkLobby,
-                Metadata = metadata,
-            });
         }
 
-        var info = new IMatchmaker.MatchmakerCallbackInfo()
-        {
-            Lobbies = netLobbies.ToArray(),
-        };
+        var resultSegment = new ArraySegment<LobbyMetadata>(results, 0, resultCount);
 
-        callback?.Invoke(info);
-    }
-
-    private static Task<Lobby[]> FetchLobbies(MatchmakerFilters filters)
-    {
-        var query = SteamMatchmaking.LobbyList;
-        query = AddPersistentFilters(query);
-        query = AddMatchmakingFilters(query, filters);
-
-        return query
-            .WithNotEqual(LobbyKeys.PrivacyKey, (int)ServerPrivacy.PRIVATE)
-            .WithNotEqual(LobbyKeys.PrivacyKey, (int)ServerPrivacy.LOCKED)
-            .RequestAsync();
-    }
-
-    private static Task<Lobby[]> FetchLobbiesByCode(string code)
-    {
-        var query = SteamMatchmaking.LobbyList;
-        query = AddPersistentFilters(query);
-
-        return query
-            .WithKeyValue(LobbyKeys.LobbyCodeKey, code.ToUpper())
-            .RequestAsync();
-    }
-
-    private static LobbyQuery AddPersistentFilters(LobbyQuery query)
-    {
-        return query
-            .FilterDistanceWorldwide()
-            .WithKeyValue(LobbyKeys.IdentifierKey, bool.TrueString)
-            .WithKeyValue(LobbyKeys.HasLobbyOpenKey, bool.TrueString)
-            .WithKeyValue(LobbyKeys.GameKey, GameInfo.GameName);
-    }
-
-    private static LobbyQuery AddMatchmakingFilters(LobbyQuery query, MatchmakerFilters filters)
-    {
-        if (filters.FilterFull)
-        {
-            query = query.WithKeyValue(LobbyKeys.FullKey, bool.FalseString);
-        }
-
-        if (filters.FilterMismatchingVersions)
-        {
-            var version = FusionMod.Version;
-            var versionMajor = version.Major;
-            var versionMinor = version.Minor;
-
-            query = query
-                .WithEqual(LobbyKeys.VersionMajorKey, versionMajor)
-                .WithEqual(LobbyKeys.VersionMinorKey, versionMinor);
-        }
-
-        return query;
+        return new MatchmakerResult(resultSegment);
     }
 }

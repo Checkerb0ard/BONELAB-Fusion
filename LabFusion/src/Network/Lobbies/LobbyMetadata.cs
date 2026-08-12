@@ -2,15 +2,14 @@
 
 using LabFusion.Data;
 using LabFusion.Marrow;
-using LabFusion.Support;
 
 using System.Text.Json;
 
 namespace LabFusion.Network;
 
-public struct LobbyMetadataInfo
+public struct LobbyMetadata
 {
-    public static readonly LobbyMetadataInfo Empty = new()
+    public static readonly LobbyMetadata Empty = new()
     {
         LobbyInfo = null,
         HasLobbyOpen = false,
@@ -41,7 +40,7 @@ public struct LobbyMetadataInfo
 
     public string Game { get; set; }
 
-    public static LobbyMetadataInfo Create()
+    public static LobbyMetadata CreateFromServer()
     {
         var lobbyInfo = LobbyInfoManager.LobbyInfo;
 
@@ -50,7 +49,7 @@ public struct LobbyMetadataInfo
             return Empty;
         }
 
-        return new LobbyMetadataInfo()
+        return new LobbyMetadata()
         {
             LobbyInfo = lobbyInfo,
             HasLobbyOpen = ServerManager.IsServerRunning,
@@ -63,25 +62,28 @@ public struct LobbyMetadataInfo
         };
     }
 
-    public readonly void Write(NetworkLobby lobby)
+    public static void WriteServerToLobby(NetworkLobby lobby)
     {
-        lobby.SetMetadata(LobbyKeys.IdentifierKey, bool.TrueString);
-        lobby.SetMetadata(LobbyKeys.HasLobbyOpenKey, HasLobbyOpen.ToString());
-        lobby.SetMetadata(LobbyKeys.LobbyCodeKey, LobbyCode?.ToUpper());
-        lobby.SetMetadata(LobbyKeys.PrivacyKey, ((int)Privacy).ToString());
-        lobby.SetMetadata(LobbyKeys.FullKey, Full.ToString());
-        lobby.SetMetadata(LobbyKeys.VersionMajorKey, VersionMajor.ToString());
-        lobby.SetMetadata(LobbyKeys.VersionMinorKey, VersionMinor.ToString());
-        lobby.SetMetadata(LobbyKeys.GameKey, Game);
-        lobby.SetMetadata(nameof(LobbyInfo), JsonSerializer.Serialize(LobbyInfo));
+        var metadata = CreateFromServer();
 
-        // Now, write all the keys into an array in the metadata
-        lobby.WriteKeysToCollection();
+        metadata.WriteToLobby(lobby);
     }
 
-    public static LobbyMetadataInfo Read(NetworkLobby lobby)
+    public static bool TryReadFromLobby(NetworkLobby lobby, out LobbyMetadata metadata)
     {
-        var info = new LobbyMetadataInfo()
+        metadata = ReadFromLobby(lobby);
+
+        if (!metadata.HasLobbyOpen)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static LobbyMetadata ReadFromLobby(NetworkLobby lobby)
+    {
+        var info = new LobbyMetadata()
         {
             HasLobbyOpen = lobby.GetMetadata(LobbyKeys.HasLobbyOpenKey) == bool.TrueString,
             LobbyCode = lobby.GetMetadata(LobbyKeys.LobbyCodeKey),
@@ -89,7 +91,7 @@ public struct LobbyMetadataInfo
             Full = lobby.GetMetadata(LobbyKeys.FullKey) == bool.TrueString,
         };
 
-        if (lobby.TryGetMetadata(LobbyKeys.PrivacyKey, out var rawPrivacy) && int.TryParse(rawPrivacy, out var privacyInt)) 
+        if (lobby.TryGetMetadata(LobbyKeys.PrivacyKey, out var rawPrivacy) && int.TryParse(rawPrivacy, out var privacyInt))
         {
             info.Privacy = (ServerPrivacy)privacyInt;
         }
@@ -125,6 +127,22 @@ public struct LobbyMetadataInfo
         info.ClientHasLevel = AssetWarehouseSearcher.HasCrate<LevelCrate>(new(info.LobbyInfo.LevelBarcode));
 
         return info;
+    }
+
+    public readonly void WriteToLobby(NetworkLobby lobby)
+    {
+        lobby.SetMetadata(LobbyKeys.IdentifierKey, bool.TrueString);
+        lobby.SetMetadata(LobbyKeys.HasLobbyOpenKey, HasLobbyOpen.ToString());
+        lobby.SetMetadata(LobbyKeys.LobbyCodeKey, LobbyCode?.ToUpper());
+        lobby.SetMetadata(LobbyKeys.PrivacyKey, ((int)Privacy).ToString());
+        lobby.SetMetadata(LobbyKeys.FullKey, Full.ToString());
+        lobby.SetMetadata(LobbyKeys.VersionMajorKey, VersionMajor.ToString());
+        lobby.SetMetadata(LobbyKeys.VersionMinorKey, VersionMinor.ToString());
+        lobby.SetMetadata(LobbyKeys.GameKey, Game);
+        lobby.SetMetadata(nameof(LobbyInfo), JsonSerializer.Serialize(LobbyInfo));
+
+        // Now, write all the keys into an array in the metadata
+        lobby.WriteKeysToCollection();
     }
 
     public readonly Action CreateJoinDelegate()

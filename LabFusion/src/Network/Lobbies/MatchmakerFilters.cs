@@ -1,7 +1,7 @@
 ﻿namespace LabFusion.Network;
 
 /// <summary>
-/// Filters applied to a <see cref="IMatchmaker"/>'s search.
+/// Filters applied to a <see cref="Matchmaker"/>'s search.
 /// </summary>
 public struct MatchmakerFilters
 {

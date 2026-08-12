@@ -32,7 +32,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
     public override IVoiceManager VoiceManager => _voiceManager;
 
-    public override IMatchmaker Matchmaker => _matchmaker;
+    public override Matchmaker Matchmaker => _matchmaker;
 
     /// <summary>
     /// The steam client's logged in SteamID.
@@ -56,7 +56,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private ServerID _runningServerID = ServerID.Empty;
     private ServerID _connectedServerID = ServerID.Empty;
 
-    private IMatchmaker _matchmaker = null;
+    private Matchmaker _matchmaker = null;
     private IVoiceManager _voiceManager = null;
     private NetworkLobby _currentLobby;
 
@@ -343,15 +343,16 @@ public abstract class SteamNetworkLayer : NetworkLayer
         FusionLogger.Log($"Searching for servers with code {code}...");
 #endif
 
-        Matchmaker.RequestLobbiesByCode(code, (info) =>
-        {
-            if (info.Lobbies.Length <= 0)
-            {
-                return;
-            }
-
-            ConnectToServer(info.Lobbies[0].Metadata.LobbyInfo.LobbyID);
-        });
+        // TODO: Add back with new system
+        // Matchmaker.RequestLobbiesByCode(code, (info) =>
+        // {
+        //     if (info.Lobbies.Length <= 0)
+        //     {
+        //         return;
+        //     }
+        // 
+        //     ConnectToServer(info.Lobbies[0].Metadata.LobbyInfo.LobbyID);
+        // });
     }
 
     private void HookSteamEvents()
@@ -443,7 +444,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return;
         }
 
-        // Write active info about the lobby
-        LobbyMetadataSerializer.WriteInfo(Lobby);
+        // TODO: Make independent of network layer
+        LobbyMetadata.WriteServerToLobby(Lobby);
     }
 }

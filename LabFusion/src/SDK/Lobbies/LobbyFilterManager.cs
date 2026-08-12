@@ -10,19 +10,19 @@ public static class LobbyFilterManager
 
     public static event Action<ILobbyFilter> OnAddedFilter;
 
-    public static GenericLobbyFilter FullFilter { get; } = new("Hide Full Lobbies", (l, i) =>
+    public static GenericLobbyFilter FullFilter { get; } = new("Hide Full Lobbies", (l) =>
     {
-        return i.LobbyInfo.MaxPlayers > i.LobbyInfo.PlayerCount;
+        return l.LobbyInfo.MaxPlayers > l.LobbyInfo.PlayerCount;
     });
 
-    public static GenericLobbyFilter MismatchingVersionsFilter { get; } = new("Hide Mismatching Versions", (l, i) =>
+    public static GenericLobbyFilter MismatchingVersionsFilter { get; } = new("Hide Mismatching Versions", (l) =>
     {
-        return NetworkVerification.CompareVersion(i.LobbyInfo.LobbyVersion, FusionMod.Version) == VersionResult.Ok;
+        return NetworkVerification.CompareVersion(l.LobbyInfo.LobbyVersion, FusionMod.Version) == VersionResult.Ok;
     });
 
-    public static GenericLobbyFilter FriendsFilter { get; } = new("Friends Only", (l, i) =>
+    public static GenericLobbyFilter FriendsFilter { get; } = new("Friends Only", (l) =>
     {
-        return NetworkLayerManager.Layer.IsFriend(new ClientPlatformID(i.LobbyInfo.LobbyID.ToString()));
+        return NetworkLayerManager.Layer.IsFriend(new ClientPlatformID(l.LobbyInfo.LobbyID.ToString()));
     });
 
     public static void LoadBuiltInFilters()
@@ -43,11 +43,11 @@ public static class LobbyFilterManager
         OnAddedFilter?.Invoke(filter);
     }
 
-    public static bool CheckOptionalFilters(NetworkLobby lobby, LobbyMetadataInfo info)
+    public static bool CheckOptionalFilters(LobbyMetadata metadata)
     {
         foreach (var filter in LobbyFilters)
         {
-            if (filter.IsActive() && !filter.FilterLobby(lobby, info))
+            if (filter.IsActive() && !filter.FilterLobby(metadata))
             {
                 return false;
             }
@@ -56,9 +56,9 @@ public static class LobbyFilterManager
         return true;
     }
 
-    public static bool CheckPersistentFilters(NetworkLobby lobby, LobbyMetadataInfo info)
+    public static bool CheckPersistentFilters(LobbyMetadata metadata)
     {
-        var lobbyInfo = info.LobbyInfo;
+        var lobbyInfo = metadata.LobbyInfo;
 
         if (!lobbyInfo.ValidateLobby())
         {

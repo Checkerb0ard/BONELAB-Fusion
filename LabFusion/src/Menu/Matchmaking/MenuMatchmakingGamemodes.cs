@@ -58,7 +58,11 @@ public static class MenuMatchmakingGamemodes
 
         if (matchmaker != null)
         {
-            matchmaker.RequestLobbies(OnLobbiesRequested);
+            var query = matchmaker.CreateQuery()
+                .WithPersistentFilters()
+                .WithPrivateHidden();
+
+            matchmaker.SearchLobbies(query, OnLobbiesRequested);
         }
         else
         {
@@ -66,7 +70,7 @@ public static class MenuMatchmakingGamemodes
         }
     }
 
-    private static void OnLobbiesRequested(IMatchmaker.MatchmakerCallbackInfo info)
+    private static void OnLobbiesRequested(Matchmaker.MatchmakerResult result)
     {
         string gamemodeBarcode = "Gamemode";
 
@@ -75,9 +79,9 @@ public static class MenuMatchmakingGamemodes
             gamemodeBarcode = SelectedGamemode.Barcode;
         }
 
-        var gamemodeLobbies = info.Lobbies
-            .Where(l => l.Metadata.LobbyInfo.GamemodeBarcode == gamemodeBarcode)
-            .Where(l => LobbyFilterManager.CheckPersistentFilters(l.Lobby, l.Metadata));
+        var gamemodeLobbies = result.Lobbies
+            .Where(l => l.LobbyInfo.GamemodeBarcode == gamemodeBarcode)
+            .Where(l => LobbyFilterManager.CheckPersistentFilters(l));
 
         bool foundLobbies = MenuMatchmaking.LoadLobbiesIntoBrowser(gamemodeLobbies);
 

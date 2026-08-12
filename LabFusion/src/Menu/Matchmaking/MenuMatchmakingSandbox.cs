@@ -40,7 +40,13 @@ public static class MenuMatchmakingSandbox
 
         if (matchmaker != null)
         {
-            matchmaker.RequestLobbies(MatchmakerFilters.Default, OnLobbiesRequested);
+            var query = matchmaker.CreateQuery()
+                .WithPersistentFilters()
+                .WithFullHidden()
+                .WithMatchingVersions()
+                .WithPrivateHidden();
+
+            matchmaker.SearchLobbies(query, OnLobbiesRequested);
         }
         else
         {
@@ -48,9 +54,9 @@ public static class MenuMatchmakingSandbox
         }
     }
 
-    private static bool CheckLobbyValidation(IMatchmaker.LobbyInfo lobby)
+    private static bool CheckLobbyValidation(LobbyMetadata lobby)
     {
-        var lobbyInfo = lobby.Metadata.LobbyInfo;
+        var lobbyInfo = lobby.LobbyInfo;
 
         // Make sure this lobby is on the right Fusion version
         if (NetworkVerification.CompareVersion(lobbyInfo.LobbyVersion, FusionMod.Version) != VersionResult.Ok)
@@ -65,7 +71,7 @@ public static class MenuMatchmakingSandbox
         }
         
         // Check if we have the lobby's level
-        if (!lobby.Metadata.ClientHasLevel)
+        if (!lobby.ClientHasLevel)
         {
             return false;
         }
@@ -79,9 +85,9 @@ public static class MenuMatchmakingSandbox
         return true;
     }
 
-    private static void OnLobbiesRequested(IMatchmaker.MatchmakerCallbackInfo info)
+    private static void OnLobbiesRequested(Matchmaker.MatchmakerResult result)
     {
-        var sandboxLobbies = info.Lobbies
+        var sandboxLobbies = result.Lobbies
             .Where(CheckLobbyValidation);
 
         var validLobbies = MenuMatchmaking.ValidateLobbies(sandboxLobbies);
@@ -96,7 +102,7 @@ public static class MenuMatchmakingSandbox
         // Otherwise, join a random one
         var randomLobby = validLobbies.GetRandom();
 
-        randomLobby.Metadata.CreateJoinDelegate()?.Invoke();
+        randomLobby.CreateJoinDelegate()?.Invoke();
 
     }
 
