@@ -113,8 +113,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _localLobby = default;
         _currentLobby = null;
 
-        DisconnectClientAndServer();
-
         UnHookSteamEvents();
 
         SteamAPI.Shutdown();
