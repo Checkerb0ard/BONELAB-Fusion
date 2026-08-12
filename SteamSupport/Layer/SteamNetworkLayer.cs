@@ -309,6 +309,11 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
     protected override async Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
     {
+        if (ClientSteamConnection == null)
+        {
+            return false;
+        }
+
         try
         {
             if (ClientSteamConnection.Connected)
@@ -323,7 +328,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return false;
         }
 
-        while (ClientSteamConnection.Connected)
+        while (ClientSteamConnection != null && ClientSteamConnection.Connected)
         {
             await Task.Delay(50, CancellationToken.None);
         }

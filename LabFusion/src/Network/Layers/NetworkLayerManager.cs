@@ -220,9 +220,11 @@ public static class NetworkLayerManager
         {
             result = await layer.LogInAsync(cancellationToken);
         }
-        catch
+        catch (Exception ex)
         {
             result = false;
+
+            FusionLogger.LogException("logging into NetworkLayer", ex);
         }
         finally
         {
@@ -280,6 +282,12 @@ public static class NetworkLayerManager
         try
         {
             result = await layer.LogOutAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            result = false;
+
+            FusionLogger.LogException("logging out of NetworkLayer", ex);
         }
         finally
         {
@@ -431,6 +439,16 @@ public static class NetworkLayerManager
 
     private static void OnLogOutFailed(NetworkLayer layer)
     {
+        Notifier.Send(new Notification()
+        {
+            Title = "Log Out Failed",
+            Message = $"Failed logging out of {layer.Title}!",
+            SaveToMenu = false,
+            ShowPopup = true,
+            Type = NotificationType.ERROR,
+            PopupLength = 6f,
+        });
+
         LogOutFailed?.InvokeSafe(layer, "invoking LogOutFailed event");
     }
 }
