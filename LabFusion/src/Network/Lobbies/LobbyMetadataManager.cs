@@ -8,7 +8,7 @@ public static class LobbyMetadataManager
     /// <summary>
     /// The default amount of seconds that need to be waited after each write.
     /// </summary>
-    public const float DefaultWriteCooldown = 30f;
+    public static readonly float DefaultWriteCooldown = 5f;
 
     /// <summary>
     /// Returns true if the lobby metadata is currently dirty and needs to be written to.
