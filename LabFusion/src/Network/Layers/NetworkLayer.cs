@@ -14,23 +14,11 @@ public enum ServerPrivacy
     LOCKED = 3,
 }
 
-public delegate void NetworkLayerDelegate(NetworkLayer layer);
-
 /// <summary>
 /// The foundational class for a server's networking system.
 /// </summary>
 public abstract class NetworkLayer
 {
-    /// <summary>
-    /// Invoked when a NetworkLayer finishes logging in.
-    /// </summary>
-    public static event NetworkLayerDelegate LogInCompleted;
-
-    /// <summary>
-    /// Invoked when a logged in NetworkLayer finishes logging out.
-    /// </summary>
-    public static event NetworkLayerDelegate LogOutCompleted;
-
     /// <summary>
     /// Invoked when a server is started on this instance and clients are able to connect.
     /// </summary>
@@ -86,6 +74,9 @@ public abstract class NetworkLayer
     /// </summary>
     public abstract string Platform { get; }
 
+    /// <summary>
+    /// Returns true if a server is starting.
+    /// </summary>
     public bool IsServerStarting { get; private set; }
 
     /// <summary>
@@ -122,6 +113,9 @@ public abstract class NetworkLayer
     /// </summary>
     public abstract ServerID ConnectedServerID { get; }
 
+    /// <summary>
+    /// Returns true if the NetworkLayer has an existing server, whether a server is running or the client is connected to a server.
+    /// </summary>
     public bool HasServer => IsClientConnected || IsServerRunning;
 
     /// <summary>
@@ -174,11 +168,6 @@ public abstract class NetworkLayer
     {
         bool result = await TryLogInAsync(cancellationToken);
 
-        if (result)
-        {
-            NotifyLogInCompleted();
-        }
-
         return result;
     }
 
@@ -203,12 +192,17 @@ public abstract class NetworkLayer
     /// <returns>Whether or not the layer was logged out successfully.</returns>
     public async Task<bool> LogOutAsync(CancellationToken cancellationToken)
     {
-        bool result = await TryLogOutAsync(cancellationToken);
-
-        if (result)
+        if (HasServer)
         {
-            NotifyLogOutCompleted();
+            bool closedConnections = await DisconnectClientAndServerAsync(cancellationToken);
+
+            if (!closedConnections)
+            {
+                return false;
+            }
         }
+
+        bool result = await TryLogOutAsync(cancellationToken);
 
         return result;
     }
@@ -799,16 +793,12 @@ public abstract class NetworkLayer
     /// </summary>
     protected virtual void OnLateTick() { }
 
-    private void NotifyLogInCompleted() => ThreadHelper.RunOnMainThread(InvokeLogInCompleted);
-    private void NotifyLogOutCompleted() => ThreadHelper.RunOnMainThread(InvokeLogOutCompleted);
     private static void NotifyServerStarted() => ThreadHelper.RunOnMainThread(InvokeServerStarted);
     private static void NotifyServerStopped() => ThreadHelper.RunOnMainThread(InvokeServerStopped);
     private static void NotifyClientDisconnected(ClientPlatformID client) => ThreadHelper.RunOnMainThread(() => { InvokeClientDisconnected(client); });
     private static void NotifyConnectionEstablished() => ThreadHelper.RunOnMainThread(InvokeConnectionEstablished);
     private static void NotifyConnectionLost() => ThreadHelper.RunOnMainThread(InvokeConnectionLost);
 
-    private void InvokeLogInCompleted() => LogInCompleted?.Invoke(this);
-    private void InvokeLogOutCompleted() => LogOutCompleted?.Invoke(this);
     private static void InvokeServerStarted() => ServerStarted?.Invoke();
     private static void InvokeServerStopped() => ServerStopped?.Invoke();
     private static void InvokeClientDisconnected(ClientPlatformID client) => ClientDisconnected?.Invoke(client);

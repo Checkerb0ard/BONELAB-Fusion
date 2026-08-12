@@ -6,6 +6,8 @@ using System.Reflection;
 
 namespace LabFusion.Network;
 
+public delegate void NetworkLayerDelegate(NetworkLayer layer);
+
 /// <summary>
 /// Manages the registration and initialization of NetworkLayers.
 /// </summary>
