@@ -1,8 +1,6 @@
 ﻿using LabFusion.Player;
 using LabFusion.Utilities;
 using LabFusion.Preferences;
-using LabFusion.SDK.Achievements;
-using LabFusion.Entities;
 
 using Il2CppSLZ.Marrow.SceneStreaming;
 
@@ -18,14 +16,6 @@ public static class InternalServerHelpers
     /// </summary>
     public static void OnStartServer()
     {
-        NetworkNotifications.SendStartedServerNotification();
-
-        // Unlock achievement
-        if (AchievementManager.TryGetAchievement<HeadOfHouse>(out var achievement))
-        {
-            achievement.IncrementTask();
-        }
-
         // Reload the scene
         SceneStreamer.Reload();
     }
@@ -37,24 +27,6 @@ public static class InternalServerHelpers
     {
         // Send settings
         FusionPreferences.SendClientSettings();
-
-        NetworkNotifications.SendJoinedServerNotification();
-
-        // Unlock achievement
-        if (AchievementManager.TryGetAchievement<WarmWelcome>(out var achievement))
-            achievement.IncrementTask();
-    }
-
-    /// <summary>
-    /// Cleans up the scene from all users. ONLY call this from within a network layer!
-    /// </summary>
-    public static void OnDisconnect(string reason = "")
-    {
-        // Cleanup information
-        PlayerIDManager.UnregisterPlayers();
-        NetworkEntityManager.CleanupEntities();
-
-        NetworkNotifications.SendDisconnectedNotification(reason);
     }
 
     /// <summary>

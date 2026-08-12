@@ -322,8 +322,6 @@ public static class ServerManager
 
     internal static void OnServerStopped()
     {
-        InternalServerHelpers.OnDisconnect();
-
         ServerStopped?.InvokeSafe("invoking ServerStopped event");
     }
 

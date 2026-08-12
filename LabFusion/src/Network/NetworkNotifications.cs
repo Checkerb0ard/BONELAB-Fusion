@@ -128,4 +128,32 @@ public static class NetworkNotifications
             ShowPopup = true,
         });
     }
+
+    internal static void Initialize()
+    {
+        ServerManager.ServerStarted += OnServerStarted;
+
+        ClientManager.ClientConnected += OnClientConnected;
+        ClientManager.ClientDisconnected += OnClientDisconnected;
+    }
+
+    private static void OnServerStarted()
+    {
+        SendStartedServerNotification();
+    }
+
+    private static void OnClientConnected()
+    {
+        if (ServerManager.IsServerRunning)
+        {
+            return;
+        }
+
+        SendJoinedServerNotification();
+    }
+
+    private static void OnClientDisconnected(string reason)
+    {
+        SendDisconnectedNotification(reason);
+    }
 }

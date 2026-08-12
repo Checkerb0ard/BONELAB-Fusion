@@ -1,4 +1,6 @@
-﻿using LabFusion.Extensions;
+﻿using LabFusion.Entities;
+using LabFusion.Extensions;
+using LabFusion.Player;
 
 namespace LabFusion.Network;
 
@@ -126,13 +128,26 @@ public static class NetworkManager
 
         if (hasServer)
         {
-            ServerEstablished?.InvokeSafe("invoking ServerEstablished event");
+            OnServerEstablished();
         }
         else
         {
-            ServerLost?.InvokeSafe("invoking ServerLost event");
+            OnServerLost();
         }
 
         _isServerEstablished = hasServer;
+    }
+
+    private static void OnServerEstablished()
+    {
+        ServerEstablished?.InvokeSafe("invoking ServerEstablished event");
+    }
+
+    private static void OnServerLost()
+    {
+        PlayerIDManager.UnregisterPlayers();
+        NetworkEntityManager.CleanupEntities();
+
+        ServerLost?.InvokeSafe("invoking ServerLost event");
     }
 }

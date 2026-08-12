@@ -12,7 +12,14 @@ public static class PlayerIDManager
     public const int MinPlayerID = 0;
     public const int MaxPlayerID = byte.MaxValue;
 
+    /// <summary>
+    /// Invoked whenever a PlayerID is registered for a client.
+    /// </summary>
     public static event PlayerDelegate PlayerRegistered;
+
+    /// <summary>
+    /// Invoked whenever a PlayerID is unregistered from a client leaving or the connection to the server being closed.
+    /// </summary>
     public static event PlayerDelegate PlayerUnregistered;
 
     public static readonly HashSet<PlayerID> PlayerIDs = new();

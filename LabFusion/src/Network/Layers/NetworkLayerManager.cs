@@ -303,8 +303,6 @@ public static class NetworkLayerManager
     private static void OnConnectionLost()
     {
         ClientManager.OnConnectionLost();
-
-        InternalServerHelpers.OnDisconnect();
     }
 
     private static void OnLogInCompleted()

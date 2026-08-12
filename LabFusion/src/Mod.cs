@@ -148,6 +148,8 @@ public class FusionMod : MelonMod
         // Initialize the networking manager
         NetworkLayerManager.OnInitializeMelon();
 
+        NetworkNotifications.Initialize();
+
 #if DEBUG
         FusionUnityLogger.OnInitializeMelon();
 #endif
