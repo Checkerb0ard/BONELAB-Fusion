@@ -31,26 +31,6 @@ public class PlayerID : IEquatable<PlayerID>
     /// </summary>
     public PlayerMetadata Metadata => _metadata;
 
-    private Action _onDestroyedEvent = null;
-    public event Action OnDestroyedEvent
-    {
-        add
-        {
-            if (!_isValid)
-            {
-                value();
-            }
-            else
-            {
-                _onDestroyedEvent += value;
-            }
-        }
-        remove
-        {
-            _onDestroyedEvent -= value;
-        }
-    }
-
     public PlayerID() 
     {
         _isValid = false;
@@ -81,9 +61,6 @@ public class PlayerID : IEquatable<PlayerID>
         UnhookMetadata();
 
         _isValid = false;
-
-        _onDestroyedEvent?.Invoke();
-        _onDestroyedEvent = null;
 
         UnhookMetadata();
     }

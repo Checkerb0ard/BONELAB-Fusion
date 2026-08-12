@@ -273,7 +273,7 @@ public class NetworkPlayer : IEntityExtender, IEntityUpdatable, IEntityFixedUpda
 
         // Hook into the player's events
         PlayerID.Metadata.Metadata.OnMetadataChanged += OnMetadataChanged;
-        PlayerID.OnDestroyedEvent += OnPlayerDestroyed;
+        PlayerIDManager.PlayerUnregistered += OnPlayerUnregistered;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnServerSettingsChanged;
         FusionOverrides.OnOverridesChanged += OnServerSettingsChanged;
@@ -291,7 +291,7 @@ public class NetworkPlayer : IEntityExtender, IEntityUpdatable, IEntityFixedUpda
 
         // Unhook from the player's events
         PlayerID.Metadata.Metadata.OnMetadataChanged -= OnMetadataChanged;
-        PlayerID.OnDestroyedEvent -= OnPlayerDestroyed;
+        PlayerIDManager.PlayerUnregistered -= OnPlayerUnregistered;
 
         LobbyInfoManager.OnLobbyInfoChanged -= OnServerSettingsChanged;
         FusionOverrides.OnOverridesChanged -= OnServerSettingsChanged;
@@ -382,7 +382,17 @@ public class NetworkPlayer : IEntityExtender, IEntityUpdatable, IEntityFixedUpda
         }
     }
 
-    private void OnPlayerDestroyed()
+    private void OnPlayerUnregistered(PlayerID playerID)
+    {
+        if (playerID != PlayerID)
+        {
+            return;
+        }
+
+        OnPlayerUnregistered();
+    }
+
+    private void OnPlayerUnregistered()
     {
         // Make sure the entity exists still
         if (NetworkEntity.IsDestroyed)
