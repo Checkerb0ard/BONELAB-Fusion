@@ -343,16 +343,22 @@ public abstract class SteamNetworkLayer : NetworkLayer
         FusionLogger.Log($"Searching for servers with code {code}...");
 #endif
 
-        // TODO: Add back with new system
-        // Matchmaker.RequestLobbiesByCode(code, (info) =>
-        // {
-        //     if (info.Lobbies.Length <= 0)
-        //     {
-        //         return;
-        //     }
-        // 
-        //     ConnectToServer(info.Lobbies[0].Metadata.LobbyInfo.LobbyID);
-        // });
+        // TODO: Move outside of network layer
+        var query = Matchmaker.CreateQuery()
+            .WithPersistentFilters()
+            .WithFullHidden()
+            .WithMatchingVersions()
+            .WithCode(code);
+
+        Matchmaker.SearchLobbies(query, (result) =>
+        {
+            if (!result.IsSuccess)
+            {
+                return;
+            }
+
+            ConnectToServer(result.Lobbies[0].LobbyInfo.LobbyID);
+        });
     }
 
     private void HookSteamEvents()
@@ -361,8 +367,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         PlayerIDManager.PlayerRegistered += OnPlayerJoin;
         PlayerIDManager.PlayerUnregistered += OnPlayerLeave;
         NetworkManager.ServerLost += OnDisconnect;
-
-        LobbyInfoManager.OnLobbyInfoChanged += OnUpdateLobby;
 
         // Create a local lobby
         AwaitLobbyCreation();
@@ -408,8 +412,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         PlayerIDManager.PlayerUnregistered -= OnPlayerLeave;
         NetworkManager.ServerLost -= OnDisconnect;
 
-        LobbyInfoManager.OnLobbyInfoChanged -= OnUpdateLobby;
-
         // Remove the local lobby
         if (_localLobby.Id == ClientSteamID)
         {
@@ -431,20 +433,5 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         _localLobby = lobbyTask.Value;
         _currentLobby = new SteamLobby(_localLobby);
-    }
-
-    public void OnUpdateLobby()
-    {
-        // Make sure the lobby exists
-        if (Lobby == null)
-        {
-#if DEBUG
-            FusionLogger.Warn("Tried updating the steam lobby, but it was null!");
-#endif
-            return;
-        }
-
-        // TODO: Make independent of network layer
-        LobbyMetadata.WriteServerToLobby(Lobby);
     }
 }

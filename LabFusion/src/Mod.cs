@@ -152,6 +152,8 @@ public class FusionMod : MelonMod
 
         NetworkNotifications.Initialize();
 
+        LobbyMetadataManager.Initialize();
+
 #if DEBUG
         FusionUnityLogger.OnInitializeMelon();
 #endif
@@ -271,6 +273,8 @@ public class FusionMod : MelonMod
         float unscaledDeltaTime = TimeReferences.UnscaledDeltaTime;
 
         NetworkTickManager.OnUpdate(unscaledDeltaTime);
+
+        LobbyMetadataManager.Tick(unscaledDeltaTime);
 
         // Update network players
         float deltaTime = TimeReferences.DeltaTime;

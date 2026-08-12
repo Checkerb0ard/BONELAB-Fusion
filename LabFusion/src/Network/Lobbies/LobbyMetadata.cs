@@ -13,7 +13,6 @@ public struct LobbyMetadata
     {
         LobbyInfo = null,
         HasLobbyOpen = false,
-        ClientHasLevel = false,
         LobbyCode = null,
         Privacy = ServerPrivacy.PUBLIC,
         Full = false,
@@ -25,8 +24,6 @@ public struct LobbyMetadata
     public LobbyInfo LobbyInfo { get; set; }
 
     public bool HasLobbyOpen { get; set; }
-
-    public bool ClientHasLevel { get; set; }
 
     public string LobbyCode { get; set; }
 
@@ -40,6 +37,11 @@ public struct LobbyMetadata
 
     public string Game { get; set; }
 
+    /// <summary>
+    /// Creates lobby metadata from the current server.
+    /// <para>This is not safe to call on other threads as it can return game state.</para>
+    /// </summary>
+    /// <returns></returns>
     public static LobbyMetadata CreateFromServer()
     {
         var lobbyInfo = LobbyInfoManager.LobbyInfo;
@@ -62,6 +64,11 @@ public struct LobbyMetadata
         };
     }
 
+    /// <summary>
+    /// Writes lobby metadata from the current server to a NetworkLobby.
+    /// <para>This is not safe to call on other threads as it can return game state.</para>
+    /// </summary>
+    /// <param name="lobby"></param>
     public static void WriteServerToLobby(NetworkLobby lobby)
     {
         var metadata = CreateFromServer();
@@ -69,6 +76,13 @@ public struct LobbyMetadata
         metadata.WriteToLobby(lobby);
     }
 
+    /// <summary>
+    /// Attempts to read metadata from a NetworkLobby, or returns false if the metadata is invalid.
+    /// <para>This should be safe to call on other threads as long as NetworkLobby is safe to be read on other threads.</para>
+    /// </summary>
+    /// <param name="lobby"></param>
+    /// <param name="metadata"></param>
+    /// <returns></returns>
     public static bool TryReadFromLobby(NetworkLobby lobby, out LobbyMetadata metadata)
     {
         metadata = ReadFromLobby(lobby);
@@ -81,6 +95,12 @@ public struct LobbyMetadata
         return true;
     }
 
+    /// <summary>
+    /// Reads metadata from a NetworkLobby.
+    /// <para>This should be safe to call on other threads as long as NetworkLobby is safe to be read on other threads.</para>
+    /// </summary>
+    /// <param name="lobby"></param>
+    /// <returns></returns>
     public static LobbyMetadata ReadFromLobby(NetworkLobby lobby)
     {
         var info = new LobbyMetadata()
@@ -123,12 +143,14 @@ public struct LobbyMetadata
             info.HasLobbyOpen = false;
         }
 
-        // Check if we have the level the host has
-        info.ClientHasLevel = AssetWarehouseSearcher.HasCrate<LevelCrate>(new(info.LobbyInfo.LevelBarcode));
-
         return info;
     }
 
+    /// <summary>
+    /// Writes the metadata to a NetworKLobby.
+    /// <para>This should be safe to call on other threads as long as NetworkLobby is safe to be written to on other threads.</para>
+    /// </summary>
+    /// <param name="lobby"></param>
     public readonly void WriteToLobby(NetworkLobby lobby)
     {
         lobby.SetMetadata(LobbyKeys.IdentifierKey, bool.TrueString);
@@ -143,6 +165,13 @@ public struct LobbyMetadata
 
         // Now, write all the keys into an array in the metadata
         lobby.WriteKeysToCollection();
+    }
+
+    // TODO: Move somewhere else?
+    // Should not be called when reading lobbies definitely not thread safe
+    public readonly bool CheckClientHasLevel()
+    {
+        return AssetWarehouseSearcher.HasCrate<LevelCrate>(new(LobbyInfo.LevelBarcode));
     }
 
     public readonly Action CreateJoinDelegate()

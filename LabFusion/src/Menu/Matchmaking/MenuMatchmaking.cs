@@ -404,7 +404,7 @@ public static class MenuMatchmaking
         var versionColor = Color.white;
         var playerCountColor = Color.white;
 
-        if (!metadata.ClientHasLevel)
+        if (!metadata.CheckClientHasLevel())
         {
             levelColor = Color.yellow;
         }
@@ -466,7 +466,7 @@ public static class MenuMatchmaking
         var versionColor = Color.white;
         var playerCountColor = Color.white;
 
-        if (!info.ClientHasLevel)
+        if (!info.CheckClientHasLevel())
         {
             lobbyColor = Color.yellow;
             levelColor = Color.yellow;
