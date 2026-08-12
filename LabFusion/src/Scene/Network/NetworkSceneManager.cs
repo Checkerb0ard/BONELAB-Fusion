@@ -69,7 +69,7 @@ public static class NetworkSceneManager
     internal static void OnInitializeMelon()
     {
         PlayerID.OnMetadataChangedEvent += OnMetadataChangedCallback;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
     }
 

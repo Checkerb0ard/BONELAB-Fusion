@@ -21,7 +21,7 @@ public static class BonelabPlayerManager
     {
         NetworkPlayer.OnNetworkPlayerRegistered += OnNetworkPlayerRegistered;
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
+        PlayerIDManager.PlayerJoined += OnPlayerJoined;
         ClientManager.ClientConnected += OnClientConnected;
         RigStripper.OnStripRigManager += OnStripBonelabRigManager;
 
@@ -33,7 +33,7 @@ public static class BonelabPlayerManager
     {
         NetworkPlayer.OnNetworkPlayerRegistered -= OnNetworkPlayerRegistered;
         MultiplayerHooking.OnMainSceneInitialized -= OnMainSceneInitialized;
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
+        PlayerIDManager.PlayerJoined -= OnPlayerJoined;
         ClientManager.ClientConnected -= OnClientConnected;
         RigStripper.OnStripRigManager -= OnStripBonelabRigManager;
     }

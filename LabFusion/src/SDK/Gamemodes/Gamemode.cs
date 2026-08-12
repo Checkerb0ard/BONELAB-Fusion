@@ -153,8 +153,8 @@ public abstract class Gamemode : IWearableUIProvider
     internal void Register()
     {
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoinedCallback;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeftCallback;
+        PlayerIDManager.PlayerJoined += OnPlayerJoinedCallback;
+        PlayerIDManager.PlayerLeft += OnPlayerLeftCallback;
 
         // Metadata
         Metadata.OnTrySetMetadata += OnTrySetMetadata;
@@ -316,33 +316,33 @@ public abstract class Gamemode : IWearableUIProvider
     /// <summary>
     /// Invoked if a new Player joins while the Gamemode is already started.
     /// </summary>
-    /// <param name="playerId"></param>
-    protected virtual void OnPlayerJoined(PlayerID playerId) { }
+    /// <param name="playerID"></param>
+    protected virtual void OnPlayerJoined(PlayerID playerID) { }
 
     /// <summary>
     /// Invoked if a Player leaves while the Gamemode is still active.
     /// </summary>
-    /// <param name="playerId"></param>
-    protected virtual void OnPlayerLeft(PlayerID playerId) { }
+    /// <param name="playerID"></param>
+    protected virtual void OnPlayerLeft(PlayerID playerID) { }
 
-    private void OnPlayerJoinedCallback(PlayerID playerId)
+    private void OnPlayerJoinedCallback(PlayerID playerID)
     {
         if (!IsStarted)
         {
             return;
         }
 
-        OnPlayerJoined(playerId);
+        OnPlayerJoined(playerID);
     }
 
-    private void OnPlayerLeftCallback(PlayerID playerId)
+    private void OnPlayerLeftCallback(PlayerID playerID)
     {
         if (!IsStarted)
         {
             return;
         }
 
-        OnPlayerLeft(playerId);
+        OnPlayerLeft(playerID);
     }
 
     public virtual GroupElementData CreateSettingsGroup()

@@ -13,14 +13,26 @@ public static class PlayerIDManager
     public const int MaxPlayerID = byte.MaxValue;
 
     /// <summary>
-    /// Invoked whenever a PlayerID is registered for a client.
+    /// Invoked whenever a PlayerID is registered for a client, including the local client.
     /// </summary>
     public static event PlayerDelegate PlayerRegistered;
 
     /// <summary>
-    /// Invoked whenever a PlayerID is unregistered from a client leaving or the connection to the server being closed.
+    /// Invoked whenever a PlayerID is unregistered from a client leaving or the connection to the server being closed, including the local client.
     /// </summary>
     public static event PlayerDelegate PlayerUnregistered;
+
+    /// <summary>
+    /// Invoked whenever a player has just joined the server, including the local client.
+    /// <para>This will not be invoked for already existing players that are registered whenever the client joins an active server.</para>
+    /// </summary>
+    public static event PlayerDelegate PlayerJoined;
+
+    /// <summary>
+    /// Invoked whenever a player has just left the server, including the local client.
+    /// <para>This will not be invoked whenever players are unregistered upon the server or client losing connection.</para>
+    /// </summary>
+    public static event PlayerDelegate PlayerLeft;
 
     public static readonly HashSet<PlayerID> PlayerIDs = new();
 
@@ -44,9 +56,10 @@ public static class PlayerIDManager
     /// <param name="platformID"></param>
     /// <param name="smallID"></param>
     /// <param name="metadata"></param>
+    /// <param name="isJoining"></param>
     /// <param name="playerID"></param>
     /// <returns></returns>
-    public static bool RegisterPlayer(ClientPlatformID platformID, ClientSmallID smallID, Dictionary<string, string> metadata, out PlayerID playerID)
+    public static bool RegisterPlayer(ClientPlatformID platformID, ClientSmallID smallID, Dictionary<string, string> metadata, bool isJoining, out PlayerID playerID)
     {
         playerID = GetPlayerID(platformID);
 
@@ -79,6 +92,11 @@ public static class PlayerIDManager
 
         PlayerRegistered?.InvokeSafe(playerID, "invoking PlayerRegistered event");
 
+        if (isJoining)
+        {
+            PlayerJoined?.InvokeSafe(playerID, "invoking PlayerJoined event");
+        }
+
         return true;
     }
 
@@ -87,7 +105,7 @@ public static class PlayerIDManager
     /// </summary>
     /// <param name="platformID"></param>
     /// <returns></returns>
-    public static bool UnregisterPlayer(ClientPlatformID platformID)
+    public static bool UnregisterPlayer(ClientPlatformID platformID, bool isLeaving)
     {
         var playerID = GetPlayerID(platformID);
 
@@ -108,6 +126,11 @@ public static class PlayerIDManager
 
         PlayerUnregistered?.InvokeSafe(playerID, "invoking PlayerUnregistered event");
 
+        if (isLeaving)
+        {
+            PlayerLeft?.InvokeSafe(playerID, "invoking PlayerLeft event");
+        }
+
         if (playerID == LocalID)
         {
             LocalID = null;
@@ -125,7 +148,7 @@ public static class PlayerIDManager
 
         foreach (var playerID in playerIDs)
         {
-            UnregisterPlayer(playerID.PlatformID);
+            UnregisterPlayer(playerID.PlatformID, false);
         }
     }
 

@@ -157,7 +157,7 @@ public abstract class ProxyNetworkLayer : NetworkLayer
                     if (PlayerIDManager.HasPlayerID(platformID))
                     {
                         // Update the mod so it knows this user has left
-                        InternalServerHelpers.OnPlayerLeft(platformID);
+                        // InternalServerHelpers.OnPlayerLeft(platformID);
 
                         // Send disconnect notif to everyone
                         ServerManager.SendDisconnect(platformID);
@@ -431,39 +431,39 @@ public abstract class ProxyNetworkLayer : NetworkLayer
     private void HookSteamEvents()
     {
         // Add server hooks
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
-        NetworkManager.ServerLost += OnDisconnect;
+        // MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
+        // MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
+        // NetworkManager.ServerLost += OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnUpdateLobby;
 
         _currentLobby = new ProxyNetworkLobby();
     }
 
-    private void OnPlayerJoin(PlayerID id)
-    {
-        if (!id.IsMe)
-            _voiceManager.GetSpeaker(id);
-
-        OnUpdateLobby();
-    }
-
-    private void OnPlayerLeave(PlayerID id)
-    {
-        _voiceManager.RemoveSpeaker(id);
-    }
-
-    private void OnDisconnect()
-    {
-        _voiceManager.ClearManager();
-    }
+   // private void OnPlayerJoin(PlayerID id)
+   // {
+   //     if (!id.IsMe)
+   //         _voiceManager.GetSpeaker(id);
+   // 
+   //     OnUpdateLobby();
+   // }
+   // 
+   // private void OnPlayerLeave(PlayerID id)
+   // {
+   //     _voiceManager.RemoveSpeaker(id);
+   // }
+   // 
+   // private void OnDisconnect()
+   // {
+   //     _voiceManager.ClearManager();
+   // }
 
     private void UnHookSteamEvents()
     {
         // Remove server hooks
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
-        MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
-        NetworkManager.ServerLost -= OnDisconnect;
+        // MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
+        // MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
+        // NetworkManager.ServerLost -= OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged -= OnUpdateLobby;
     }

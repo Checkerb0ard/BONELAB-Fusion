@@ -9,8 +9,8 @@ public static class GamemodeConditionsChecker
     {
         GamemodeManager.GamemodeChanged += OnGamemodeChanged;
 
-        MultiplayerHooking.OnPlayerJoined += OnPlayerCountChanged;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerCountChanged;
+        PlayerIDManager.PlayerJoined += OnPlayerCountChanged;
+        PlayerIDManager.PlayerLeft += OnPlayerCountChanged;
 
         MultiplayerHooking.OnMainSceneInitialized += AutoCheckConditions;
     }
@@ -20,7 +20,7 @@ public static class GamemodeConditionsChecker
         AutoCheckConditions();
     }
 
-    private static void OnPlayerCountChanged(PlayerID player)
+    private static void OnPlayerCountChanged(PlayerID playerID)
     {
         AutoCheckConditions();
     }

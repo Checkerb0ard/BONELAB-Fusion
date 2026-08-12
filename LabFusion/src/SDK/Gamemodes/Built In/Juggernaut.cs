@@ -125,8 +125,6 @@ public class Juggernaut : Gamemode
         TeamManager.RemovedFromTeam += OnRemovedFromTeam;
 
         PlayerInteractManager.PlayersInteracted += OnPlayersInteracted;
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
 
         // Register score keeper
         JuggernautScoreKeeper.Register(Metadata);
@@ -141,8 +139,6 @@ public class Juggernaut : Gamemode
         TeamManager.RemovedFromTeam -= OnRemovedFromTeam;
 
         PlayerInteractManager.PlayersInteracted -= OnPlayersInteracted;
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
-        MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
 
         // Unregister score keeper
         JuggernautScoreKeeper.Unregister();
@@ -370,31 +366,31 @@ public class Juggernaut : Gamemode
         }
     }
 
-    private void OnPlayerJoin(PlayerID playerId)
+    protected override void OnPlayerJoined(PlayerID playerID)
     {
-        if (!IsStarted || !ServerManager.IsServerRunning)
+        if (!ServerManager.IsServerRunning)
         {
             return;
         }
 
-        TeamManager.TryAssignTeam(playerId, SurvivorTeam);
+        TeamManager.TryAssignTeam(playerID, SurvivorTeam);
     }
 
-    private void OnPlayerLeave(PlayerID playerId)
+    protected override void OnPlayerLeft(PlayerID playerID)
     {
-        if (!IsStarted || !ServerManager.IsServerRunning)
+        if (!ServerManager.IsServerRunning)
         {
             return;
         }
 
-        bool isJuggernaut = TeamManager.GetPlayerTeam(playerId) == JuggernautTeam;
+        bool isJuggernaut = TeamManager.GetPlayerTeam(playerID) == JuggernautTeam;
 
         if (isJuggernaut)
         {
             TeamManager.TryAssignTeam(PlayerIDManager.PlayerIDs.GetRandom(), JuggernautTeam);
         }
 
-        TeamManager.TryUnassignTeam(playerId);
+        TeamManager.TryUnassignTeam(playerID);
     }
 
     private void CheckFinalScore()

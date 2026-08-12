@@ -14,14 +14,14 @@ public sealed class PlayerScoreKeeper : ScoreKeeper<byte>
     {
         ScoreChanged += OnByteScoreChanged;
 
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
     }
 
     protected override void OnUnregistered()
     {
         ScoreChanged -= OnByteScoreChanged;
 
-        MultiplayerHooking.OnPlayerLeft -= OnPlayerLeft;
+        PlayerIDManager.PlayerLeft -= OnPlayerLeft;
     }
 
     private void OnByteScoreChanged(byte smallID, int score)

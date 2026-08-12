@@ -14,13 +14,6 @@ public delegate void PlayerUpdate(PlayerID playerId);
 /// </summary>
 public static class MultiplayerHooking
 {
-    // Server hooks
-    public static event PlayerUpdate OnPlayerJoined, OnPlayerLeft;
-
-    internal static void InvokeOnPlayerJoined(PlayerID id) => OnPlayerJoined.InvokeSafe(id, "executing OnPlayerJoined hook");
-
-    internal static void InvokeOnPlayerLeft(PlayerID id) => OnPlayerLeft.InvokeSafe(id, "executing OnPlayerLeft hook");
-
     // Unity hooks
     /// <summary>
     /// A hook for frame updates. Errors are not caught for performance reasons, please use carefully!

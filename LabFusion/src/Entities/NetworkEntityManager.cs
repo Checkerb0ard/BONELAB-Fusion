@@ -23,7 +23,7 @@ public static class NetworkEntityManager
     {
         CatchupManager.PlayerServerCatchingUp += OnPlayerServerCatchup;
         IDManager.EntityRegistered += OnEntityRegistered;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
-﻿using LabFusion.Preferences.Client;
+﻿using LabFusion.Player;
+using LabFusion.Preferences.Client;
 
 using LabFusion.UI.Popups;
 
@@ -135,6 +136,9 @@ public static class NetworkNotifications
 
         ClientManager.ClientConnected += OnClientConnected;
         ClientManager.ClientDisconnected += OnClientDisconnected;
+
+        PlayerIDManager.PlayerJoined += OnPlayerJoined;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
     }
 
     private static void OnServerStarted()
@@ -155,5 +159,31 @@ public static class NetworkNotifications
     private static void OnClientDisconnected(string reason)
     {
         SendDisconnectedNotification(reason);
+    }
+
+    private static void OnPlayerJoined(PlayerID playerID)
+    {
+        if (playerID.IsMe)
+        {
+            return;
+        }
+
+        if (playerID.TryGetDisplayName(out var username))
+        {
+            SendPlayerJoinedNotification(username);
+        }
+    }
+
+    private static void OnPlayerLeft(PlayerID playerID)
+    {
+        if (playerID.IsMe)
+        {
+            return;
+        }
+
+        if (playerID.TryGetDisplayName(out var username)) 
+        {
+            SendPlayerLeftNotification(username);
+        }
     }
 }

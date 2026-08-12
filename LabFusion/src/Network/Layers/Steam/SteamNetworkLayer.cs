@@ -402,8 +402,8 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private void HookSteamEvents()
     {
         // Add server hooks
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
+        PlayerIDManager.PlayerRegistered += OnPlayerJoin;
+        PlayerIDManager.PlayerUnregistered += OnPlayerLeave;
         NetworkManager.ServerLost += OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnUpdateLobby;
@@ -448,8 +448,8 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private void UnHookSteamEvents()
     {
         // Remove server hooks
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
-        MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
+        PlayerIDManager.PlayerRegistered -= OnPlayerJoin;
+        PlayerIDManager.PlayerUnregistered -= OnPlayerLeave;
         NetworkManager.ServerLost -= OnDisconnect;
 
         LobbyInfoManager.OnLobbyInfoChanged -= OnUpdateLobby;

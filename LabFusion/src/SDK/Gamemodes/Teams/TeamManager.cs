@@ -30,7 +30,7 @@ public class TeamManager
         gamemode.Metadata.OnMetadataChanged += OnMetadataChanged;
         gamemode.Metadata.OnMetadataRemoved += OnMetadataRemoved;
 
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public class TeamManager
         _gamemode.Metadata.OnMetadataChanged -= OnMetadataChanged;
         _gamemode.Metadata.OnMetadataRemoved -= OnMetadataRemoved;
 
-        MultiplayerHooking.OnPlayerLeft -= OnPlayerLeft;
+        PlayerIDManager.PlayerLeft -= OnPlayerLeft;
 
         _gamemode = null;
     }

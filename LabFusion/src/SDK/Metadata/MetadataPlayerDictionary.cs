@@ -13,14 +13,14 @@ public class MetadataPlayerDictionary<TVariable> : MetadataDictionary<byte, TVar
     {
         OnVariableChanged += OnByteVariableChanged;
 
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
     }
 
     protected override void OnUnregistered()
     {
         OnVariableChanged -= OnByteVariableChanged;
 
-        MultiplayerHooking.OnPlayerLeft -= OnPlayerLeft;
+        PlayerIDManager.PlayerLeft -= OnPlayerLeft;
     }
 
     private void OnByteVariableChanged(byte smallID, TVariable variable)

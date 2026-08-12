@@ -293,7 +293,6 @@ public class TeamDeathmatch : Gamemode
 
         Instance = this;
 
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
         PlayerInteractManager.PlayersInteracted += OnPlayersInteracted;
         FusionOverrides.OnValidateNametag += OnValidateNametag;
 
@@ -346,7 +345,6 @@ public class TeamDeathmatch : Gamemode
 
         _scoreKeeper = null;
 
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
         PlayerInteractManager.PlayersInteracted -= OnPlayersInteracted;
         FusionOverrides.OnValidateNametag -= OnValidateNametag;
 
@@ -553,16 +551,14 @@ public class TeamDeathmatch : Gamemode
         }
     }
 
-    /// <summary>
-    /// Automatically has the host assign a team to a newly joined player.
-    /// </summary>
-    /// <param name="id"></param>
-    protected void OnPlayerJoin(PlayerID id)
+    protected override void OnPlayerJoined(PlayerID playerID)
     {
-        if (ServerManager.IsServerRunning && IsStarted)
+        if (!ServerManager.IsServerRunning)
         {
-            TeamManager.AssignToSmallestTeam(id);
+            return;
         }
+
+        TeamManager.AssignToSmallestTeam(playerID);
     }
 
     /// <summary>

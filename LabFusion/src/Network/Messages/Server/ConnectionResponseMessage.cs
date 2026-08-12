@@ -12,7 +12,7 @@ public class ConnectionResponseData : INetSerializable
 
     public Dictionary<string, string> InitialMetadata;
 
-    public bool IsInitialJoin = false;
+    public bool IsJoining = false;
 
     public int? GetSize() => PlatformID.GetSize() + SmallID.GetSize() + InitialMetadata.GetSize() + sizeof(bool);
 
@@ -22,7 +22,7 @@ public class ConnectionResponseData : INetSerializable
         serializer.SerializeValue(ref SmallID);
         serializer.SerializeValue(ref InitialMetadata);
 
-        serializer.SerializeValue(ref IsInitialJoin);
+        serializer.SerializeValue(ref IsJoining);
     }
 }
 
@@ -36,7 +36,7 @@ public class ConnectionResponseMessage : NativeMessageHandler
     {
         var data = received.ReadData<ConnectionResponseData>();
 
-        PlayerIDManager.RegisterPlayer(data.PlatformID, data.SmallID, data.InitialMetadata, out var playerID);
+        PlayerIDManager.RegisterPlayer(data.PlatformID, data.SmallID, data.InitialMetadata, data.IsJoining, out var playerID);
 
         // Check the id to see if its our own
         // If it is, just update our self reference
@@ -51,7 +51,7 @@ public class ConnectionResponseMessage : NativeMessageHandler
         // Otherwise, create a network player
         else
         {
-            InternalServerHelpers.OnPlayerJoined(playerID, data.IsInitialJoin);
+            InternalServerHelpers.OnPlayerJoined(playerID, data.IsJoining);
 
             NetworkPlayerManager.CreateNetworkPlayer(playerID);
         }

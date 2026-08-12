@@ -3,6 +3,7 @@ using LabFusion.Preferences.Server;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 using LabFusion.Extensions;
+using LabFusion.Player;
 
 namespace LabFusion.Network;
 
@@ -29,8 +30,8 @@ public static class LobbyInfoManager
     {
         // Hook lobby updates
         MultiplayerHooking.OnMainSceneInitialized += PushLobbyUpdate;
-        MultiplayerHooking.OnPlayerJoined += (_) => { PushLobbyUpdate(); };
-        MultiplayerHooking.OnPlayerLeft += (_) => { PushLobbyUpdate(); };
+        PlayerIDManager.PlayerJoined += (_) => { PushLobbyUpdate(); };
+        PlayerIDManager.PlayerLeft += (_) => { PushLobbyUpdate(); };
         ServerManager.ServerStarted += PushLobbyUpdate;
         NetworkManager.ServerLost += PushLobbyUpdate;
 

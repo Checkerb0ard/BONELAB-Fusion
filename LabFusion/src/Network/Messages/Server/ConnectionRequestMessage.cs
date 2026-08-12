@@ -161,7 +161,7 @@ public class ConnectionRequestMessage : NativeMessageHandler
         data.InitialMetadata[nameof(PlayerMetadata.PermissionLevel)] = level.ToString();
 
         // Create new PlayerID
-        PlayerIDManager.RegisterPlayer(platformID, newSmallId.Value, data.InitialMetadata, out var playerID);
+        PlayerIDManager.RegisterPlayer(platformID, newSmallId.Value, data.InitialMetadata, true, out var playerID);
 
         // All checks have succeeded, let the player into the server
         OnConnectionAllowed(playerID, platformID);
@@ -169,23 +169,9 @@ public class ConnectionRequestMessage : NativeMessageHandler
 
     private static void OnConnectionAllowed(PlayerID playerID, ClientPlatformID platformID)
     {
-        // Reserve the player's smallID so that other players don't steal it
-        PlayerIDManager.ReserveSmallID(playerID.SmallID);
+        BroadcastConnection(playerID);
 
-        // Send the new player to all existing players (and the new player so they know they exist)
-        ConnectionSender.SendPlayerJoin(playerID);
-
-        // Now we send all of our other players to the new player
-        foreach (var id in PlayerIDManager.PlayerIDs)
-        {
-            // Don't resend the new player to themselves
-            if (id.SmallID == playerID.SmallID)
-            {
-                continue;
-            }
-
-            ConnectionSender.SendPlayerCatchup(platformID, id);
-        }
+        CatchupConnections(platformID);
 
         // Now, make sure the player loads into the scene
         LoadSender.SendLevelLoad(FusionSceneManager.Barcode, FusionSceneManager.LoadBarcode, platformID);
@@ -197,5 +183,44 @@ public class ConnectionRequestMessage : NativeMessageHandler
 
         // Send the active server settings
         LobbyInfoManager.SendLobbyInfo(platformID);
+    }
+
+    private static void BroadcastConnection(PlayerID playerID)
+    {
+        var response = new ConnectionResponseData()
+        {
+            PlatformID = playerID.PlatformID,
+            SmallID = playerID.SmallID,
+            InitialMetadata = playerID.Metadata.Metadata.LocalDictionary,
+            IsJoining = true,
+        };
+
+        ServerManager.SendToClientsNative(response, NativeMessageTag.ConnectionResponse, NetworkChannel.Reliable);
+    }
+
+    private static void CatchupConnections(ClientPlatformID client)
+    {
+        foreach (var playerID in PlayerIDManager.PlayerIDs)
+        {
+            if (playerID.PlatformID == client)
+            {
+                continue;
+            }
+
+            CatchupConnection(client, playerID);
+        }
+    }
+
+    private static void CatchupConnection(ClientPlatformID client, PlayerID existingPlayerID)
+    {
+        var response = new ConnectionResponseData()
+        {
+            PlatformID = existingPlayerID.PlatformID,
+            SmallID = existingPlayerID.SmallID,
+            InitialMetadata = existingPlayerID.Metadata.Metadata.LocalDictionary,
+            IsJoining = false,
+        };
+
+        ServerManager.SendToClientNative(response, NativeMessageTag.ConnectionResponse, NetworkChannel.Reliable, client);
     }
 }

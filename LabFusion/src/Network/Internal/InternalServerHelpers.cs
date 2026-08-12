@@ -38,36 +38,10 @@ public static class InternalServerHelpers
         // Send client info
         FusionPreferences.SendClientSettings();
 
-        // Update hooks
-        MultiplayerHooking.InvokeOnPlayerJoined(id);
-
         // Send notification
         if (isInitialJoin && id.TryGetDisplayName(out var name))
         {
             NetworkNotifications.SendPlayerJoinedNotification(name);
         }
-    }
-
-    /// <summary>
-    /// Cleans up a single user after they have left.
-    /// </summary>
-    /// <param name="longId"></param>
-    public static void OnPlayerLeft(ClientPlatformID platformID)
-    {
-        var playerId = PlayerIDManager.GetPlayerID(platformID);
-
-        // Make sure the player exists in our game
-        if (playerId == null)
-            return;
-
-        // Send notification
-        if (playerId.TryGetDisplayName(out var name))
-        {
-            NetworkNotifications.SendPlayerLeftNotification(name);
-        }
-
-        PlayerIDManager.UnregisterPlayer(platformID);
-
-        MultiplayerHooking.InvokeOnPlayerLeft(playerId);
     }
 }

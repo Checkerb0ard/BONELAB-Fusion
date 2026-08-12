@@ -1,7 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 
 using LabFusion.Player;
-using LabFusion.Utilities;
 
 namespace LabFusion.Network;
 
@@ -11,14 +10,7 @@ public class DisconnectMessageData : INetSerializable
 
     public string Reason;
 
-    public static DisconnectMessageData Create(ClientPlatformID platformID, string reason = "")
-    {
-        return new DisconnectMessageData()
-        {
-            PlatformID = platformID,
-            Reason = reason,
-        };
-    }
+    public int? GetSize() => PlatformID.GetSize() + Reason.GetSize();
 
     public void Serialize(INetSerializer serializer)
     {
@@ -37,17 +29,11 @@ public class DisconnectMessage : NativeMessageHandler
     {
         var data = received.ReadData<DisconnectMessageData>();
 
-        FusionLogger.Log($"Received disconnect for reason {data.Reason}");
+        PlayerIDManager.UnregisterPlayer(data.PlatformID, true);
 
-        // If this is our id, disconnect ourselves
         if (data.PlatformID == PlayerIDManager.LocalPlatformID)
         {
             NetworkManager.DisconnectClientAndServer(data.Reason);
-        }
-        // Otherwise, disconnect the other person in the lobby
-        else
-        {
-            InternalServerHelpers.OnPlayerLeft(data.PlatformID);
         }
     }
 }

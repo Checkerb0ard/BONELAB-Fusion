@@ -43,7 +43,7 @@ namespace LabFusion.Marrow.Integration
             NetworkSceneManager.OnPlayerStartedLoading += OnPlayerStartedLoading;
             NetworkSceneManager.OnAllPlayersLoaded += OnAllPlayersLoaded;
 
-            MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+            PlayerIDManager.PlayerLeft += OnPlayerLeft;
 
             RigActionManager.PlayerRigActed += OnPlayerActed;
         }
@@ -54,7 +54,7 @@ namespace LabFusion.Marrow.Integration
             NetworkSceneManager.OnPlayerStartedLoading -= OnPlayerStartedLoading;
             NetworkSceneManager.OnAllPlayersLoaded -= OnAllPlayersLoaded;
 
-            MultiplayerHooking.OnPlayerLeft -= OnPlayerLeft;
+            PlayerIDManager.PlayerLeft -= OnPlayerLeft;
 
             RigActionManager.PlayerRigActed -= OnPlayerActed;
         }

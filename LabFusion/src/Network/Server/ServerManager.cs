@@ -306,7 +306,11 @@ public static class ServerManager
             return;
         }
 
-        var data = DisconnectMessageData.Create(client, reason);
+        var data = new DisconnectMessageData()
+        {
+            PlatformID = client,
+            Reason = reason,
+        };
 
         SendToClientNative(data, NativeMessageTag.Disconnect, NetworkChannel.Reliable, client);
 
@@ -327,15 +331,16 @@ public static class ServerManager
 
     internal static void OnClientDisconnected(ClientPlatformID client)
     {
-        // TODO: Cleanup, this is just copied from where it was in the network layer
-        // Make sure the user hasn't previously disconnected
-        if (PlayerIDManager.HasPlayerID(client))
-        {
-            // Update the mod so it knows this user has left
-            InternalServerHelpers.OnPlayerLeft(client);
+        bool hasPlayer = PlayerIDManager.HasPlayerID(client);
 
-            BroadcastClientDisconnected(client);
+        if (!hasPlayer)
+        {
+            return;
         }
+
+        PlayerIDManager.UnregisterPlayer(client, true);
+
+        BroadcastClientDisconnected(client);
     }
 
     /// <summary>
@@ -349,7 +354,10 @@ public static class ServerManager
             return;
         }
 
-        var data = DisconnectMessageData.Create(client);
+        var data = new DisconnectMessageData()
+        {
+            PlatformID = client,
+        };
 
         SendToClientsNative(data, NativeMessageTag.Disconnect, NetworkChannel.Reliable);
     }

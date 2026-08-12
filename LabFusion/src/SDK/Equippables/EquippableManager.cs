@@ -69,7 +69,7 @@ public static class EquippableManager
     internal static void Initialize()
     {
         ClientManager.ClientConnected += OnClientConnected;
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
+        PlayerIDManager.PlayerJoined += OnPlayerJoined;
     }
 
     internal static void ProcessLocalEquip(string barcode, bool equipped)
@@ -159,6 +159,11 @@ public static class EquippableManager
 
     private static void OnPlayerJoined(PlayerID playerID)
     {
+        if (playerID.IsMe)
+        {
+            return;
+        }
+
         SendAllEquippables(new MessageRoute(playerID.SmallID, NetworkChannel.Reliable));
     }
 

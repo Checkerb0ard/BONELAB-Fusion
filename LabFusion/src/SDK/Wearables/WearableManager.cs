@@ -38,8 +38,8 @@ public static class WearableManager
 
     internal static void Initialize()
     {
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
-        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+        PlayerIDManager.PlayerRegistered += OnPlayerRegistered;
+        PlayerIDManager.PlayerUnregistered += OnPlayerUnregistered;
         NetworkManager.ServerLost += OnServerLost;
 
         LocalPlayer.OnLocalRigCreated += OnLocalRigCreated;
@@ -65,12 +65,12 @@ public static class WearableManager
         displayer.SetRigManager(rigManager);
     }
 
-    private static void OnPlayerJoined(PlayerID playerID)
+    private static void OnPlayerRegistered(PlayerID playerID)
     {
         GetOrAddNetDisplayer(playerID);
     }
 
-    private static void OnPlayerLeft(PlayerID playerID)
+    private static void OnPlayerUnregistered(PlayerID playerID)
     {
         ClearNetDisplayer(playerID.SmallID);
     }
