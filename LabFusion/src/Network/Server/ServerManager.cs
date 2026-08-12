@@ -319,8 +319,6 @@ public static class ServerManager
 
     internal static void OnServerStarted()
     {
-        InternalServerHelpers.OnStartServer();
-
         ServerStarted?.InvokeSafe("invoking ServerStarted event");
     }
 

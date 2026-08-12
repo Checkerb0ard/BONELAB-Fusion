@@ -1,5 +1,6 @@
 ﻿using LabFusion.Data;
 using LabFusion.Network;
+using LabFusion.Player;
 using LabFusion.Preferences.Client;
 using LabFusion.Preferences.Server;
 
@@ -28,7 +29,7 @@ public static class FusionPreferences
         ClientManager.RelayNative(data, NativeMessageTag.PlayerSettings, CommonMessageRoutes.ReliableToOtherClients);
     }
 
-    internal static void OnInitializePreferences()
+    internal static void Initialize()
     {
         // Create preferences
         prefCategory = MelonPreferences.CreateCategory("BONELAB Fusion");
@@ -39,10 +40,26 @@ public static class FusionPreferences
 
         // Save category
         prefCategory.SaveToFile(false);
+
+        // Hook events
+        ClientManager.ClientConnected += OnClientConnected;
+        PlayerIDManager.PlayerJoined += OnPlayerJoined;
     }
 
     internal static void OnPreferencesLoaded()
     {
         OnPrefsLoaded?.Invoke();
+    }
+
+    private static void OnClientConnected() => SendClientSettings();
+
+    private static void OnPlayerJoined(PlayerID playerID)
+    {
+        if (playerID.IsMe)
+        {
+            return;
+        }
+
+        SendClientSettings();
     }
 }

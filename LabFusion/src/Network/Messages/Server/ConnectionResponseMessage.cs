@@ -45,14 +45,10 @@ public class ConnectionResponseMessage : NativeMessageHandler
             ClientManager.OnConnectionAuthorized();
 
             NetworkPlayerManager.CreateLocalPlayer();
-
-            InternalServerHelpers.OnJoinServer();
         }
         // Otherwise, create a network player
         else
         {
-            InternalServerHelpers.OnPlayerJoined(playerID, data.IsJoining);
-
             NetworkPlayerManager.CreateNetworkPlayer(playerID);
         }
 

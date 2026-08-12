@@ -129,7 +129,7 @@ public class FusionMod : MelonMod
         AssetWarehouse.OnReady(onReady);
 
         // Create prefs
-        FusionPreferences.OnInitializePreferences();
+        FusionPreferences.Initialize();
 
         FusionPermissions.OnInitializeMelon();
 
@@ -143,7 +143,7 @@ public class FusionMod : MelonMod
         // Initialize level loading
         FusionSceneManager.Internal_OnInitializeMelon();
         MultiplayerHooking.OnLoadingBegin += OnLoadingBegin;
-        NetworkSceneManager.OnInitializeMelon();
+        NetworkSceneManager.Initialize();
 
         // Initialize the networking manager
         NetworkLayerManager.OnInitializeMelon();

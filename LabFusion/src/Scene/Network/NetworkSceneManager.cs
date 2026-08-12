@@ -1,7 +1,8 @@
-﻿using LabFusion.Network;
+﻿using Il2CppSLZ.Marrow.SceneStreaming;
+using LabFusion.Extensions;
+using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
-using LabFusion.Extensions;
 
 namespace LabFusion.Scene;
 
@@ -66,11 +67,18 @@ public static class NetworkSceneManager
 
     private static bool _allPlayersLoaded = false;
 
-    internal static void OnInitializeMelon()
+    internal static void Initialize()
     {
         PlayerID.OnMetadataChangedEvent += OnMetadataChangedCallback;
         PlayerIDManager.PlayerLeft += OnPlayerLeft;
         MultiplayerHooking.OnMainSceneInitialized += OnMainSceneInitialized;
+
+        ServerManager.ServerStarted += OnServerStarted;
+    }
+
+    private static void OnServerStarted()
+    {
+        SceneStreamer.Reload();
     }
 
     private static void OnMainSceneInitialized()
