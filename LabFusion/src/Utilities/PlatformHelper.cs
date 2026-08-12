@@ -5,36 +5,36 @@ using MelonLoader;
 namespace LabFusion.Utilities;
 
 /// <summary>
+/// The platforms the game can be on.
+/// </summary>
+public enum GamePlatform
+{
+    /// <summary>
+    /// No valid platform was found.
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// The steam store.
+    /// </summary>
+    Steam,
+
+    /// <summary>
+    /// The meta store on PCVR.
+    /// </summary>
+    MetaPCVR,
+
+    /// <summary>
+    /// The meta store on standalone Quest.
+    /// </summary>
+    MetaQuest
+}
+
+/// <summary>
 /// Helper for determining information about the current platform that the game is running on.
 /// </summary>
 public static class PlatformHelper
 {
-    /// <summary>
-    /// The platforms the game can be on.
-    /// </summary>
-    public enum Platform
-    {
-        /// <summary>
-        /// No valid platform was found.
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// The steam store.
-        /// </summary>
-        Steam,
-
-        /// <summary>
-        /// The meta store on PCVR.
-        /// </summary>
-        MetaPCVR,
-
-        /// <summary>
-        /// The meta store on standalone Quest.
-        /// </summary>
-        MetaQuest
-    }
-
     /// <summary>
     /// Returns true if the game is running on android.
     /// </summary>
@@ -46,23 +46,23 @@ public static class PlatformHelper
     /// Gets the platform the game is currently running on.
     /// </summary>
     /// <returns></returns>
-    public static Platform GetPlatform()
+    public static GamePlatform GetPlatform()
     {
         var localData = PlatformSelectionData.LocalData;
 
         if (localData == null)
         {
-            return Platform.None;
+            return GamePlatform.None;
         }
 
         var vrPlatform = localData.platform;
 
         return vrPlatform switch
         {
-            VRPlatform.Steam => Platform.Steam,
-            VRPlatform.OculusHome => Platform.MetaPCVR,
-            VRPlatform.OculusQuest => Platform.MetaQuest,
-            _ => Platform.None,
+            VRPlatform.Steam => GamePlatform.Steam,
+            VRPlatform.OculusHome => GamePlatform.MetaPCVR,
+            VRPlatform.OculusQuest => GamePlatform.MetaQuest,
+            _ => GamePlatform.None,
         };
     }
 }

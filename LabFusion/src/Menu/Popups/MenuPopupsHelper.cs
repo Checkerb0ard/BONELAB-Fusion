@@ -12,7 +12,8 @@ public static class MenuPopupsHelper
     {
         MenuToolbarHelper.OnInitializeMelon();
 
-        NetworkLayerManager.LogInChanged += OnLoggedInChanged;
+        NetworkLayerManager.LogInCompleted += OnLogInChanged;
+        NetworkLayerManager.LogOutCompleted += OnLogInChanged;
     }
 
     public static void PopulatePopups(GameObject popups)
@@ -24,24 +25,21 @@ public static class MenuPopupsHelper
         UpdateLogIn();
     }
 
-    private static void OnLoggedInChanged(bool value)
-    {
-        UpdateLogIn();
-    }
+    private static void OnLogInChanged(NetworkLayer layer) => UpdateLogIn();
 
     private static void UpdateLogIn()
     {
         if (NetworkLayerManager.IsLoggedIn)
         {
-            OnLoggedIn();
+            OnLogInCompleted();
         }
         else
         {
-            OnLoggedOut();
+            OnLogOutCompleted();
         }
     }
 
-    private static void OnLoggedIn()
+    private static void OnLogInCompleted()
     {
         if (PopupsRoot == null)
         {
@@ -51,7 +49,7 @@ public static class MenuPopupsHelper
         PopupsRoot.SetActive(true);
     }
 
-    private static void OnLoggedOut()
+    private static void OnLogOutCompleted()
     {
         if (PopupsRoot == null)
         {

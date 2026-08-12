@@ -13,7 +13,7 @@ public static class SupportManager
         { SupportGameNames.BonelabName, SupportResourcePaths.BonelabSupportPath },
     };
 
-    public static readonly Dictionary<PlatformHelper.Platform, string> PlatformToModule = new()
+    public static readonly Dictionary<GamePlatform, string> PlatformToModule = new()
     {
     };
 

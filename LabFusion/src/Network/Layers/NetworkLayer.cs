@@ -14,6 +14,8 @@ public enum ServerPrivacy
     LOCKED = 3,
 }
 
+public delegate void NetworkLayerDelegate(NetworkLayer layer);
+
 /// <summary>
 /// The foundational class for a server's networking system.
 /// </summary>
@@ -22,12 +24,12 @@ public abstract class NetworkLayer
     /// <summary>
     /// Invoked when a NetworkLayer finishes logging in.
     /// </summary>
-    public static event Action<NetworkLayer> LogInCompleted;
+    public static event NetworkLayerDelegate LogInCompleted;
 
     /// <summary>
     /// Invoked when a logged in NetworkLayer finishes logging out.
     /// </summary>
-    public static event Action<NetworkLayer> LogOutCompleted;
+    public static event NetworkLayerDelegate LogOutCompleted;
 
     /// <summary>
     /// Invoked when a server is started on this instance and clients are able to connect.

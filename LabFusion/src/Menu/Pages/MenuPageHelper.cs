@@ -23,7 +23,8 @@ public static class MenuPageHelper
         MenuLocation.OnInitializeMelon();
         MenuGamemode.OnInitializeMelon();
 
-        NetworkLayerManager.LogInChanged += OnLoggedInChanged;
+        NetworkLayerManager.LogInCompleted += OnLogInChanged;
+        NetworkLayerManager.LogOutCompleted += OnLogInChanged;
 
         ClientSettings.MenuSize.OnValueChanged += OnMenuSizeChanged;
     }
@@ -82,24 +83,21 @@ public static class MenuPageHelper
         UpdateLogIn();
     }
 
-    private static void OnLoggedInChanged(bool value)
-    {
-        UpdateLogIn();
-    }
+    private static void OnLogInChanged(NetworkLayer layer) => UpdateLogIn();
 
     private static void UpdateLogIn()
     {
         if (NetworkLayerManager.IsLoggedIn)
         {
-            OnLoggedIn();
+            OnLogInCompleted();
         }
         else
         {
-            OnLoggedOut();
+            OnLogOutCompleted();
         }
     }
 
-    private static void OnLoggedIn()
+    private static void OnLogInCompleted()
     {
         if (RootPage == null)
         {
@@ -113,7 +111,7 @@ public static class MenuPageHelper
         LogOutElement.gameObject.SetActive(true);
     }
 
-    private static void OnLoggedOut()
+    private static void OnLogOutCompleted()
     {
         if (RootPage == null)
         {

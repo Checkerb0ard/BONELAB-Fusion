@@ -1,6 +1,5 @@
 ﻿using LabFusion.Data;
 using LabFusion.Player;
-using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using LabFusion.Voice;
 using LabFusion.Voice.Unity;
@@ -145,22 +144,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             succeeded = false;
         }
 
-        if (!succeeded)
-        {
-            Notifier.Send(new Notification()
-            {
-                Title = "Log In Failed",
-                Message = "Failed connecting to Steamworks! Make sure Steam is running and signed in!",
-                SaveToMenu = false,
-                ShowPopup = true,
-                Type = NotificationType.ERROR,
-                PopupLength = 6f,
-            });
-
-            return false;
-        }
-
-        return true;
+        return succeeded;
     }
 
     protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
