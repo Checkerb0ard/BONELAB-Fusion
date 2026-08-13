@@ -7,24 +7,19 @@ namespace LabFusion.Voice;
 public static class VoiceInfo
 {
     /// <summary>
-    /// The current voice manager. Can be null. Contains information about player voice chat.
-    /// </summary>
-    public static IVoiceManager VoiceManager => NetworkLayerManager.Layer?.VoiceManager;
-
-    /// <summary>
     /// Returns if the voice manager supports speaking.
     /// </summary>
-    public static bool CanTalk => (VoiceManager?.CanTalk).GetValueOrDefault();
-    
+    public static bool IsInputSupported => VoiceManager.VoiceDataManager.IsInputSupported;
+
     /// <summary>
     /// Returns if the voice manager supports listening.
     /// </summary>
-    public static bool CanHear => (VoiceManager?.CanHear).GetValueOrDefault();
+    public static bool IsOutputSupported => VoiceManager.VoiceDataManager.IsOutputSupported;
     
     /// <summary>
     /// Returns an array of all input devices that are available.
     /// </summary>
-    public static string[] InputDevices => VoiceManager != null ? VoiceManager.InputDevices : Array.Empty<string>();
+    public static string[] InputDevices => VoiceManager.VoiceDataManager.InputDevices;
 
     /// <summary>
     /// Returns if the mute icon is enabled.
@@ -34,12 +29,12 @@ public static class VoiceInfo
     /// <summary>
     /// Returns the microphone amplitude for this frame.
     /// </summary>
-    public static float VoiceAmplitude => (VoiceManager?.GetReceiver()?.GetVoiceAmplitude()).GetValueOrDefault();
+    public static float VoiceAmplitude => VoiceManager.VoiceDataManager.Input?.Amplitude ?? 0f;
 
     /// <summary>
     /// Returns if we have voice activity for this frame.
     /// </summary>
-    public static bool HasVoiceActivity => (VoiceManager?.GetReceiver()?.HasVoiceActivity()).GetValueOrDefault();
+    public static bool HasVoiceActivity => VoiceManager.VoiceDataManager.Input?.HasVoiceActivity ?? false;
 
     /// <summary>
     /// Returns if the player can't speak.

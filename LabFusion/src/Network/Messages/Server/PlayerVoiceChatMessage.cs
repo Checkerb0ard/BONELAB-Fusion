@@ -40,12 +40,13 @@ public class PlayerVoiceChatMessage : NativeMessageHandler
             return;
         }
 
-        // Read the voice chat
-        var id = PlayerIDManager.GetPlayerID(sender.Value);
+        var playerID = PlayerIDManager.GetPlayerID(sender.Value);
 
-        if (id != null)
+        if (playerID == null)
         {
-            VoiceHelper.OnVoiceDataReceived(id, data.Bytes);
+            return;
         }
+
+        VoiceManager.ReceiveEncodedData(playerID, data.Bytes);
     }
 }

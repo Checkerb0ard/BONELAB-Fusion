@@ -57,10 +57,10 @@ public static class VoiceSourceManager
         return source;
     }
 
-    internal static void OnInitializeMelon()
+    internal static void Initialize()
     {
-        VoiceSource.OnVoiceEnabled += OnVoiceEnabled;
-        VoiceSource.OnVoiceDisabled += OnVoiceDisabled;
+        VoiceSource.VoiceEnabled += OnVoiceEnabled;
+        VoiceSource.VoiceDisabled += OnVoiceDisabled;
     }
 
     private static void OnVoiceEnabled(VoiceSource source)

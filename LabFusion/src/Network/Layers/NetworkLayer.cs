@@ -1,5 +1,4 @@
 ﻿using LabFusion.Utilities;
-using LabFusion.Voice;
 
 namespace LabFusion.Network;
 
@@ -161,11 +160,6 @@ public abstract class NetworkLayer
     public virtual NetworkLobby Lobby => null;
 
     /// <summary>
-    /// Returns the used voice manager.
-    /// </summary>
-    public virtual IVoiceManager VoiceManager => null;
-
-    /// <summary>
     /// Returns the layer's matchmaker for finding lobbies.
     /// </summary>
     public virtual Matchmaker Matchmaker => null;
@@ -189,6 +183,12 @@ public abstract class NetworkLayer
     /// <para>Defaults to true.</para>
     /// </summary>
     public virtual bool IsClientIDPersistent => true;
+
+    /// <summary>
+    /// Returns if the network layer supports the local client having a list of friends on the connected platform.
+    /// <para>Defaults to false.</para>
+    /// </summary>
+    public virtual bool IsFriendsListSupported => false;
 
     private Type _type;
     private bool _hasType;
@@ -796,11 +796,11 @@ public abstract class NetworkLayer
     }
 
     /// <summary>
-    /// Returns true if this is a friend (ex. steam friends).
+    /// Returns true if a specified client is friended to the local client on the network layer's platform.
     /// </summary>
-    /// <param name="userId"></param>
+    /// <param name="client"></param>
     /// <returns></returns>
-    public virtual bool IsFriend(ClientPlatformID platformID) => false;
+    public virtual bool IsFriend(ClientPlatformID client) => false;
 
     /// <summary>
     /// Attempts to log into the network layer.

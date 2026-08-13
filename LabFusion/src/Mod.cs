@@ -95,7 +95,7 @@ public class FusionMod : MelonMod
 
         // Initialize player
         LocalPlayer.Initialize();
-        VoiceSourceManager.OnInitializeMelon();
+        VoiceSourceManager.Initialize();
 
         // Register base modules
         InitializeBaseModules();
@@ -153,6 +153,8 @@ public class FusionMod : MelonMod
         NetworkNotifications.Initialize();
 
         LobbyMetadataManager.Initialize();
+
+        VoiceManager.Initialize();
 
 #if DEBUG
         FusionUnityLogger.OnInitializeMelon();
@@ -287,7 +289,7 @@ public class FusionMod : MelonMod
         FusionPlayer.OnUpdate();
 
         // Update and push all network messages
-        VoiceHelper.OnVoiceChatUpdate();
+        VoiceManager.Tick();
 
         NetworkLayerManager.Tick();
 

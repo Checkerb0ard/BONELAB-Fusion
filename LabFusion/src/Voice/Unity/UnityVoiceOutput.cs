@@ -5,23 +5,27 @@ namespace LabFusion.Voice.Unity;
 
 using System;
 
-public class UnityVoiceSpeaker : VoiceSpeaker
+public class UnityVoiceOutput : IVoiceOutput
 {
-    public override float Amplitude { get; set; } = 0f;
+    public PlayerID PlayerID { get; }
+    public float Volume { get; set; } = 1f;
+    public float Amplitude { get; set; } = 0f;
 
-    public UnityVoiceSpeaker(PlayerID id)
+    public UnityVoiceOutput(PlayerID playerID)
     {
-        // Save the id
-        _id = id;
+        PlayerID = playerID;
+    }
 
+    public void OnEnable()
+    {
         // Hook into contact info changing
         ContactsList.OnContactUpdated += OnContactUpdated;
 
         // Update the contact info
-        OnContactUpdated(ContactsList.GetContact(id));
+        OnContactUpdated(ContactsList.GetContact(PlayerID));
     }
 
-    public override void Cleanup()
+    public void OnDisable()
     {
         // Unhook contact updating
         ContactsList.OnContactUpdated -= OnContactUpdated;
@@ -29,7 +33,7 @@ public class UnityVoiceSpeaker : VoiceSpeaker
 
     private void OnContactUpdated(Contact contact)
     {
-        if (contact.id != _id.PlatformID)
+        if (contact.id != PlayerID.PlatformID)
         {
             return;
         }
@@ -37,7 +41,7 @@ public class UnityVoiceSpeaker : VoiceSpeaker
         Volume = contact.volume;
     }
 
-    public override void OnVoiceDataReceived(byte[] data)
+    void IVoiceOutput.OnEncodedDataReceived(byte[] data)
     {
         short[] smallSamples = VoiceConverter.Decode(data);
 
@@ -54,7 +58,7 @@ public class UnityVoiceSpeaker : VoiceSpeaker
 
         float amplitude = 0f;
 
-        var sources = VoiceSourceManager.GetVoicesByID((int)ID.SmallID);
+        var sources = VoiceSourceManager.GetVoicesByID((int)PlayerID.SmallID);
 
         for (int i = 0; i < sampleCount; i++)
         {

@@ -15,7 +15,7 @@ public class VoiceSource : MonoBehaviour
     public VoiceSource(IntPtr intPtr) : base(intPtr) { }
 
     [HideFromIl2Cpp]
-    public static event Action<VoiceSource> OnVoiceEnabled, OnVoiceDisabled;
+    public static event Action<VoiceSource> VoiceEnabled, VoiceDisabled;
 
     [HideFromIl2Cpp]
     public AudioSource AudioSource { get; private set; } = null;
@@ -105,7 +105,7 @@ public class VoiceSource : MonoBehaviour
 
     private void OnEnable()
     {
-        OnVoiceEnabled?.Invoke(this);
+        VoiceEnabled?.Invoke(this);
 
         ReceivingInput = false;
 
@@ -115,7 +115,7 @@ public class VoiceSource : MonoBehaviour
 
     private void OnDisable()
     {
-        OnVoiceDisabled?.Invoke(this);
+        VoiceDisabled?.Invoke(this);
 
         ReceivingInput = false;
 

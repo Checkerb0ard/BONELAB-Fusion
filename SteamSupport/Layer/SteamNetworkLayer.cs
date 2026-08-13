@@ -1,8 +1,6 @@
 ﻿using LabFusion.Data;
 using LabFusion.Player;
 using LabFusion.Utilities;
-using LabFusion.Voice;
-using LabFusion.Voice.Unity;
 using LabFusion.Network;
 
 using Steamworks;
@@ -32,9 +30,9 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
     public override NetworkLobby Lobby => _currentLobby;
 
-    public override IVoiceManager VoiceManager => _voiceManager;
-
     public override Matchmaker Matchmaker => _matchmaker;
+
+    public override bool IsFriendsListSupported => true;
 
     /// <summary>
     /// The steam client's logged in SteamID.
@@ -59,7 +57,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private ServerID _connectedServerID = ServerID.Empty;
 
     private Matchmaker _matchmaker = null;
-    private IVoiceManager _voiceManager = null;
     private NetworkLobby _currentLobby;
 
     public override bool CheckSupported()
@@ -100,6 +97,11 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
 
         ClientSteamConnection.ClientSendToServer(channel, message);
+    }
+
+    public override bool IsFriend(ClientPlatformID client)
+    {
+        return client == PlayerIDManager.LocalPlatformID || new Friend((ulong)client).IsFriend;
     }
 
     protected override async Task<bool> TryLogInAsync(CancellationToken cancellationToken)
@@ -266,18 +268,11 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         HookEvents();
 
-        // Create managers
-        _voiceManager = new UnityVoiceManager();
-        _voiceManager.Enable();
-
         _matchmaker = new SteamMatchmaker();
     }
 
     protected override void OnDeinitialize()
     {
-        _voiceManager.Disable();
-        _voiceManager = null;
-
         _matchmaker = null;
 
         _localLobby = default;
@@ -306,44 +301,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
     }
 
-    public override bool IsFriend(ClientPlatformID platformID)
-    {
-        return platformID == PlayerIDManager.LocalPlatformID || new Friend((ulong)platformID).IsFriend;
-    }
-
-    private void OnPlayerJoin(PlayerID id)
-    {
-        if (VoiceManager == null)
-        {
-            return;
-        }
-
-        if (!id.IsMe)
-        {
-            VoiceManager.GetSpeaker(id);
-        }
-    }
-
-    private void OnPlayerLeave(PlayerID id)
-    {
-        if (VoiceManager == null)
-        {
-            return;
-        }
-
-        VoiceManager.RemoveSpeaker(id);
-    }
-
-    private void OnDisconnect()
-    {
-        if (VoiceManager == null)
-        {
-            return;
-        }
-
-        VoiceManager.ClearManager();
-    }
-
     private async void AwaitLobbyCreation()
     {
         var lobbyTask = await SteamMatchmaking.CreateLobbyAsync();
@@ -365,11 +322,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         HookServer();
         HookRichPresence();
 
-        // Add server hooks
-        PlayerIDManager.PlayerRegistered += OnPlayerJoin;
-        PlayerIDManager.PlayerUnregistered += OnPlayerLeave;
-        NetworkManager.ServerLost += OnDisconnect;
-
         // Create a local lobby
         AwaitLobbyCreation();
     }
@@ -378,11 +330,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
     {
         UnhookServer();
         UnhookRichPresence();
-
-        // Remove server hooks
-        PlayerIDManager.PlayerRegistered -= OnPlayerJoin;
-        PlayerIDManager.PlayerUnregistered -= OnPlayerLeave;
-        NetworkManager.ServerLost -= OnDisconnect;
 
         // Remove the local lobby
         if (_localLobby.Id == ClientSteamID)

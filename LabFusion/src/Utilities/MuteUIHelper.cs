@@ -109,7 +109,7 @@ public static class MuteUIHelper
     public static void OnCreateMuteUI(RigManager rigManager)
     {
         // If this current networking layer does not support VC, don't bother showing these icons
-        if (!VoiceInfo.CanTalk)
+        if (!VoiceInfo.IsInputSupported)
         {
             return;
         }
