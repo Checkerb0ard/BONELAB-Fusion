@@ -439,19 +439,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return;
         }
 
-        string displayText = null;
-
-        if (IsServerRunning)
-        {
-            displayText = "Fusion - Hosting a Server";
-        }
-        else if (IsClientConnected)
-        {
-            displayText = "Fusion - In a Server";
-        }
-
         SteamFriends.SetRichPresence("connect", "true");
-        SteamFriends.SetRichPresence("steam_display", displayText);
         SteamFriends.SetRichPresence("steam_player_group", ServerID.ToString());
     }
 
