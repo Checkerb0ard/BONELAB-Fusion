@@ -30,6 +30,11 @@ public abstract class NetworkLayer
     public static event Action ServerStopped;
 
     /// <summary>
+    /// Invoked whenever the code for the server changes.
+    /// </summary>
+    public static event Action<string> ServerCodeChanged;
+
+    /// <summary>
     /// Invoked whenever a client connected to the running server has disconnected.
     /// </summary>
     public static event Action<ClientPlatformID> ClientDisconnected;
@@ -43,9 +48,6 @@ public abstract class NetworkLayer
     /// Invoked when the client has lost connection or was disconnected from the server.
     /// </summary>
     public static event Action ConnectionLost;
-
-    private Type _type;
-    private bool _hasType;
 
     /// <summary>
     /// The NetworkLayer's cached type.
@@ -92,6 +94,25 @@ public abstract class NetworkLayer
     public abstract ServerID RunningServerID { get; }
 
     /// <summary>
+    /// If a server is running and server codes are supported, this will return the code for the server. Otherwise, it will return null.
+    /// </summary>
+    public string RunningServerCode
+    {
+        get => IsServerRunning && IsServerCodeSupported ? _runningServerCode : null;
+        set
+        {
+            if (_runningServerCode == value)
+            {
+                return;
+            }
+
+            _runningServerCode = value;
+
+            NotifyServerCodeChanged(value);
+        }
+    }
+
+    /// <summary>
     /// Returns true if the NetworkLayer is actively attempting to connect to a server as a client.
     /// </summary>
     public bool IsClientConnecting { get; private set; }
@@ -132,6 +153,21 @@ public abstract class NetworkLayer
     /// Returns the layer's matchmaker for finding lobbies.
     /// </summary>
     public virtual Matchmaker Matchmaker => null;
+
+    /// <summary>
+    /// Returns if the layer supports server codes for finding lobbies.
+    /// </summary>
+    public virtual bool IsServerCodeSupported => true;
+
+    /// <summary>
+    /// Returns if the layer supports the user refreshing the server code.
+    /// </summary>
+    public virtual bool IsServerCodeRefreshable => true;
+
+    private Type _type;
+    private bool _hasType;
+
+    private string _runningServerCode = null;
 
     /// <summary>
     /// Returns true if this NetworkLayer is supported on the current platform.
@@ -384,7 +420,7 @@ public abstract class NetworkLayer
     public async Task<bool> ConnectToServerAsync(ServerID server, int maxAttempts) => await ConnectToServerAsync(server, maxAttempts, CancellationToken.None);
 
     /// <summary>
-    /// Attempts to connect to a server asynchronously in a specified number of attempts.
+    /// Attempts to connect to a server asynchronously in one attempt.
     /// <para>The <see cref="ConnectionEstablished"/> event will also be invoked on the main thread if the client connected successfully.</para>
     /// </summary>
     /// <param name="server">The server to connect to.</param>
@@ -444,6 +480,36 @@ public abstract class NetworkLayer
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Attempts to connect to a server given a server code.
+    /// </summary>
+    /// <param name="code">The code for the server to connect to.</param>
+    /// <returns></returns>
+    public void ConnectToServerByCode(string code) => Task.Run(async () => { await ConnectToServerByCodeAsync(code); });
+
+    /// <summary>
+    /// Attempts to connect to a server asynchronously given a server code.
+    /// </summary>
+    /// <param name="code">The code for the server to connect to.</param>
+    /// <returns></returns>
+    public async Task<bool> ConnectToServerByCodeAsync(string code) => await ConnectToServerByCodeAsync(code, CancellationToken.None);
+
+    /// <summary>
+    /// Attempts to connect to a server asynchronously given a server code.
+    /// </summary>
+    /// <param name="code">The code for the server to connect to.</param>
+    /// <param name="cancellationToken">The cancellation token that will be checked prior to the connection being established.</param>
+    /// <returns></returns>
+    public async Task<bool> ConnectToServerByCodeAsync(string code, CancellationToken cancellationToken)
+    {
+        if (!IsServerCodeSupported)
+        {
+            return false;
+        }
+
+        return await TryConnectToServerByCodeAsync(code, cancellationToken);
     }
 
     /// <summary>
@@ -688,25 +754,27 @@ public abstract class NetworkLayer
     public void LateTick() => OnLateTick();
 
     /// <summary>
+    /// Attempts to refresh the code for the running server.
+    /// </summary>
+    /// <param name="serverCode"></param>
+    /// <returns></returns>
+    public virtual bool TryRefreshServerCode()
+    {
+        if (!IsServerRunning || !IsServerCodeSupported || !IsServerCodeRefreshable)
+        {
+            return false;
+        }
+
+        RunningServerCode = RandomCodeGenerator.GetString(8);
+        return true;
+    }
+
+    /// <summary>
     /// Returns true if this is a friend (ex. steam friends).
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
     public virtual bool IsFriend(ClientPlatformID platformID) => false;
-
-    public virtual string GetServerCode()
-    {
-        return null;
-    }
-
-    public virtual void RefreshServerCode()
-    {
-    }
-
-    public virtual void JoinServerByCode(string code)
-    {
-        throw new NotImplementedException("The current NetworkLayer does not support joining by code!");
-    }
 
     /// <summary>
     /// Attempts to log into the network layer.
@@ -753,6 +821,40 @@ public abstract class NetworkLayer
     protected abstract Task<bool> TryConnectToServerAsync(ServerID server, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Attempts to connect the client to a server by a server code.
+    /// </summary>
+    /// <param name="code">The code for the server to connect to.</param>
+    /// <param name="cancellationToken">The cancellation token that will be checked prior to the connection being established.</param>
+    /// <returns></returns>
+    protected virtual async Task<bool> TryConnectToServerByCodeAsync(string code, CancellationToken cancellationToken)
+    {
+        // If there's no matchmaker, but codes are supported, treat the server code like a server ID
+        if (Matchmaker == null)
+        {
+            var serverID = new ServerID(code);
+
+            return await ConnectToServerAsync(serverID, cancellationToken);
+        }
+
+        // Search through the matchmaker
+        var query = Matchmaker.CreateQuery()
+            .WithPersistentFilters()
+            .WithJoinableFilters()
+            .WithCode(code);
+
+        var result = await Matchmaker.SearchLobbiesAsync(query, cancellationToken);
+
+        if (!result.HasLobbies)
+        {
+            return false;
+        }
+
+        var firstLobby = result.Lobbies[0];
+
+        return await ConnectToServerAsync(firstLobby.ServerID, cancellationToken);
+    }
+
+    /// <summary>
     /// Attempts to disconnect the client from the connected server.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token that will be checked prior to the client being disconnected.</param>
@@ -795,12 +897,14 @@ public abstract class NetworkLayer
 
     private static void NotifyServerStarted() => ThreadHelper.RunOnMainThread(InvokeServerStarted);
     private static void NotifyServerStopped() => ThreadHelper.RunOnMainThread(InvokeServerStopped);
+    private static void NotifyServerCodeChanged(string code) => ThreadHelper.RunOnMainThread(() => { InvokeServerCodeChanged(code); });
     private static void NotifyClientDisconnected(ClientPlatformID client) => ThreadHelper.RunOnMainThread(() => { InvokeClientDisconnected(client); });
     private static void NotifyConnectionEstablished() => ThreadHelper.RunOnMainThread(InvokeConnectionEstablished);
     private static void NotifyConnectionLost() => ThreadHelper.RunOnMainThread(InvokeConnectionLost);
 
     private static void InvokeServerStarted() => ServerStarted?.Invoke();
     private static void InvokeServerStopped() => ServerStopped?.Invoke();
+    private static void InvokeServerCodeChanged(string code) => ServerCodeChanged?.Invoke(code);
     private static void InvokeClientDisconnected(ClientPlatformID client) => ClientDisconnected?.Invoke(client);
     private static void InvokeConnectionEstablished() => ConnectionEstablished?.Invoke();
     private static void InvokeConnectionLost() => ConnectionLost?.Invoke();

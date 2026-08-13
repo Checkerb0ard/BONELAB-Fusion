@@ -121,7 +121,7 @@ public class LobbyInfo
     {
         // Info
         LobbyID = ServerManager.RunningServerID;
-        LobbyCode = NetworkHelper.GetServerCode();
+        LobbyCode = ServerManager.RunningServerCode;
         LobbyName = SavedServerSettings.ServerName.Value;
         LobbyDescription = SavedServerSettings.ServerDescription.Value;
         LobbyVersion = FusionMod.Version;

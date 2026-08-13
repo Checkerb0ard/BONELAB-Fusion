@@ -138,6 +138,36 @@ public static class ClientManager
         layer.SendToServer(message, channel);
     }
 
+    /// <summary>
+    /// Attempts to connect to a server in one attempt.
+    /// </summary>
+    /// <param name="server"></param>
+    public static void ConnectToServer(ServerID server) => NetworkLayerManager.Layer?.ConnectToServer(server);
+
+    /// <summary>
+    /// Attempts to connect to a server given a server code.
+    /// </summary>
+    /// <param name="code"></param>
+    public static void ConnectToServerByCode(string code) => NetworkLayerManager.Layer?.ConnectToServerByCode(code);
+
+    /// <summary>
+    /// If the client is connected to a server, disconnect the client.
+    /// <para>This will only disconnect the client. If a server is also running, the server will remain open.</para>
+    /// </summary>
+    public static void DisconnectFromServer() => DisconnectFromServer(null);
+
+    /// <summary>
+    /// If the client is connected to a server, disconnect the client with a given reason.
+    /// <para>This will only disconnect the client. If a server is also running, the server will remain open.</para>
+    /// </summary>
+    /// <param name="reason"></param>
+    public static void DisconnectFromServer(string reason)
+    {
+        LastDisconnectReason = reason;
+
+        NetworkLayerManager.Layer?.DisconnectFromServer();
+    }
+
     internal static void OnConnectionEstablished()
     {
         _connectionRequested = true;

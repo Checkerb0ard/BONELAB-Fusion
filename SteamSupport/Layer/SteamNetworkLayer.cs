@@ -139,7 +139,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         ServerSteamSocket = SteamNetworkingSockets.CreateRelaySocket<SteamSocketManager>();
         _runningServerID = new ServerID(ClientSteamID);
 
-        RefreshServerCode();
+        TryRefreshServerCode();
 
         return Task.FromResult(true);
     }
@@ -316,48 +316,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
     public override bool IsFriend(ClientPlatformID platformID)
     {
         return platformID == PlayerIDManager.LocalPlatformID || new Friend((ulong)platformID).IsFriend;
-    }
-
-    public string ServerCode { get; private set; } = null;
-
-    public override string GetServerCode()
-    {
-        return ServerCode;
-    }
-
-    public override void RefreshServerCode()
-    {
-        ServerCode = RandomCodeGenerator.GetString(8);
-
-        ThreadHelper.RunOnMainThread(LobbyInfoManager.PushLobbyUpdate);
-    }
-
-    public override void JoinServerByCode(string code)
-    {
-        if (Matchmaker == null)
-        {
-            return;
-        }
-
-#if DEBUG
-        FusionLogger.Log($"Searching for servers with code {code}...");
-#endif
-
-        // TODO: Move outside of network layer
-        var query = Matchmaker.CreateQuery()
-            .WithPersistentFilters()
-            .WithJoinableFilters()
-            .WithCode(code);
-
-        Matchmaker.SearchLobbies(query, (result) =>
-        {
-            if (!result.IsSuccess)
-            {
-                return;
-            }
-
-            ConnectToServer(result.Lobbies[0].LobbyInfo.LobbyID);
-        });
     }
 
     private void HookSteamEvents()

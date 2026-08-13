@@ -30,9 +30,19 @@ public static class ServerManager
     public static bool IsServerRunning => NetworkLayerManager.Layer?.IsServerRunning ?? false;
 
     /// <summary>
+    /// Returns true if the current server supports server codes.
+    /// </summary>
+    public static bool IsServerCodeSupported => NetworkLayerManager.Layer?.IsServerCodeSupported ?? false;
+
+    /// <summary>
     /// If a server is running on this instance, this will return the ID used for the server.
     /// </summary>
     public static ServerID RunningServerID => NetworkLayerManager.Layer?.RunningServerID ?? ServerID.Empty;
+
+    /// <summary>
+    /// If a server is running on this instance and server codes are supported, this will return the code for the running server. Otherwise, it will return null.
+    /// </summary>
+    public static string RunningServerCode => NetworkLayerManager.Layer?.RunningServerCode;
 
     /// <summary>
     /// Returns true if a connected client has been accepted into the server.
@@ -316,6 +326,28 @@ public static class ServerManager
 
         NetworkConnectionManager.TimeoutDisconnect(client);
     }
+
+    /// <summary>
+    /// Starts a server.
+    /// <para>This opens a server without connecting the host as a client.</para>
+    /// </summary>
+    public static void StartServer() => NetworkLayerManager.Layer?.StartServer();
+
+    /// <summary>
+    /// Stops the currently running server.
+    /// </summary>
+    public static void StopServer() => NetworkLayerManager.Layer?.StopServer();
+
+    /// <summary>
+    /// Refreshes the code for the running server without returning success.
+    /// </summary>
+    public static void RefreshServerCode() => TryRefreshServerCode();
+
+    /// <summary>
+    /// Attempts to refresh the code for the running server.
+    /// </summary>
+    /// <returns></returns>
+    public static bool TryRefreshServerCode() => NetworkLayerManager.Layer?.TryRefreshServerCode() ?? false;
 
     internal static void OnServerStarted()
     {

@@ -284,13 +284,13 @@ public static class MenuLocation
             .WithTitle("Code")
             .WithInteractability(false);
 
-        element.CodeElement.Value = NetworkHelper.GetServerCode();
+        element.CodeElement.Value = ServerManager.RunningServerCode;
         element.CodeElement.EmptyFormat = "No {0}";
 
         element.CodeRefreshElement
             .Cleared()
             .WithInteractability(ownsSettings)
-            .Do(NetworkHelper.RefreshServerCode);
+            .Do(ServerManager.RefreshServerCode);
 
         // Disable unnecessary elements
         element.BansGrid.SetActive(ownsSettings);
@@ -463,13 +463,13 @@ public static class MenuLocation
             .WithTitle("Code")
             .WithInteractability(false);
 
-        element.CodeElement.Value = NetworkHelper.GetServerCode();
+        element.CodeElement.Value = ServerManager.RunningServerCode;
         element.CodeElement.EmptyFormat = "No {0}";
 
         element.CodeRefreshElement
             .Cleared()
             .WithInteractability(ownsSettings)
-            .Do(NetworkHelper.RefreshServerCode);
+            .Do(ServerManager.RefreshServerCode);
 
         // Disable unnecessary elements
         element.BansGrid.SetActive(ownsSettings);

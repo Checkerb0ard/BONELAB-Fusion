@@ -86,6 +86,10 @@ public static class MenuMatchmaking
         GamemodeOptionElement.gameObject.SetActive(supportsMatchmaking);
         SandboxOptionElement.gameObject.SetActive(supportsMatchmaking);
         BrowseOptionElement.gameObject.SetActive(supportsMatchmaking);
+
+        bool supportsServerCode = networkLayer.IsServerCodeSupported;
+
+        CodeOptionElement.gameObject.SetActive(supportsServerCode);
     }
 
     private static void PopulateOptions(Transform optionsTransform)
@@ -164,7 +168,7 @@ public static class MenuMatchmaking
                     return;
                 }
 
-                NetworkHelper.JoinServerByCode(code);
+                ClientManager.ConnectToServerByCode(code);
             });
     }
 

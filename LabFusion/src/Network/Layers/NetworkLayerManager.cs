@@ -344,6 +344,8 @@ public static class NetworkLayerManager
     {
         NetworkLayer.ServerStarted += OnServerStarted;
         NetworkLayer.ServerStopped += OnServerStopped;
+        NetworkLayer.ServerCodeChanged += OnServerCodeChanged;
+
         NetworkLayer.ClientDisconnected += OnClientDisconnected;
 
         NetworkLayer.ConnectionEstablished += OnConnectionEstablished;
@@ -359,6 +361,8 @@ public static class NetworkLayerManager
     {
         ServerManager.OnServerStopped();
     }
+
+    private static void OnServerCodeChanged(string code) => LobbyInfoManager.PushLobbyUpdate();
 
     private static void OnClientDisconnected(ClientPlatformID client)
     {

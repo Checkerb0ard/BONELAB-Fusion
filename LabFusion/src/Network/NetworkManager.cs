@@ -51,41 +51,6 @@ public static class NetworkManager
     private static bool _isServerEstablished = false;
 
     /// <summary>
-    /// Starts a server.
-    /// <para>This opens a server without connecting the host as a client. To connect the host as a client, use <see cref="StartListenServer"/>.</para>
-    /// </summary>
-    public static void StartServer()
-    {
-        NetworkLayerManager.Layer?.StartServer();
-    }
-
-    /// <summary>
-    /// Stops the currently running server.
-    /// </summary>
-    public static void StopServer()
-    {
-        NetworkLayerManager.Layer?.StopServer();
-    }
-
-    /// <summary>
-    /// If the client is connected to a server, disconnect the client.
-    /// <para>This will only disconnect the client. If a server is also running, the server will remain open.</para>
-    /// </summary>
-    public static void DisconnectFromServer() => DisconnectFromServer(null);
-
-    /// <summary>
-    /// If the client is connected to a server, disconnect the client with a given reason.
-    /// <para>This will only disconnect the client. If a server is also running, the server will remain open.</para>
-    /// </summary>
-    /// <param name="reason"></param>
-    public static void DisconnectFromServer(string reason)
-    {
-        ClientManager.LastDisconnectReason = reason;
-
-        NetworkLayerManager.Layer?.DisconnectFromServer();
-    }
-
-    /// <summary>
     /// Starts a listen server.
     /// <para>This opens a server and connects the host client to the server.</para>
     /// </summary>

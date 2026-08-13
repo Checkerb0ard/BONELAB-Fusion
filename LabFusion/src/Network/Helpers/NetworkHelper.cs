@@ -12,39 +12,6 @@ namespace LabFusion.Network;
 public static class NetworkHelper
 {
     /// <summary>
-    /// Attempts to join a server given a server code.
-    /// </summary>
-    /// <param name="code"></param>
-    public static void JoinServerByCode(string code)
-    {
-        NetworkLayerManager.Layer?.JoinServerByCode(code);
-    }
-
-    /// <summary>
-    /// Gets the code of the current server.
-    /// </summary>
-    /// <returns>The server code.</returns>
-    public static string GetServerCode()
-    {
-        var layer = NetworkLayerManager.Layer;
-
-        if (layer == null)
-        {
-            return null;
-        }
-
-        return layer.GetServerCode();
-    }
-
-    /// <summary>
-    /// Generates a new server code.
-    /// </summary>
-    public static void RefreshServerCode()
-    {
-        NetworkLayerManager.Layer.RefreshServerCode();
-    }
-
-    /// <summary>
     /// Returns true if this user is friended on the active network platform.
     /// </summary>
     /// <param name="platformID"></param>
