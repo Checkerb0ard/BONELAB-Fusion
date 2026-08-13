@@ -75,7 +75,7 @@ public sealed class IntLobbyWriter : ILobbyWriter
         Callback = callback;
     }
 
-    public void WriteToLobby(NetworkLobby lobby) => lobby.SetMetadata(Key, Callback());
+    public void WriteToLobby(NetworkLobby lobby) => lobby.SetInt(Key, Callback());
 }
 
 /// <summary>
@@ -99,5 +99,5 @@ public sealed class BoolLobbyWriter : ILobbyWriter
         Callback = callback;
     }
 
-    public void WriteToLobby(NetworkLobby lobby) => lobby.SetMetadata(Key, Callback());
+    public void WriteToLobby(NetworkLobby lobby) => lobby.SetBool(Key, Callback());
 }

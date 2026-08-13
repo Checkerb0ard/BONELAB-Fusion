@@ -158,10 +158,10 @@ public static class LobbyMetadataManager
         var privacy = lobbyInfo.Privacy;
         bool isHidden = privacy == ServerPrivacy.PRIVATE || privacy == ServerPrivacy.LOCKED;
 
-        lobby.SetMetadata(LobbyKeys.IsHiddenKey, isHidden);
-        lobby.SetMetadata(LobbyKeys.VersionMajorKey, lobbyInfo.LobbyVersion.Major);
-        lobby.SetMetadata(LobbyKeys.VersionMinorKey, lobbyInfo.LobbyVersion.Minor);
-        lobby.SetMetadata(LobbyKeys.FullKey, lobbyInfo.PlayerCount >= lobbyInfo.MaxPlayers);
+        lobby.SetBool(LobbyKeys.IsHiddenKey, isHidden);
+        lobby.SetInt(LobbyKeys.VersionMajorKey, lobbyInfo.LobbyVersion.Major);
+        lobby.SetInt(LobbyKeys.VersionMinorKey, lobbyInfo.LobbyVersion.Minor);
+        lobby.SetBool(LobbyKeys.FullKey, lobbyInfo.PlayerCount >= lobbyInfo.MaxPlayers);
     }
     private static string GetGameName() => GameInfo.GameName;
 

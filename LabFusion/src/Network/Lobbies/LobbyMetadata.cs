@@ -2,6 +2,7 @@
 
 using LabFusion.Data;
 using LabFusion.Marrow;
+using LabFusion.Utilities;
 
 using System.Text.Json;
 
@@ -60,7 +61,7 @@ public struct LobbyMetadata
     }
 
     /// <summary>
-    /// Attempts to read metadata from a NetworkLobby, or returns false if the metadata is invalid.
+    /// Attempts to read metadata from a NetworkLobby, or returns false if the metadata is invalid. This will also catch and log any errors from reading the metadata.
     /// <para>This should be safe to call on other threads as long as NetworkLobby is safe to be read on other threads.</para>
     /// </summary>
     /// <param name="lobby"></param>
@@ -68,10 +69,20 @@ public struct LobbyMetadata
     /// <returns></returns>
     public static bool TryReadFromLobby(NetworkLobby lobby, out LobbyMetadata metadata)
     {
-        metadata = ReadFromLobby(lobby);
-
-        if (!metadata.HasLobbyOpen)
+        try
         {
+            metadata = ReadFromLobby(lobby);
+
+            if (!metadata.HasLobbyOpen)
+            {
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            FusionLogger.LogException("reading metadata from lobby", ex);
+
+            metadata = Empty;
             return false;
         }
 
@@ -79,7 +90,7 @@ public struct LobbyMetadata
     }
 
     /// <summary>
-    /// Reads metadata from a NetworkLobby.
+    /// Reads metadata from a NetworkLobby. This will not catch errors from reading the metadata.
     /// <para>This should be safe to call on other threads as long as NetworkLobby is safe to be read on other threads.</para>
     /// </summary>
     /// <param name="lobby"></param>

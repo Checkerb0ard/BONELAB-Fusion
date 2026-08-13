@@ -35,11 +35,22 @@ public abstract class NetworkLobby : IDisposable
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public string GetMetadata(string key)
-    {
-        return OnGetMetadata(key);
-    }
+    public string GetMetadata(string key) => OnGetMetadata(key);
+
+    /// <summary>
+    /// Gets an integer from metadata at a key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public int GetInt(string key) => int.Parse(GetMetadata(key));
     
+    /// <summary>
+    /// Gets a bool from metadata at a key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public bool GetBool(string key) => bool.Parse(GetMetadata(key));
+
     /// <summary>
     /// Tries to get metadata from a key.
     /// </summary>
@@ -51,6 +62,22 @@ public abstract class NetworkLobby : IDisposable
         value = GetMetadata(key);
         return !string.IsNullOrWhiteSpace(value);
     }
+
+    /// <summary>
+    /// Tries to get an integer from metadata at a key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public bool TryGetInt(string key, out int value) => int.TryParse(GetMetadata(key), out value);
+
+    /// <summary>
+    /// Tries to get a bool from metadata at a key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public bool TryGetBool(string key, out bool value) => bool.TryParse(GetMetadata(key), out value);
 
     /// <summary>
     /// Sets the metadata at a key.
@@ -75,14 +102,14 @@ public abstract class NetworkLobby : IDisposable
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    public void SetMetadata(string key, int value) => SetMetadata(key, value.ToString());
+    public void SetInt(string key, int value) => SetMetadata(key, value.ToString());
 
     /// <summary>
     /// Sets the metadata at a key to a boolean.
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    public void SetMetadata(string key, bool value) => SetMetadata(key, value.ToString());
+    public void SetBool(string key, bool value) => SetMetadata(key, value.ToString());
 
     /// <summary>
     /// Writes the locally written keys to a key collection so that they may be looked up by other clients.
