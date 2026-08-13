@@ -110,7 +110,7 @@ public class FusionMod : MelonMod
 
         EntityComponentManager.LoadComponents(FusionAssembly);
 
-        LobbyFilterManager.LoadBuiltInFilters();
+        OLDLobbyFilterManager.LoadBuiltInFilters();
 
         NetworkEntityManager.OnInitializeManager();
         NetworkPlayerManager.Initialize();

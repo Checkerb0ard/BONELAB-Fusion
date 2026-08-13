@@ -60,7 +60,8 @@ public static class MenuMatchmakingGamemodes
         {
             var query = matchmaker.CreateQuery()
                 .WithPersistentFilters()
-                .WithPrivateHidden();
+                .WithBrowsingFilters()
+                .WithJoinableFilters();
 
             matchmaker.SearchLobbies(query, OnLobbiesRequested);
         }
@@ -81,7 +82,7 @@ public static class MenuMatchmakingGamemodes
 
         var gamemodeLobbies = result.Lobbies
             .Where(l => l.LobbyInfo.GamemodeBarcode == gamemodeBarcode)
-            .Where(l => LobbyFilterManager.CheckPersistentFilters(l));
+            .Where(l => OLDLobbyFilterManager.CheckPersistentFilters(l));
 
         bool foundLobbies = MenuMatchmaking.LoadLobbiesIntoBrowser(gamemodeLobbies);
 

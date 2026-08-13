@@ -26,9 +26,9 @@ public static class LobbyKeys
     public const string LobbyCodeKey = "LobbyCode";
 
     /// <summary>
-    /// The key for a lobby's privacy.
+    /// The key for if a lobby is completely hidden from browsing.
     /// </summary>
-    public const string PrivacyKey = "Privacy";
+    public const string IsHiddenKey = "IsHidden";
 
     /// <summary>
     /// The key to get if a lobby is full.

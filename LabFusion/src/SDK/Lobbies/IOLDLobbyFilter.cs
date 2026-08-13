@@ -2,7 +2,7 @@
 
 namespace LabFusion.SDK.Lobbies;
 
-public interface ILobbyFilter
+public interface IOLDLobbyFilter
 {
     string GetTitle();
 

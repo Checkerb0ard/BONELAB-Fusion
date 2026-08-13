@@ -3,40 +3,24 @@ using LabFusion.Safety;
 
 namespace LabFusion.SDK.Lobbies;
 
-public static class LobbyFilterManager
+public static class OLDLobbyFilterManager
 {
-    private static readonly List<ILobbyFilter> _lobbyFilters = new();
-    public static List<ILobbyFilter> LobbyFilters => _lobbyFilters;
+    private static readonly List<IOLDLobbyFilter> _lobbyFilters = new();
+    public static List<IOLDLobbyFilter> LobbyFilters => _lobbyFilters;
 
-    public static event Action<ILobbyFilter> OnAddedFilter;
+    public static event Action<IOLDLobbyFilter> OnAddedFilter;
 
-    public static GenericLobbyFilter FullFilter { get; } = new("Hide Full Lobbies", (l) =>
-    {
-        return l.LobbyInfo.MaxPlayers > l.LobbyInfo.PlayerCount;
-    });
-
-    public static GenericLobbyFilter MismatchingVersionsFilter { get; } = new("Hide Mismatching Versions", (l) =>
-    {
-        return NetworkVerification.CompareVersion(l.LobbyInfo.LobbyVersion, FusionMod.Version) == VersionResult.Ok;
-    });
-
-    public static GenericLobbyFilter FriendsFilter { get; } = new("Friends Only", (l) =>
+    public static OLDGenericLobbyFilter FriendsFilter { get; } = new("Friends Only", (l) =>
     {
         return NetworkLayerManager.Layer.IsFriend(new ClientPlatformID(l.LobbyInfo.LobbyID.ToString()));
     });
 
     public static void LoadBuiltInFilters()
     {
-        FullFilter.SetActive(true);
-        AddLobbyFilter(FullFilter);
-
-        MismatchingVersionsFilter.SetActive(true);
-        AddLobbyFilter(MismatchingVersionsFilter);
-
         AddLobbyFilter(FriendsFilter);
     }
 
-    public static void AddLobbyFilter(ILobbyFilter filter)
+    public static void AddLobbyFilter(IOLDLobbyFilter filter)
     {
         _lobbyFilters.Add(filter);
 
@@ -71,14 +55,5 @@ public static class LobbyFilterManager
         }
 
         return true;
-    }
-
-    public static MatchmakerFilters CreateMatchmakerFilters()
-    {
-        return new MatchmakerFilters()
-        {
-            FilterFull = FullFilter.IsActive(),
-            FilterMismatchingVersions = MismatchingVersionsFilter.IsActive(),
-        };
     }
 }

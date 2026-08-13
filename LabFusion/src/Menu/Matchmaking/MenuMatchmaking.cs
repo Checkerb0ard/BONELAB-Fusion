@@ -215,7 +215,7 @@ public static class MenuMatchmaking
 
     public static void AddFilters()
     {
-        foreach (var filter in LobbyFilterManager.LobbyFilters)
+        foreach (var filter in LobbyFilterManager.OptionalFilters)
         {
             AddFilter(SandboxFiltersGroupElement, filter);
         }
@@ -223,11 +223,11 @@ public static class MenuMatchmaking
 
     private static void AddFilter(GroupElement element, ILobbyFilter filter)
     {
-        var filterElement = element.AddElement<BoolElement>(filter.GetTitle());
-        filterElement.Value = filter.IsActive();
+        var filterElement = element.AddElement<BoolElement>(filter.Name);
+        filterElement.Value = filter.IsActive;
         filterElement.OnValueChanged += (v) =>
         {
-            filter.SetActive(v);
+            filter.IsActive = v;
 
             RefreshBrowser();
         };
@@ -258,8 +258,8 @@ public static class MenuMatchmaking
 
         var query = matchmaker.CreateQuery()
             .WithPersistentFilters()
-            .WithMatchmakerFilters(LobbyFilterManager.CreateMatchmakerFilters())
-            .WithPrivateHidden();
+            .WithBrowsingFilters()
+            .WithOptionalFilters();
 
         matchmaker.SearchLobbies(query, OnLobbiesRequested);
     }
@@ -346,8 +346,8 @@ public static class MenuMatchmaking
         _isSearchingLobbies = false;
 
         var sortedLobbies = SortLobbies(result.Lobbies)
-            .Where(l => LobbyFilterManager.CheckOptionalFilters(l))
-            .Where(l => LobbyFilterManager.CheckPersistentFilters(l));
+            .Where(l => OLDLobbyFilterManager.CheckOptionalFilters(l))
+            .Where(l => OLDLobbyFilterManager.CheckPersistentFilters(l));
 
         // Enable buttons
         SearchBarElement.gameObject.SetActive(true);

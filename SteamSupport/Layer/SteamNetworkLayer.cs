@@ -346,8 +346,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         // TODO: Move outside of network layer
         var query = Matchmaker.CreateQuery()
             .WithPersistentFilters()
-            .WithFullHidden()
-            .WithMatchingVersions()
+            .WithJoinableFilters()
             .WithCode(code);
 
         Matchmaker.SearchLobbies(query, (result) =>

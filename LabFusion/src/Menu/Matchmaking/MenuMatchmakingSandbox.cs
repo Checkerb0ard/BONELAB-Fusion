@@ -42,9 +42,8 @@ public static class MenuMatchmakingSandbox
         {
             var query = matchmaker.CreateQuery()
                 .WithPersistentFilters()
-                .WithFullHidden()
-                .WithMatchingVersions()
-                .WithPrivateHidden();
+                .WithBrowsingFilters()
+                .WithJoinableFilters();
 
             matchmaker.SearchLobbies(query, OnLobbiesRequested);
         }

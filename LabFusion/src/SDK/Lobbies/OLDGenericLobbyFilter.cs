@@ -4,7 +4,7 @@ namespace LabFusion.SDK.Lobbies;
 
 public delegate bool GenericLobbyDelegate(LobbyMetadata metadata);
 
-public class GenericLobbyFilter : ILobbyFilter
+public class OLDGenericLobbyFilter : IOLDLobbyFilter
 {
     public string Title { get; set; }
 
@@ -12,7 +12,7 @@ public class GenericLobbyFilter : ILobbyFilter
 
     public bool Active { get; set; } = false;
 
-    public GenericLobbyFilter(string title, GenericLobbyDelegate onFilter)
+    public OLDGenericLobbyFilter(string title, GenericLobbyDelegate onFilter)
     {
         Title = title;
         OnFilter = onFilter;

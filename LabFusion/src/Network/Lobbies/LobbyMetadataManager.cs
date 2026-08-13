@@ -1,4 +1,5 @@
-﻿using LabFusion.Utilities;
+﻿using LabFusion.Support;
+using LabFusion.Utilities;
 
 namespace LabFusion.Network;
 
@@ -54,6 +55,7 @@ public static class LobbyMetadataManager
         LobbyInfoManager.OnLobbyInfoChanged += OnLobbyInfoChanged;
 
         CreateDefaultWriters();
+        CreateDefaultFilters();
     }
 
     internal static void Tick(float deltaTime)
@@ -125,6 +127,25 @@ public static class LobbyMetadataManager
         RegisterWriter(new StringLobbyWriter(LobbyKeys.GameKey, GetGameName));
     }
 
+    private static void CreateDefaultFilters()
+    {
+        // Persistent filters
+        LobbyFilterManager.RegisterPersistentFilter(new BoolLobbyFilter("Identifier", LobbyKeys.IdentifierKey, true));
+        LobbyFilterManager.RegisterPersistentFilter(new BoolLobbyFilter("Has Lobby Open", LobbyKeys.HasLobbyOpenKey, true));
+        LobbyFilterManager.RegisterPersistentFilter(new StringLobbyFilter("Game Name", LobbyKeys.GameKey, GameInfo.GameName));
+
+        // Browsing filters
+        LobbyFilterManager.RegisterBrowsingFilter(new BoolLobbyFilter("IsHidden", LobbyKeys.IsHiddenKey, false));
+
+        // Optional filters
+        LobbyFilterManager.RegisterOptionalFilter(new BoolLobbyFilter("Hide Full Lobbies", LobbyKeys.FullKey, false));
+        LobbyFilterManager.RegisterOptionalFilter(new GenericLobbyFilter("Hide Mismatching Versions", FilterVersion));
+
+        // Joinable filters (these are created separate from the optional filters so that they are not affected by toggles)
+        LobbyFilterManager.RegisterJoinableFilter(new BoolLobbyFilter("Full", LobbyKeys.FullKey, false));
+        LobbyFilterManager.RegisterJoinableFilter(new GenericLobbyFilter("Version", FilterVersion));
+    }
+
     private static void WriteLobbyInfo(NetworkLobby lobby)
     {
         var lobbyInfo = LobbyInfoManager.LobbyInfo;
@@ -134,12 +155,26 @@ public static class LobbyMetadataManager
             return;
         }
 
-        lobby.SetMetadata(LobbyKeys.PrivacyKey, (int)lobbyInfo.Privacy);
+        var privacy = lobbyInfo.Privacy;
+        bool isHidden = privacy == ServerPrivacy.PRIVATE || privacy == ServerPrivacy.LOCKED;
+
+        lobby.SetMetadata(LobbyKeys.IsHiddenKey, isHidden);
         lobby.SetMetadata(LobbyKeys.VersionMajorKey, lobbyInfo.LobbyVersion.Major);
         lobby.SetMetadata(LobbyKeys.VersionMinorKey, lobbyInfo.LobbyVersion.Minor);
         lobby.SetMetadata(LobbyKeys.FullKey, lobbyInfo.PlayerCount >= lobbyInfo.MaxPlayers);
     }
-    private static string GetGameName() => Support.GameInfo.GameName;
+    private static string GetGameName() => GameInfo.GameName;
+
+    private static ILobbyQuery FilterVersion(ILobbyQuery query)
+    {
+        var version = FusionMod.Version;
+        var versionMajor = version.Major;
+        var versionMinor = version.Minor;
+
+        return query
+            .WithComparison(LobbyKeys.VersionMajorKey, versionMajor, LobbyQueryComparison.Equal)
+            .WithComparison(LobbyKeys.VersionMinorKey, versionMinor, LobbyQueryComparison.Equal);
+    }
 
     private static void OnServerEstablished()
     {
