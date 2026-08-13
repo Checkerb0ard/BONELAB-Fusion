@@ -151,7 +151,7 @@ public struct LobbyMetadata
     }
 
     /// <summary>
-    /// Writes the metadata to a NetworKLobby.
+    /// Writes the metadata to a NetworkLobby.
     /// <para>This should be safe to call on other threads as long as NetworkLobby is safe to be written to on other threads.</para>
     /// </summary>
     /// <param name="lobby"></param>
@@ -166,9 +166,6 @@ public struct LobbyMetadata
         lobby.SetMetadata(LobbyKeys.VersionMinorKey, VersionMinor.ToString());
         lobby.SetMetadata(LobbyKeys.GameKey, Game);
         lobby.SetMetadata(nameof(LobbyInfo), JsonSerializer.Serialize(LobbyInfo));
-
-        // Now, write all the keys into an array in the metadata
-        lobby.WriteKeysToCollection();
     }
 
     // TODO: Move somewhere else?

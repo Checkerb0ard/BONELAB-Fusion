@@ -1,4 +1,6 @@
-﻿namespace LabFusion.Network;
+﻿using LabFusion.Utilities;
+
+namespace LabFusion.Network;
 
 /// <summary>
 /// Manages the writing of lobby metadata to the current network layer's lobby.
@@ -22,10 +24,27 @@ public static class LobbyMetadataManager
     public static float WriteCooldown { get; private set; } = 0f;
 
     /// <summary>
+    /// Writers that write data to the NetworkLobby.
+    /// </summary>
+    public static List<ILobbyWriter> LobbyWriters { get; } = new();
+
+    /// <summary>
     /// Sets lobby metadata dirty.
     /// <para>The metadata may not be written instantly if it is currently on cooldown.</para>
     /// </summary>
     public static void SetDirty() => IsDirty = true;
+
+    /// <summary>
+    /// Registers a writer that will write data to a network lobby.
+    /// </summary>
+    /// <param name="writer"></param>
+    public static void RegisterWriter(ILobbyWriter writer) => LobbyWriters.Add(writer);
+
+    /// <summary>
+    /// Unregisters a registered lobby writer.
+    /// </summary>
+    /// <param name="writer"></param>
+    public static void UnregisterWriter(ILobbyWriter writer) => LobbyWriters.Remove(writer);
 
     internal static void Initialize()
     {
@@ -84,6 +103,25 @@ public static class LobbyMetadataManager
         }
 
         LobbyMetadata.WriteServerToLobby(lobby);
+
+        WriteWriters(lobby);
+
+        lobby.WriteKeysToCollection();
+    }
+
+    private static void WriteWriters(NetworkLobby lobby)
+    {
+        foreach (var writer in LobbyWriters)
+        {
+            try
+            {
+                writer.WriteToLobby(lobby);
+            }
+            catch (Exception ex)
+            {
+                FusionLogger.LogException("writing ILobbyWriter to NetworkLobby", ex);
+            }
+        }
     }
 
     private static void SetCooldown() => WriteCooldown = DefaultWriteCooldown;
