@@ -177,7 +177,7 @@ public static class NetworkEntityManager
             return;
         }
 
-        var data = EntityUnqueueRequestData.Create(PlayerIDManager.LocalSmallID, queuedID);
+        var data = EntityUnqueueRequestData.Create(PlayerIDManager.LocalSmallID.Value, queuedID);
 
         ClientManager.RelayNative(data, NativeMessageTag.EntityUnqueueRequest, CommonMessageRoutes.ReliableToServer);
     }

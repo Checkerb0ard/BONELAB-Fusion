@@ -104,7 +104,7 @@ public static class MirrorPatches
 
             // Add identifiers
             identifier = __instance.gameObject.AddComponent<MirrorIdentifier>();
-            ClientSmallID localId = PlayerIDManager.LocalSmallID;
+            ClientSmallID localId = PlayerIDManager.LocalSmallID.Value;
             identifier.ID = localId;
 
             Transform root = new GameObject("Fusion Mirror Root").transform;

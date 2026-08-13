@@ -129,6 +129,12 @@ public abstract class NetworkLayer
     public virtual bool IsClientHost => IsClientConnected && IsServerRunning;
 
     /// <summary>
+    /// The ID for the local client. This should be ready before a server connection is completed.
+    /// <para>If the ID is ready after log in, then it will be immediately applied. Otherwise, it will be reapplied when connecting to a server.</para>
+    /// </summary>
+    public abstract ClientPlatformID? ClientID { get; }
+
+    /// <summary>
     /// If the client is connected to a server, this will return the ID of the server that the client is connected to.
     /// Otherwise, it will return <see cref="ServerID.Empty"/>.
     /// </summary>
@@ -156,13 +162,23 @@ public abstract class NetworkLayer
 
     /// <summary>
     /// Returns if the layer supports server codes for finding lobbies.
+    /// <para>Defaults to true.</para>
     /// </summary>
     public virtual bool IsServerCodeSupported => true;
 
     /// <summary>
     /// Returns if the layer supports the user refreshing the server code.
+    /// <para>Defaults to true.</para>
     /// </summary>
     public virtual bool IsServerCodeRefreshable => true;
+
+    /// <summary>
+    /// Returns if connected client IDs remain the same between sessions. Used to store local references to clients.
+    /// <para>This should be true if the networking API provides an ID based on an account or other identifiable information.
+    /// This should be false if the client ID is determined upon connection.</para>
+    /// <para>Defaults to true.</para>
+    /// </summary>
+    public virtual bool IsClientIDPersistent => true;
 
     private Type _type;
     private bool _hasType;

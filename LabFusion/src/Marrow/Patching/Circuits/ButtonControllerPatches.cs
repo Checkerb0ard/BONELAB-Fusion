@@ -48,7 +48,7 @@ public static class ButtonControllerPatches
         if (extender.Charged != controller._charged)
         {
             // Send button message
-            var data = ButtonChargeData.Create(PlayerIDManager.LocalSmallID, extender.NetworkEntity.ID, controller._charged);
+            var data = ButtonChargeData.Create(PlayerIDManager.LocalSmallID.Value, extender.NetworkEntity.ID, controller._charged);
 
             ClientManager.RelayModule<ButtonChargeMessage, ButtonChargeData>(data, CommonMessageRoutes.ReliableToOtherClients);
 

@@ -378,7 +378,7 @@ public class SmashBones : Gamemode
 
         PlayerDamageEvent.TryInvoke(JsonSerializer.Serialize(new DamageInfo()
         {
-            PlatformID = PlayerIDManager.LocalPlatformID,
+            PlatformID = PlayerIDManager.LocalPlatformID.Value,
             Damage = damage,
         }));
 
@@ -844,7 +844,7 @@ public class SmashBones : Gamemode
 
         PlayerDeathEvent.TryInvoke(JsonSerializer.Serialize(new DeathInfo()
         {
-            PlatformID = PlayerIDManager.LocalPlatformID,
+            PlatformID = PlayerIDManager.LocalPlatformID.Value,
             Position = new(pelvis.position),
             Direction = new(pelvis.velocity.normalized),
         }));

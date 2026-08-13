@@ -126,7 +126,7 @@ public static class PropSender
                 return;
             }
 
-            var data = NetworkPropCreateData.Create(PlayerIDManager.LocalSmallID, hashData, newEntity.ID);
+            var data = NetworkPropCreateData.Create(PlayerIDManager.LocalSmallID.Value, hashData, newEntity.ID);
 
             ClientManager.RelayNative(data, NativeMessageTag.NetworkPropCreate, CommonMessageRoutes.ReliableToOtherClients);
 

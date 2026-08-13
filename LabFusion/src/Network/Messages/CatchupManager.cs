@@ -36,7 +36,7 @@ public static class CatchupManager
             return;
         }
 
-        var data = new EntityPlayerData() { PlayerID = PlayerIDManager.LocalSmallID, Entity = entityReference };
+        var data = new EntityPlayerData() { PlayerID = PlayerIDManager.LocalSmallID.Value, Entity = entityReference };
 
         ClientManager.RelayNative(data, NativeMessageTag.EntityDataRequest, new MessageRoute(ownerID.SmallID, NetworkChannel.Reliable));
     }

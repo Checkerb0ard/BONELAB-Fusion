@@ -44,8 +44,26 @@ public static class PlayerIDManager
     public static int PlayerCount => PlayerIDs.Count;
     public static bool HasOtherPlayers => PlayerCount > 1;
 
-    public static ClientPlatformID LocalPlatformID { get; private set; }
-    public static ClientSmallID LocalSmallID { get; private set; }
+    /// <summary>
+    /// Returns true if a platform ID has been set for the local client.
+    /// </summary>
+    public static bool HasLocalPlatformID => LocalPlatformID.HasValue;
+
+    /// <summary>
+    /// Returns true if a small ID has been set for the local client.
+    /// </summary>
+    public static bool HasLocalSmallID => LocalSmallID.HasValue;
+
+    /// <summary>
+    /// The platform ID for the local client. This is only guaranteed to exist when the client is connected to a server.
+    /// <para>Otherwise, it may exist if the current network layer supports persistent platform IDs, but may not exist if the platform ID is per connection.</para>
+    /// </summary>
+    public static ClientPlatformID? LocalPlatformID { get; private set; } = null;
+
+    /// <summary>
+    /// The small ID for the local client. This ID is determined by the server to simplify clients targeting other clients and will be null when the connection is not yet authorized.
+    /// </summary>
+    public static ClientSmallID? LocalSmallID { get; private set; } = null;
     public static PlayerID LocalID { get; private set; }
 
     public static readonly ClientSmallID HostSmallID = new(0);
@@ -85,6 +103,7 @@ public static class PlayerIDManager
 
         if (platformID == LocalPlatformID)
         {
+            LocalSmallID = smallID;
             LocalID = playerID;
         }
 
@@ -133,6 +152,7 @@ public static class PlayerIDManager
 
         if (playerID == LocalID)
         {
+            LocalSmallID = null;
             LocalID = null;
         }
 
@@ -243,8 +263,11 @@ public static class PlayerIDManager
 
     public static bool HasPlayerID(ClientPlatformID platformID) => PlatformIDLookup.ContainsKey(platformID);
 
-    public static void SetPlatformID(ClientPlatformID platformID)
-    {
-        LocalPlatformID = platformID;
-    }
+    /// <summary>
+    /// Sets the local platform ID. This should be established some time before the client's connection is authorized and remain persistent throughout.
+    /// <para>The connected server should also be able to read the platform ID through the connection without relying on the client's validation.
+    /// Otherwise, the client may be disconnected for having an invalid platform ID.</para>
+    /// </summary>
+    /// <param name="platformID"></param>
+    public static void SetPlatformID(ClientPlatformID? platformID = null) => LocalPlatformID = platformID;
 }

@@ -1,4 +1,5 @@
 ﻿using LabFusion.Extensions;
+using LabFusion.Player;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 
@@ -371,6 +372,17 @@ public static class NetworkLayerManager
 
     private static void OnConnectionEstablished()
     {
+        var clientID = Layer.ClientID;
+        PlayerIDManager.SetPlatformID(clientID);
+
+        if (clientID == null)
+        {
+            FusionLogger.Error("A connection was established, but the NetworkLayer does not have a ClientID ready! Make sure that the ClientID is set before completing a connection!");
+
+            Layer.DisconnectFromServer();
+            return;
+        }
+
         ClientManager.OnConnectionEstablished();
     }
 
@@ -397,6 +409,8 @@ public static class NetworkLayerManager
 
         Layer = layer;
         IsLoggedIn = true;
+
+        PlayerIDManager.SetPlatformID(layer.ClientID);
 
         LogInCompleted?.InvokeSafe(layer, "invoking LogInCompleted event");
     }
@@ -437,6 +451,8 @@ public static class NetworkLayerManager
 
         Layer = null;
         IsLoggedIn = false;
+
+        PlayerIDManager.SetPlatformID(null);
 
         LogOutCompleted?.InvokeSafe(layer, "invoking LogOutCompleted event");
     }

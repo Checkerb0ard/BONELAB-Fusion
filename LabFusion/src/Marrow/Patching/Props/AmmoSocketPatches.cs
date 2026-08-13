@@ -134,7 +134,7 @@ public static class AmmoSocketPatches
         Hand hand = ammoPlug.host.GetHand(0);
         Handedness handedness = hand != null ? hand.handedness : Handedness.UNDEFINED;
 
-        var data = new MagazineEjectData() { PlayerID = PlayerIDManager.LocalSmallID, MagazineID = magEntity.ID, GunID = gunEntity.ID, Handedness = handedness };
+        var data = new MagazineEjectData() { PlayerID = PlayerIDManager.LocalSmallID.Value, MagazineID = magEntity.ID, GunID = gunEntity.ID, Handedness = handedness };
 
         ClientManager.RelayModule<MagazineEjectMessage, MagazineEjectData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }

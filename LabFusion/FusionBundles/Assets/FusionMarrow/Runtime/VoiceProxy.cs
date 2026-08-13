@@ -301,7 +301,7 @@ namespace LabFusion.Marrow.Integration
                 return;
             }
 
-            SendInput(input, PlayerIDManager.LocalSmallID);
+            SendInput(input, PlayerIDManager.LocalSmallID.Value);
         }
 
         [HideFromIl2Cpp]

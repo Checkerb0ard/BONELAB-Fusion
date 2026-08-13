@@ -26,6 +26,8 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
     public override bool IsClientConnected => ClientSteamConnection != null;
 
+    public override ClientPlatformID? ClientID => new(ClientSteamID);
+
     public override ServerID ConnectedServerID => _connectedServerID;
 
     public override NetworkLobby Lobby => _currentLobby;
@@ -257,10 +259,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         // Get steam information
         ClientSteamID = SteamClient.SteamId;
-
-        var platformID = new ClientPlatformID(ClientSteamID.Value);
-
-        PlayerIDManager.SetPlatformID(platformID);
 
         SteamModule.Logger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {AppID}!");
 

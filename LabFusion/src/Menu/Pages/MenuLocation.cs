@@ -636,7 +636,7 @@ public static class MenuLocation
         ElementIconHelper.SetProfileIcon(element, avatarTitle, modId);
 
         // Get permissions
-        FusionPermissions.FetchPermissionLevel(PlayerIDManager.LocalPlatformID, out var selfLevel, out _);
+        FusionPermissions.FetchPermissionLevel(PlayerIDManager.LocalPlatformID.Value, out var selfLevel, out _);
 
         FusionPermissions.FetchPermissionLevel(player.PlatformID, out var level, out Color color);
 
@@ -834,7 +834,12 @@ public static class MenuLocation
             .Do(() => { NetworkAssetSpawner.TryDespawnAll(); });
         var playersGroup = element.AddElement<GroupElement>("Players");
 
-        FusionPermissions.FetchPermissionLevel(PlayerIDManager.LocalPlatformID, out var selfLevel, out _);
+        if (!PlayerIDManager.HasLocalPlatformID)
+        {
+            return;
+        }
+
+        FusionPermissions.FetchPermissionLevel(PlayerIDManager.LocalPlatformID.Value, out var selfLevel, out _);
         var activeLobbyInfo = LobbyInfoManager.LobbyInfo;
 
         var teleportAllElement = playersGroup.AddElement<FunctionElement>("Teleport All")

@@ -56,7 +56,7 @@ public class MagazineExtender : EntityComponentExtender<Magazine>
     private void OnEntityDataCatchup(NetworkEntity entity, PlayerID player)
     {
         // Send claim message
-        var data = new MagazineClaimData() { OwnerID = PlayerIDManager.LocalSmallID, EntityID = entity.ID, Handedness = Handedness.UNDEFINED };
+        var data = new MagazineClaimData() { OwnerID = PlayerIDManager.LocalSmallID.Value, EntityID = entity.ID, Handedness = Handedness.UNDEFINED };
 
         ClientManager.RelayModule<MagazineClaimMessage, MagazineClaimData>(data, new MessageRoute(player.SmallID, NetworkChannel.Reliable));
     }

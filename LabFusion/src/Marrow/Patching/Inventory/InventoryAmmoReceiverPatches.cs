@@ -95,7 +95,7 @@ public static class InventoryAmmoReceiverPatches
         }
 
         // Send claim message
-        var data = new MagazineClaimData() { OwnerID = PlayerIDManager.LocalSmallID, EntityID = info.Entity.ID, Handedness = handedness };
+        var data = new MagazineClaimData() { OwnerID = PlayerIDManager.LocalSmallID.Value, EntityID = info.Entity.ID, Handedness = handedness };
 
         ClientManager.RelayModule<MagazineClaimMessage, MagazineClaimData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }

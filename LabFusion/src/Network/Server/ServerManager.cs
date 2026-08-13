@@ -290,7 +290,7 @@ public static class ServerManager
     {
         if (ClientManager.IsClientConnected)
         {
-            SendToClientsExcept(message, channel, PlayerIDManager.LocalPlatformID);
+            SendToClientsExcept(message, channel, PlayerIDManager.LocalPlatformID.Value);
         }
         else
         {

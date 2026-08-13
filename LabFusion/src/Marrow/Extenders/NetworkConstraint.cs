@@ -149,7 +149,7 @@ public class NetworkConstraint : IEntityExtender
         }
 
         // Send create message
-        var data = ConstraintCreateData.Create(PlayerIDManager.LocalSmallID, null, PointPair);
+        var data = ConstraintCreateData.Create(PlayerIDManager.LocalSmallID.Value, null, PointPair);
         data.Point1Id = NetworkEntity.ID;
         data.Point2Id = OtherID;
 

@@ -1,6 +1,4 @@
-﻿using LabFusion.Utilities;
-
-namespace LabFusion.Network;
+﻿namespace LabFusion.Network;
 
 /// <summary>
 /// An empty networking layer for fallback. This does not implement any multiplayer functionality.
@@ -16,6 +14,8 @@ public class EmptyNetworkLayer : NetworkLayer
     public override bool IsClientConnected => false;
 
     public override ServerID RunningServerID => throw new NotImplementedException();
+
+    public override ClientPlatformID? ClientID => null;
 
     public override ServerID ConnectedServerID => throw new NotImplementedException();
 

@@ -150,7 +150,7 @@ public static class ConstrainerPatches
             ConstraintTrackerPatches.IgnorePatches = false;
 
             // Send create message
-            var data = ConstraintCreateData.Create(PlayerIDManager.LocalSmallID, entity.ID, new ConstrainerPointPair(__instance));
+            var data = ConstraintCreateData.Create(PlayerIDManager.LocalSmallID.Value, entity.ID, new ConstrainerPointPair(__instance));
 
             ClientManager.RelayModule<ConstraintCreateMessage, ConstraintCreateData>(data, CommonMessageRoutes.ReliableToServer);
         }
