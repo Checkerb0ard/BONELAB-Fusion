@@ -29,6 +29,7 @@ public static class SupportManager
 
     public static readonly List<string> UniversalModules = new()
     {
+        SupportResourcePaths.EpicSupportPath,
     };
 
     public static void LoadModules(Assembly assembly)
