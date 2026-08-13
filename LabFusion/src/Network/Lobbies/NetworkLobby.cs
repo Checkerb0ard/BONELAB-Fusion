@@ -10,6 +10,8 @@ public abstract class NetworkLobby : IDisposable
 
     public List<string> LocalWrittenKeys { get; private set; } = new();
 
+    public ServerID GetServerID() => OnGetServerID();
+
     public string GetMetadata(string key)
     {
         return OnGetMetadata(key);
@@ -60,6 +62,7 @@ public abstract class NetworkLobby : IDisposable
         IsDisposed = true;
     }
 
+    protected abstract ServerID OnGetServerID();
     protected abstract string OnGetMetadata(string key);
     protected abstract void OnSetMetadata(string key, string value);
 

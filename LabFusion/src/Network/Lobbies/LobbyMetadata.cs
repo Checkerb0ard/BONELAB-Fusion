@@ -12,6 +12,7 @@ public struct LobbyMetadata
     public static readonly LobbyMetadata Empty = new()
     {
         LobbyInfo = null,
+        ServerID = ServerID.Empty,
         HasLobbyOpen = false,
         LobbyCode = null,
         Privacy = ServerPrivacy.PUBLIC,
@@ -22,6 +23,8 @@ public struct LobbyMetadata
     };
 
     public LobbyInfo LobbyInfo { get; set; }
+
+    public ServerID ServerID { get; set; }
 
     public bool HasLobbyOpen { get; set; }
 
@@ -105,6 +108,7 @@ public struct LobbyMetadata
     {
         var info = new LobbyMetadata()
         {
+            ServerID = lobby.GetServerID(),
             HasLobbyOpen = lobby.GetMetadata(LobbyKeys.HasLobbyOpenKey) == bool.TrueString,
             LobbyCode = lobby.GetMetadata(LobbyKeys.LobbyCodeKey),
             Game = lobby.GetMetadata(LobbyKeys.GameKey),
@@ -176,11 +180,11 @@ public struct LobbyMetadata
 
     public readonly Action CreateJoinDelegate()
     {
-        var lobbyID = LobbyInfo.LobbyID;
+        var serverID = ServerID;
 
         return () =>
         {
-            NetworkLayerManager.Layer?.ConnectToServer(lobbyID);
+            NetworkLayerManager.Layer?.ConnectToServer(serverID);
         };
     }
 }
