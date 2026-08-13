@@ -101,7 +101,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
     public override bool IsFriend(ClientPlatformID client)
     {
-        return client == PlayerIDManager.LocalPlatformID || new Friend((ulong)client).IsFriend;
+        return client == ClientID || new Friend((ulong)client).IsFriend;
     }
 
     protected override async Task<bool> TryLogInAsync(CancellationToken cancellationToken)
@@ -342,17 +342,25 @@ public abstract class SteamNetworkLayer : NetworkLayer
     {
         NetworkManager.ServerEstablished += OnServerEstablished;
         NetworkManager.ServerLost += OnServerLost;
+
+        PlayerIDManager.PlayerJoined += OnPlayerJoined;
+        PlayerIDManager.PlayerLeft += OnPlayerLeft;
     }
 
     private void UnhookServer()
     {
         NetworkManager.ServerEstablished -= OnServerEstablished;
         NetworkManager.ServerLost -= OnServerLost;
+
+        PlayerIDManager.PlayerJoined -= OnPlayerJoined;
+        PlayerIDManager.PlayerLeft -= OnPlayerLeft;
     }
 
     private void OnServerEstablished() => UpdateRichPresence();
-
     private void OnServerLost() => UpdateRichPresence();
+
+    private void OnPlayerJoined(PlayerID playerID) => UpdateRichPresence();
+    private void OnPlayerLeft(PlayerID playerID) => UpdateRichPresence();
 
     private void HookRichPresence()
     {
@@ -386,8 +394,11 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return;
         }
 
+        var playerCount = PlayerIDManager.PlayerCount;
+
         SteamFriends.SetRichPresence("connect", "true");
         SteamFriends.SetRichPresence("steam_player_group", ServerID.ToString());
+        SteamFriends.SetRichPresence("steam_player_group_size", playerCount.ToString());
     }
 
     private static void ClearRichPresence() => SteamFriends.ClearRichPresence();
