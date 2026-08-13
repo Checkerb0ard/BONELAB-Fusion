@@ -2,6 +2,8 @@
 
 namespace LabFusion.Network;
 
+public delegate void NetworkLobbyDelegate(NetworkLobby lobby);
+
 /// <summary>
 /// A lobby that can be searched for and written to.
 /// </summary>
@@ -67,6 +69,20 @@ public abstract class NetworkLobby : IDisposable
         LocalWrittenMetadata[key] = value;
         WriteLocalKey(key);
     }
+    
+    /// <summary>
+    /// Sets the metadata at a key to an integer.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    public void SetMetadata(string key, int value) => SetMetadata(key, value.ToString());
+
+    /// <summary>
+    /// Sets the metadata at a key to a boolean.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    public void SetMetadata(string key, bool value) => SetMetadata(key, value.ToString());
 
     /// <summary>
     /// Writes the locally written keys to a key collection so that they may be looked up by other clients.

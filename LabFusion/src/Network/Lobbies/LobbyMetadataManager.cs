@@ -52,19 +52,9 @@ public static class LobbyMetadataManager
         NetworkManager.ServerLost += OnServerLost;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnLobbyInfoChanged;
-    }
 
-    private static void OnServerEstablished()
-    {
-        WriteMetadataWithCooldown();
+        CreateDefaultWriters();
     }
-
-    private static void OnServerLost()
-    {
-        WriteMetadataWithCooldown();
-    }
-
-    private static void OnLobbyInfoChanged() => SetDirty();
 
     internal static void Tick(float deltaTime)
     {
@@ -128,4 +118,39 @@ public static class LobbyMetadataManager
     private static void ResetCooldown() => WriteCooldown = 0f;
 
     private static void ResetDirty() => IsDirty = false;
+
+    private static void CreateDefaultWriters()
+    {
+        RegisterWriter(new GenericLobbyWriter(WriteLobbyInfo));
+        RegisterWriter(new StringLobbyWriter(LobbyKeys.GameKey, GetGameName));
+    }
+
+    private static void WriteLobbyInfo(NetworkLobby lobby)
+    {
+        var lobbyInfo = LobbyInfoManager.LobbyInfo;
+
+        if (lobbyInfo == null)
+        {
+            return;
+        }
+
+        lobby.SetMetadata(LobbyKeys.PrivacyKey, (int)lobbyInfo.Privacy);
+        lobby.SetMetadata(LobbyKeys.VersionMajorKey, lobbyInfo.LobbyVersion.Major);
+        lobby.SetMetadata(LobbyKeys.VersionMinorKey, lobbyInfo.LobbyVersion.Minor);
+        lobby.SetMetadata(LobbyKeys.FullKey, lobbyInfo.PlayerCount >= lobbyInfo.MaxPlayers);
+    }
+    private static string GetGameName() => Support.GameInfo.GameName;
+
+    private static void OnServerEstablished()
+    {
+        WriteMetadataWithCooldown();
+    }
+
+    private static void OnServerLost()
+    {
+        WriteMetadataWithCooldown();
+    }
+
+    private static void OnLobbyInfoChanged() => SetDirty();
+
 }

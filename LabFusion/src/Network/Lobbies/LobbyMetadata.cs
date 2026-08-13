@@ -15,11 +15,6 @@ public struct LobbyMetadata
         ServerID = ServerID.Empty,
         HasLobbyOpen = false,
         LobbyCode = null,
-        Privacy = ServerPrivacy.PUBLIC,
-        Full = false,
-        VersionMajor = 0,
-        VersionMinor = 0,
-        Game = null,
     };
 
     public LobbyInfo LobbyInfo { get; set; }
@@ -29,16 +24,6 @@ public struct LobbyMetadata
     public bool HasLobbyOpen { get; set; }
 
     public string LobbyCode { get; set; }
-
-    public ServerPrivacy Privacy { get; set; }
-
-    public bool Full { get; set; }
-
-    public int VersionMajor { get; set; }
-
-    public int VersionMinor { get; set; }
-
-    public string Game { get; set; }
 
     /// <summary>
     /// Creates lobby metadata from the current server.
@@ -59,11 +44,6 @@ public struct LobbyMetadata
             LobbyInfo = lobbyInfo,
             HasLobbyOpen = ServerManager.IsServerRunning,
             LobbyCode = lobbyInfo.LobbyCode,
-            Privacy = lobbyInfo.Privacy,
-            Full = lobbyInfo.PlayerCount >= lobbyInfo.MaxPlayers,
-            VersionMajor = lobbyInfo.LobbyVersion.Major,
-            VersionMinor = lobbyInfo.LobbyVersion.Minor,
-            Game = Support.GameInfo.GameName,
         };
     }
 
@@ -111,24 +91,7 @@ public struct LobbyMetadata
             ServerID = lobby.GetServerID(),
             HasLobbyOpen = lobby.GetMetadata(LobbyKeys.HasLobbyOpenKey) == bool.TrueString,
             LobbyCode = lobby.GetMetadata(LobbyKeys.LobbyCodeKey),
-            Game = lobby.GetMetadata(LobbyKeys.GameKey),
-            Full = lobby.GetMetadata(LobbyKeys.FullKey) == bool.TrueString,
         };
-
-        if (lobby.TryGetMetadata(LobbyKeys.PrivacyKey, out var rawPrivacy) && int.TryParse(rawPrivacy, out var privacyInt))
-        {
-            info.Privacy = (ServerPrivacy)privacyInt;
-        }
-
-        if (lobby.TryGetMetadata(LobbyKeys.VersionMajorKey, out var rawVersionMajor) && int.TryParse(rawVersionMajor, out var versionMajorInt))
-        {
-            info.VersionMajor = versionMajorInt;
-        }
-
-        if (lobby.TryGetMetadata(LobbyKeys.VersionMinorKey, out var rawVersionMinor) && int.TryParse(rawVersionMinor, out var versionMinorInt))
-        {
-            info.VersionMinor = versionMinorInt;
-        }
 
         // Check if we can get the main lobby info
         if (lobby.TryGetMetadata(nameof(LobbyInfo), out var json))
@@ -160,11 +123,6 @@ public struct LobbyMetadata
         lobby.SetMetadata(LobbyKeys.IdentifierKey, bool.TrueString);
         lobby.SetMetadata(LobbyKeys.HasLobbyOpenKey, HasLobbyOpen.ToString());
         lobby.SetMetadata(LobbyKeys.LobbyCodeKey, LobbyCode?.ToUpper());
-        lobby.SetMetadata(LobbyKeys.PrivacyKey, ((int)Privacy).ToString());
-        lobby.SetMetadata(LobbyKeys.FullKey, Full.ToString());
-        lobby.SetMetadata(LobbyKeys.VersionMajorKey, VersionMajor.ToString());
-        lobby.SetMetadata(LobbyKeys.VersionMinorKey, VersionMinor.ToString());
-        lobby.SetMetadata(LobbyKeys.GameKey, Game);
         lobby.SetMetadata(nameof(LobbyInfo), JsonSerializer.Serialize(LobbyInfo));
     }
 
