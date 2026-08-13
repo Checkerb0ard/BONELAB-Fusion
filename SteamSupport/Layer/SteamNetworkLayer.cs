@@ -262,11 +262,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         PlayerIDManager.SetPlatformID(platformID);
 
-        GetLocalUsername(username =>
-        {
-            LocalPlayer.Username = username;
-        });
-
         SteamModule.Logger.Log($"Steamworks initialized with SteamID {ClientSteamID} and ApplicationID {AppID}!");
 
         SteamNetworkingUtils.InitRelayNetworkAccess();

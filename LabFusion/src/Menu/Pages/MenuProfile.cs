@@ -16,7 +16,7 @@ public static class MenuProfile
 
     public static void OnInitializeMelon()
     {
-        LocalPlayer.OnUsernameChanged += (v) =>
+        LocalPlayer.UsernameChanged += (v) =>
         {
             RefreshName();
         };

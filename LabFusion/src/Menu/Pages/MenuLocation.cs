@@ -47,7 +47,7 @@ public static class MenuLocation
         NetworkManager.ServerLost += OnServerLost;
 
         LobbyInfoManager.OnLobbyInfoChanged += OnServerSettingsChanged;
-        LocalPlayer.OnUsernameChanged += OnUsernameChanged;
+        LocalPlayer.UsernameChanged += OnUsernameChanged;
     }
 
     private static void OnServerEstablished()

@@ -24,30 +24,28 @@ public static class LocalPlayer
 
     public static bool RagdollOnDeath => NetworkManager.HasServer;
 
-    private static string _username = "Player";
     public static string Username
     {
-        get
-        {
-            return _username;
-        }
+        get => _username;
         set
         {
             _username = value;
 
             Metadata.Username.SetValue(value);
 
-            OnUsernameChanged?.InvokeSafe(value, "executing OnUsernameChanged");
+            UsernameChanged?.InvokeSafe(value, "invoking UsernameChanged event");
         }
     }
 
-    public static event Action<string>? OnUsernameChanged;
+    public static event Action<string>? UsernameChanged;
 
     public static event Action? OnApplyInitialMetadata;
 
     public static PlayerMetadata Metadata { get; } = new();
 
-    internal static void OnInitializeMelon()
+    private static string _username = "Player";
+
+    internal static void Initialize()
     {
         Metadata.CreateMetadata();
 
@@ -58,7 +56,22 @@ public static class LocalPlayer
         LocalHealth.OnInitializeMelon();
         LocalVision.OnInitializeMelon();
         LocalControls.OnInitializeMelon();
+
+        NetworkLayerManager.LogInCompleted += OnLoggedIn;
+        NetworkLayerManager.LogOutCompleted += OnLoggedOut;
     }
+
+    private static void OnLoggedIn(NetworkLayer layer)
+    {
+        layer.GetLocalUsername(OnUsernameFound);
+
+        static void OnUsernameFound(string username)
+        {
+            Username = username;
+        }
+    }
+
+    private static void OnLoggedOut(NetworkLayer layer) => Username = "Player";
 
     internal static void OnFixedUpdate()
     {
