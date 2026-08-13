@@ -146,6 +146,16 @@ public abstract class NetworkLayer
     public bool HasServer => IsClientConnected || IsServerRunning;
 
     /// <summary>
+    /// If the client is connected to a server, this will return the ID of the server the client is connected to.
+    /// <para>If a server is running on this instance, this will return the ID of the server being ran.</para>
+    /// <para>Otherwise, <see cref="ServerID.Empty"/> will be returned.</para>
+    /// </summary>
+    public ServerID ServerID =>
+        IsClientConnected ? ConnectedServerID :
+        IsServerRunning ? RunningServerID :
+        ServerID.Empty;
+
+    /// <summary>
     /// Returns the active lobby.
     /// </summary>
     public virtual NetworkLobby Lobby => null;

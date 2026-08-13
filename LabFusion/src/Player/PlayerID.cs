@@ -1,7 +1,5 @@
 ﻿using LabFusion.Network;
-using LabFusion.Network.Serialization;
 using LabFusion.Senders;
-using LabFusion.Utilities;
 using LabFusion.Extensions;
 
 using ClientPlatformID = LabFusion.Network.ClientPlatformID;
@@ -19,6 +17,7 @@ public class PlayerID : IEquatable<PlayerID>
     public bool IsValid => _isValid;
     private bool _isValid = false;
 
+    // TODO: Remove! We may not always have a host anymore!
     public bool IsHost => SmallID == PlayerIDManager.HostSmallID;
 
     public ClientPlatformID PlatformID { get; private set; }

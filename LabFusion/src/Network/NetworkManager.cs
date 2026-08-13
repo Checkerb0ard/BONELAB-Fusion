@@ -33,10 +33,7 @@ public static class NetworkManager
     /// <para>If a server is running on this instance, this will return the ID of the server being ran.</para>
     /// <para>Otherwise, <see cref="ServerID.Empty"/> will be returned.</para>
     /// </summary>
-    public static ServerID ServerID =>
-        ClientManager.IsClientConnected ? ClientManager.ConnectedServerID :
-        ServerManager.IsServerRunning ? ServerManager.RunningServerID :
-        ServerID.Empty;
+    public static ServerID ServerID => NetworkLayerManager.Layer?.ServerID ?? ServerID.Empty;
 
     /// <summary>
     /// The amount of bytes received this frame.

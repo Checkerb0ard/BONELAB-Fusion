@@ -66,6 +66,7 @@ public static class PlayerIDManager
     public static ClientSmallID? LocalSmallID { get; private set; } = null;
     public static PlayerID LocalID { get; private set; }
 
+    // TODO: Remove! We may not always have a host client anymore!
     public static readonly ClientSmallID HostSmallID = new(0);
 
     /// <summary>

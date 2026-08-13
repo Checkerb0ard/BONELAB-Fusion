@@ -264,7 +264,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         SteamNetworkingUtils.InitRelayNetworkAccess();
 
-        HookSteamEvents();
+        HookEvents();
 
         // Create managers
         _voiceManager = new UnityVoiceManager();
@@ -283,7 +283,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _localLobby = default;
         _currentLobby = null;
 
-        UnHookSteamEvents();
+        UnhookEvents();
 
         SteamAPI.Shutdown();
     }
@@ -309,17 +309,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
     public override bool IsFriend(ClientPlatformID platformID)
     {
         return platformID == PlayerIDManager.LocalPlatformID || new Friend((ulong)platformID).IsFriend;
-    }
-
-    private void HookSteamEvents()
-    {
-        // Add server hooks
-        PlayerIDManager.PlayerRegistered += OnPlayerJoin;
-        PlayerIDManager.PlayerUnregistered += OnPlayerLeave;
-        NetworkManager.ServerLost += OnDisconnect;
-
-        // Create a local lobby
-        AwaitLobbyCreation();
     }
 
     private void OnPlayerJoin(PlayerID id)
@@ -355,20 +344,6 @@ public abstract class SteamNetworkLayer : NetworkLayer
         VoiceManager.ClearManager();
     }
 
-    private void UnHookSteamEvents()
-    {
-        // Remove server hooks
-        PlayerIDManager.PlayerRegistered -= OnPlayerJoin;
-        PlayerIDManager.PlayerUnregistered -= OnPlayerLeave;
-        NetworkManager.ServerLost -= OnDisconnect;
-
-        // Remove the local lobby
-        if (_localLobby.Id == ClientSteamID)
-        {
-            _localLobby.Leave();
-        }
-    }
-
     private async void AwaitLobbyCreation()
     {
         var lobbyTask = await SteamMatchmaking.CreateLobbyAsync();
@@ -384,4 +359,101 @@ public abstract class SteamNetworkLayer : NetworkLayer
         _localLobby = lobbyTask.Value;
         _currentLobby = new SteamLobby(_localLobby);
     }
+
+    private void HookEvents()
+    {
+        HookServer();
+        HookRichPresence();
+
+        // Add server hooks
+        PlayerIDManager.PlayerRegistered += OnPlayerJoin;
+        PlayerIDManager.PlayerUnregistered += OnPlayerLeave;
+        NetworkManager.ServerLost += OnDisconnect;
+
+        // Create a local lobby
+        AwaitLobbyCreation();
+    }
+
+    private void UnhookEvents()
+    {
+        UnhookServer();
+        UnhookRichPresence();
+
+        // Remove server hooks
+        PlayerIDManager.PlayerRegistered -= OnPlayerJoin;
+        PlayerIDManager.PlayerUnregistered -= OnPlayerLeave;
+        NetworkManager.ServerLost -= OnDisconnect;
+
+        // Remove the local lobby
+        if (_localLobby.Id == ClientSteamID)
+        {
+            _localLobby.Leave();
+        }
+    }
+
+    private void HookServer()
+    {
+        NetworkManager.ServerEstablished += OnServerEstablished;
+        NetworkManager.ServerLost += OnServerLost;
+    }
+
+    private void UnhookServer()
+    {
+        NetworkManager.ServerEstablished -= OnServerEstablished;
+        NetworkManager.ServerLost -= OnServerLost;
+    }
+
+    private void OnServerEstablished() => UpdateRichPresence();
+
+    private void OnServerLost() => UpdateRichPresence();
+
+    private void HookRichPresence()
+    {
+        SteamFriends.OnGameRichPresenceJoinRequested += OnGameRichPresenceJoinRequested;
+    }
+
+    private void UnhookRichPresence()
+    {
+        SteamFriends.OnGameRichPresenceJoinRequested -= OnGameRichPresenceJoinRequested;
+    }
+
+    private void OnGameRichPresenceJoinRequested(Friend friend, string connect)
+    {
+        var group = friend.GetRichPresence("steam_player_group");
+
+        if (string.IsNullOrWhiteSpace(group))
+        {
+            return;
+        }
+
+        var server = new ServerID(group);
+
+        ConnectToServer(server);
+    }
+
+    private void UpdateRichPresence()
+    {
+        if (!HasServer)
+        {
+            ClearRichPresence();
+            return;
+        }
+
+        string displayText = null;
+
+        if (IsServerRunning)
+        {
+            displayText = "Fusion - Hosting a Server";
+        }
+        else if (IsClientConnected)
+        {
+            displayText = "Fusion - In a Server";
+        }
+
+        SteamFriends.SetRichPresence("connect", "true");
+        SteamFriends.SetRichPresence("steam_display", displayText);
+        SteamFriends.SetRichPresence("steam_player_group", ServerID.ToString());
+    }
+
+    private static void ClearRichPresence() => SteamFriends.ClearRichPresence();
 }
