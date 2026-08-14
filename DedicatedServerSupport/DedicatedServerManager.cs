@@ -26,6 +26,7 @@ public static class DedicatedServerManager
         RegisterMonoBehaviors();
         HookEvents();
         PatchAll();
+        XRDisabler.Initialize();
     }
 
     public static void Deinitialize()
