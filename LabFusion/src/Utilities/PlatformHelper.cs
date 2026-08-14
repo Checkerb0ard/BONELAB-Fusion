@@ -82,6 +82,7 @@ public static class PlatformHelper
 
     private static readonly bool _isAndroidCached = MelonUtils.CurrentPlatform == (MelonPlatformAttribute.CompatiblePlatforms)3;
 
+    private static GamePlatform _platform = GamePlatform.None;
     private static string _platformUsername = null;
 
     /// <summary>
@@ -90,6 +91,11 @@ public static class PlatformHelper
     /// <returns></returns>
     public static GamePlatform GetPlatform()
     {
+        if (_platform != GamePlatform.None)
+        {
+            return _platform;
+        }
+
         var localData = PlatformSelectionData.LocalData;
 
         if (localData == null)
@@ -99,13 +105,15 @@ public static class PlatformHelper
 
         var vrPlatform = localData.platform;
 
-        return vrPlatform switch
+        _platform = vrPlatform switch
         {
             VRPlatform.Steam => GamePlatform.Steam,
             VRPlatform.OculusHome => GamePlatform.MetaPCVR,
             VRPlatform.OculusQuest => GamePlatform.MetaQuest,
             _ => GamePlatform.None,
         };
+
+        return _platform;
     }
 
     /// <summary>
