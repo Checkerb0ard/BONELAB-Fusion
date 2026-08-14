@@ -892,7 +892,7 @@ public abstract class NetworkLayer
     /// </summary>
     /// <param name="client"></param>
     /// <returns></returns>
-    protected virtual Task<string> TryGetLocalUsernameAsync() => null;
+    protected virtual async Task<string> TryGetLocalUsernameAsync() => await PlatformHelper.GetPlatformUsernameAsync();
 
     /// <summary>
     /// Attempts to get the username of another client, or null if none is found.
