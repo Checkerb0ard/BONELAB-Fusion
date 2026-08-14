@@ -1,23 +1,19 @@
-﻿using System.Reflection;
+﻿using LabFusion.Utilities;
+
+using System.Reflection;
 
 namespace MarrowFusion.Steam;
 
 public static class SteamGameClientManager
 {
-    public const string GameSteamworksAssemblyName = "Il2CppFacepunch.Steamworks.Win64";
-
-    public const string GameSteamClientTypeName = "Il2CppSteamworks.SteamClient";
-
-    public const string GameSteamClientShutdownName = "Shutdown";
-
     public static void Shutdown()
     {
-        if (!TryGetGameSteamworksAssembly(out var steamworksAssembly))
+        if (!PlatformHelper.TryGetSteamworksAssembly(out var assembly))
         {
             return;
         }
 
-        bool success = TryShutdownGameSteamClient(steamworksAssembly);
+        bool success = TryShutdownSteamClient(assembly);
 
         if (success)
         {
@@ -29,33 +25,16 @@ public static class SteamGameClientManager
         }
     }
 
-    private static bool TryGetGameSteamworksAssembly(out Assembly result)
+    private static bool TryShutdownSteamClient(Assembly steamworksAssembly)
     {
-        result = null;
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-        foreach (var assembly in assemblies)
-        {
-            if (assembly.FullName.StartsWith(GameSteamworksAssemblyName))
-            {
-                result = assembly;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool TryShutdownGameSteamClient(Assembly steamworksAssembly)
-    {
-        var steamClientType = steamworksAssembly.GetType(GameSteamClientTypeName);
+        var steamClientType = steamworksAssembly.GetType(PlatformHelper.SteamworksSteamClientName);
 
         if (steamClientType == null)
         {
             return false;
         }
 
-        var shutdownMethod = steamClientType.GetMethod(GameSteamClientShutdownName, BindingFlags.Static | BindingFlags.Public);
+        var shutdownMethod = steamClientType.GetMethod(PlatformHelper.SteamworksSteamClientShutdownName, BindingFlags.Static | BindingFlags.Public);
 
         if (shutdownMethod == null)
         {
