@@ -268,7 +268,11 @@ public static class PlatformHelper
                 if (!message.IsError)
                 {
                     var user = message.Data;
-                    result = user.OculusID;
+
+                    string displayName = user.DisplayName;
+                    string oculusID = user.OculusID;
+
+                    result = !string.IsNullOrWhiteSpace(displayName) ? displayName : oculusID;
                 }
             }
             catch (Exception ex)
