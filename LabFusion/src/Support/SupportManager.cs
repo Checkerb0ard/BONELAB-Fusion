@@ -32,11 +32,17 @@ public static class SupportManager
         SupportResourcePaths.EpicSupportPath,
     };
 
+    public static readonly Dictionary<string, string> LaunchArgumentToModule = new()
+    {
+        { SupportLaunchArguments.DedicatedServerLaunchArgument, SupportResourcePaths.DedicatedServerSupportPath },
+    };
+
     public static void LoadModules(Assembly assembly)
     {
         LoadGameModule(assembly);
         LoadPlatformModules(assembly);
         LoadUniversalModules(assembly);
+        LoadLaunchArgumentModules(assembly);
     }
 
     public static void LoadGameModule(Assembly assembly)
@@ -68,6 +74,25 @@ public static class SupportManager
     {
         foreach (var modulePath in UniversalModules)
         {
+            LoadModuleFromPath(assembly, modulePath);
+        }
+    }
+
+    public static void LoadLaunchArgumentModules(Assembly assembly)
+    {
+        var launchArguments = Environment.GetCommandLineArgs();
+
+        foreach (var pair in LaunchArgumentToModule)
+        {
+            var launchArgument = pair.Key;
+
+            if (!launchArguments.Contains(launchArgument)) 
+            {
+                continue;
+            }
+
+            var modulePath = pair.Value;
+
             LoadModuleFromPath(assembly, modulePath);
         }
     }

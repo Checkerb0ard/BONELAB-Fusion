@@ -335,6 +335,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         if (_localLobby.Id == ClientSteamID)
         {
             _localLobby.Leave();
+            _currentLobby = null;
         }
     }
 
@@ -394,6 +395,11 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return;
         }
 
+        if (!SteamClient.IsValid)
+        {
+            return;
+        }
+
         var playerCount = PlayerIDManager.PlayerCount;
 
         SteamFriends.SetRichPresence("connect", "true");
@@ -401,5 +407,13 @@ public abstract class SteamNetworkLayer : NetworkLayer
         SteamFriends.SetRichPresence("steam_player_group_size", playerCount.ToString());
     }
 
-    private static void ClearRichPresence() => SteamFriends.ClearRichPresence();
+    private static void ClearRichPresence() 
+    { 
+        if (!SteamClient.IsValid)
+        {
+            return;
+        }
+
+        SteamFriends.ClearRichPresence(); 
+    }
 }
