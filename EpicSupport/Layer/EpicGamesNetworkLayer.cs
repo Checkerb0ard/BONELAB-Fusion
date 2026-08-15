@@ -197,7 +197,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
     {
         ClientProductUserId = Runtime.Connect.LocalUserId;
         
-        EpicModule.Logger.Log($"EOS initialized with ProductUserId {ClientProductUserId.ToString()}!");
+        EpicModule.Logger.Log($"EOS initialized with ProductUserId {ClientID}!");
 
         _matchmaker = new EpicMatchmaker(Runtime);
     }
