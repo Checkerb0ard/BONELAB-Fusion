@@ -6,8 +6,8 @@ using MarrowFusion.Epic.Utilities;
 namespace MarrowFusion.Epic;
 
 // TODO:
-// Packet Fragmentation
-// Remove Allocations in Messaging System
+// Remove allocations from fragment system
+
 public class EpicGamesNetworkLayer : NetworkLayer
 {
     public override string Title => "Epic Online Services";
@@ -152,7 +152,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                ThreadHelper.RunOnMainThread(() => client.Disconnect());
+                ThreadHelper.RunOnMainThread(client.Disconnect);
                 return false;
             }
             
@@ -184,7 +184,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
             return false;
         }
         
-        await ThreadHelper.RunOnMainThreadAsTask(() => client.Disconnect());
+        await ThreadHelper.RunOnMainThreadAsTask(client.Disconnect);
         
         while (client.IsConnected)
         {

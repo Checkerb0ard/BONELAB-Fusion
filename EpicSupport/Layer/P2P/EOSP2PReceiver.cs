@@ -10,8 +10,7 @@ internal class EOSP2PReceiver
 {
     internal EOSP2P P2P;
     
-    private ProductUserId _peerId;
-    private SocketId _socketId;
+    private readonly Dictionary<ProductUserId, ClientPlatformID> platformIdCache = new();
 
     internal EOSP2PReceiver(EOSP2P P2P)
     {
@@ -29,6 +28,8 @@ internal class EOSP2PReceiver
         }
     }
 
+    private ProductUserId _peerId;
+    private SocketId _socketId;
     private bool TryReceiveNextPacket()
     {
         var sizeOptions = new GetNextReceivedPacketSizeOptions
@@ -37,7 +38,6 @@ internal class EOSP2PReceiver
         };
 
         var sizeResult = P2P.P2PInterface.GetNextReceivedPacketSize(ref sizeOptions, out uint packetSize);
-
         if (sizeResult != Result.Success)
         {
             return false;
@@ -54,7 +54,6 @@ internal class EOSP2PReceiver
             };
 
             var receiveResult = P2P.P2PInterface.ReceivePacket(ref receiveOptions, ref _peerId, ref _socketId, out byte channel, rented, out uint bytesWritten);
-
             if (receiveResult != Result.Success)
             {
                 return false;
@@ -66,9 +65,7 @@ internal class EOSP2PReceiver
                 return true;
             }
             
-            bool isServerHandled = channel == EOSP2P.ServerChannel;
-
-            HandlePacket(_peerId, rented, (int)bytesWritten, isServerHandled);
+            HandlePacket(_peerId, rented, (int)bytesWritten, channel);
 
             return true;
         }
@@ -78,17 +75,37 @@ internal class EOSP2PReceiver
         }
     }
 
-    private void HandlePacket(ProductUserId senderId, byte[] data, int length, bool isServerHandled)
+    private void HandlePacket(ProductUserId senderId, byte[] data, int length, byte channel)
     {
-        var senderPlatformID = isServerHandled ? new ClientPlatformID(senderId.ToString()) : (ClientPlatformID?)null;
+        var rawData = new ArraySegment<byte>(data, 0, length);
+
+        if (!P2P.Fragmenter.ProcessIncoming(senderId, rawData, channel, out var payload))
+        {
+            // We are still waiting for more fragments
+            return;
+        }
+
+        bool isServerHandled = channel == EOSP2P.ServerChannel;
+        var senderPlatformID = isServerHandled ? GetPlatformID(senderId) : (ClientPlatformID?)null;
 
         var readable = new ReadableMessage
         {
-            Buffer = new ReadOnlySpan<byte>(data, 0, length),
+            Buffer = payload.AsSpan(),
             IsServerHandled = isServerHandled,
             SenderPlatformID = senderPlatformID,
         };
 
         NativeMessageHandler.ReadMessage(readable);
+    }
+    
+    private ClientPlatformID GetPlatformID(ProductUserId userId)
+    {
+        if (!platformIdCache.TryGetValue(userId, out var platformId))
+        {
+            platformId = new ClientPlatformID(userId.ToString());
+            platformIdCache[userId] = platformId;
+        }
+        
+        return platformId;
     }
 }

@@ -21,7 +21,7 @@ internal class EOSLobby : EOSInterface
 
     internal void CreateLobby()
     {
-        var createLobbyOptions = new CreateLobbyOptions
+        var createOptions = new CreateLobbyOptions
         {
             BucketId = "Marrow Fusion",
             DisableHostMigration = true,
@@ -35,7 +35,7 @@ internal class EOSLobby : EOSInterface
             AllowInvites = true,
         };
         
-        LobbyInterface.CreateLobby(ref createLobbyOptions, null, (ref CreateLobbyCallbackInfo info) =>
+        LobbyInterface.CreateLobby(ref createOptions, null, (ref CreateLobbyCallbackInfo info) =>
         {
             if (info.ResultCode == Result.TimedOut)
             {
@@ -83,22 +83,22 @@ internal class EOSLobby : EOSInterface
             return;
         }
         
-        var lobbyDetailsCopyInfoOptions = new LobbyDetailsCopyInfoOptions();
+        var copyInfoOptions = new LobbyDetailsCopyInfoOptions();
         
-        var copyInfoResult = CurrentLobby.LobbyDetails.CopyInfo(ref lobbyDetailsCopyInfoOptions, out var lobbyInfo);
+        var copyInfoResult = CurrentLobby.LobbyDetails.CopyInfo(ref copyInfoOptions, out var lobbyInfo);
         if (copyInfoResult != Result.Success || lobbyInfo == null)
         {
             EpicModule.Logger.Error($"Failed to copy lobby info: {copyInfoResult}");
             return;
         }
 
-        var destroyLobbyOptions = new DestroyLobbyOptions
+        var destroyOptions = new DestroyLobbyOptions
         {
             LocalUserId = LocalUserId,
             LobbyId = lobbyInfo.Value.LobbyId,
         };
             
-        LobbyInterface.DestroyLobby(ref destroyLobbyOptions, null, (ref DestroyLobbyCallbackInfo info) =>
+        LobbyInterface.DestroyLobby(ref destroyOptions, null, (ref DestroyLobbyCallbackInfo info) =>
         {
             if (info.ResultCode != Result.Success && info.ResultCode != Result.NotFound)
             {
@@ -111,22 +111,22 @@ internal class EOSLobby : EOSInterface
     
     internal bool SetAttribute(LobbyDetails lobbyDetails, string key, string value)
     {
-        var lobbyDetailsCopyInfoOptions = new LobbyDetailsCopyInfoOptions();
+        var copyInfoOptions = new LobbyDetailsCopyInfoOptions();
         
-        var copyInfoResult = lobbyDetails.CopyInfo(ref lobbyDetailsCopyInfoOptions, out var lobbyInfo);
+        var copyInfoResult = lobbyDetails.CopyInfo(ref copyInfoOptions, out var lobbyInfo);
         if (copyInfoResult != Result.Success || lobbyInfo == null)
         {
             EpicModule.Logger.Error($"Failed to copy lobby info: {copyInfoResult}");
             return false;
         }
         
-        var updateLobbyModificationOptions = new UpdateLobbyModificationOptions
+        var lobbyModificationOptions = new UpdateLobbyModificationOptions
         {
             LobbyId = lobbyInfo.Value.LobbyId,
             LocalUserId = LocalUserId,
         };
         
-        var updateLobbyModificationResult = LobbyInterface.UpdateLobbyModification(ref updateLobbyModificationOptions, out var modification);
+        var updateLobbyModificationResult = LobbyInterface.UpdateLobbyModification(ref lobbyModificationOptions, out var modification);
         if (updateLobbyModificationResult != Result.Success || modification == null)
         {
             EpicModule.Logger.Error($"Failed to create lobby modification: {updateLobbyModificationResult}");
@@ -139,13 +139,13 @@ internal class EOSLobby : EOSInterface
             Key = key,
             Value = new AttributeDataValue { AsUtf8 = value }
         };
-        var lobbyModificationAddAttributeOptions = new LobbyModificationAddAttributeOptions
+        var addAttributeOptions = new LobbyModificationAddAttributeOptions
         {
             Attribute = attributeData,
             Visibility = LobbyAttributeVisibility.Public
         };
 
-        var addAttributeResult = modification.AddAttribute(ref lobbyModificationAddAttributeOptions);
+        var addAttributeResult = modification.AddAttribute(ref addAttributeOptions);
         if (addAttributeResult != Result.Success)
         {
             EpicModule.Logger.Error($"Failed to add attribute '{key}': {addAttributeResult}");
@@ -179,12 +179,12 @@ internal class EOSLobby : EOSInterface
     
     internal string GetAttribute(LobbyDetails lobbyDetails, string key)
     {
-        var lobbyDetailsCopyAttributeByKeyOptions = new LobbyDetailsCopyAttributeByKeyOptions
+        var copyAttributeOptions = new LobbyDetailsCopyAttributeByKeyOptions
         {
             AttrKey = key
         };
         
-        var result = lobbyDetails.CopyAttributeByKey(ref lobbyDetailsCopyAttributeByKeyOptions, out var attribute);
+        var result = lobbyDetails.CopyAttributeByKey(ref copyAttributeOptions, out var attribute);
         if (result == Result.Success && attribute.HasValue)
         {
             return attribute.Value.Data?.Value.AsUtf8 ?? string.Empty;

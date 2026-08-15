@@ -25,6 +25,7 @@ internal class EpicMatchmaker : Matchmaker
         if (result != Result.Success || lobbySearch == null)
         {
             EpicModule.Logger.Error($"Failed to create lobby search: {result}");
+            return null;
         }
 
         return new EpicLobbyQuery(lobbySearch);
@@ -67,6 +68,7 @@ internal class EpicMatchmaker : Matchmaker
         var resultSegment = await ThreadHelper.RunOnMainThreadAsTask(() =>
         {
             var countOptions = new LobbySearchGetSearchResultCountOptions();
+            
             uint resultCount = lobbySearch.GetSearchResultCount(ref countOptions);
 
             if (resultCount <= 0)
@@ -87,13 +89,13 @@ internal class EpicMatchmaker : Matchmaker
                     };
 
                     var copyResult = lobbySearch.CopySearchResultByIndex(ref copyOptions, out var lobbyDetails);
-
                     if (copyResult != Result.Success || lobbyDetails == null)
                     {
                         continue;
                     }
 
                     var getLobbyOwnerOptions = new LobbyDetailsGetLobbyOwnerOptions();
+                    
                     var lobbyOwner = lobbyDetails.GetLobbyOwner(ref getLobbyOwnerOptions);
 
 #if RELEASE

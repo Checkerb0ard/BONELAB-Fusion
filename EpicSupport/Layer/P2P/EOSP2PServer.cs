@@ -46,14 +46,14 @@ internal class EOSP2PServer
     
     internal void DisconnectPeer(ProductUserId remoteUserId)
     {
-        var closeConnectionOptions = new CloseConnectionOptions
+        var closeOptions = new CloseConnectionOptions
         {
             LocalUserId = P2P.LocalUserId, 
             RemoteUserId = remoteUserId, 
             SocketId = P2P.SocketId
         };
         
-        P2P.P2PInterface.CloseConnection(ref closeConnectionOptions);
+        P2P.P2PInterface.CloseConnection(ref closeOptions);
     }
 
     private void SubscribeNotifications()
@@ -66,14 +66,14 @@ internal class EOSP2PServer
         
         ConnectionRequestedId = P2P.P2PInterface.AddNotifyPeerConnectionRequest(ref requestOptions, null, (ref OnIncomingConnectionRequestInfo  info) =>
         {
-            var options = new AcceptConnectionOptions
+            var acceptOptions = new AcceptConnectionOptions
             {
                 LocalUserId = P2P.LocalUserId, 
                 RemoteUserId = info.RemoteUserId, 
                 SocketId = P2P.SocketId,
             };
             
-            P2P.P2PInterface.AcceptConnection(ref options);
+            P2P.P2PInterface.AcceptConnection(ref acceptOptions);
         });
         
         var establishedOptions = new AddNotifyPeerConnectionEstablishedOptions
@@ -100,6 +100,8 @@ internal class EOSP2PServer
             var platformID = new ClientPlatformID(info.RemoteUserId.ToString());
             
             NetworkLayerManager.Layer?.DisconnectClient(platformID);
+            
+            P2P.Fragmenter.ClearPendingForSender(info.RemoteUserId);
         });
     }
 

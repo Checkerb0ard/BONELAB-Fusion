@@ -29,21 +29,21 @@ internal class EOSP2PClient
         SubscribeNotifications();
         
         // In order to make a connection you need to send a packet. Kinda dumb
-        P2P.Sender.SendRaw(Array.Empty<byte>(), 0, NetworkChannel.Reliable, remoteUserId, true);
+        P2P.Sender.SendEmpty(remoteUserId);
     }
 
     internal void Disconnect()
     {
         if (ConnectedUserId != null)
         {
-            var closeConnectionOptions = new CloseConnectionOptions
+            var closeOptions = new CloseConnectionOptions
             {
                 LocalUserId = P2P.LocalUserId,
                 RemoteUserId = ConnectedUserId,
                 SocketId = P2P.SocketId
             };
 
-            P2P.P2PInterface.CloseConnection(ref closeConnectionOptions);
+            P2P.P2PInterface.CloseConnection(ref closeOptions);
         }
         
         UnsubscribeNotifications();
@@ -82,6 +82,8 @@ internal class EOSP2PClient
             ConnectedUserId = null;
             
             NetworkManager.DisconnectClientAndServer();
+            
+            P2P.Fragmenter.ClearAll();
         });
     }
 

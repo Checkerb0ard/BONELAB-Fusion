@@ -9,7 +9,9 @@ namespace MarrowFusion.Epic;
 internal class EOSP2PSender
 {
     internal EOSP2P P2P;
-
+    
+    private readonly Dictionary<ClientPlatformID, ProductUserId> productUserIdCache = new();
+    
     internal EOSP2PSender(EOSP2P P2P)
     {
         this.P2P = P2P;
@@ -17,7 +19,7 @@ internal class EOSP2PSender
     
     internal void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
     {
-        var remoteUserId = ProductUserId.FromString(clientPlatformID.Value);
+        var remoteUserId = GetProductUserId(clientPlatformID);
 
         Send(message, channel, remoteUserId, false);
     }
@@ -29,8 +31,7 @@ internal class EOSP2PSender
             return;
         }
         
-        int length = message.Length;
-        byte[] rented = ArrayPool<byte>.Shared.Rent(length);
+        byte[] rented = ArrayPool<byte>.Shared.Rent(message.Length);
 
         try
         {
@@ -38,9 +39,9 @@ internal class EOSP2PSender
 
             foreach (var clientPlatformID in clientPlatformIDs)
             {
-                var remoteUserId = ProductUserId.FromString(clientPlatformID.Value);
+                var remoteUserId = GetProductUserId(clientPlatformID);
 
-                SendRaw(rented, length, channel, remoteUserId, false);
+                SendRaw(rented, channel, remoteUserId, false);
             }
         }
         finally
@@ -56,14 +57,13 @@ internal class EOSP2PSender
 
     private void Send(NetMessage message, NetworkChannel channel, ProductUserId remoteUserId, bool isServerHandled)
     {
-        int length = message.Length;
-        byte[] rented = ArrayPool<byte>.Shared.Rent(length);
+        byte[] rented = ArrayPool<byte>.Shared.Rent(message.Length);
 
         try
         {
             CopyInto(message, rented);
 
-            SendRaw(rented, length, channel, remoteUserId, isServerHandled);
+            SendRaw(rented, channel, remoteUserId, isServerHandled);
         }
         finally
         {
@@ -73,15 +73,13 @@ internal class EOSP2PSender
 
     private unsafe void CopyInto(NetMessage message, byte[] destination)
     {
-        int length = message.Length;
-
         fixed (byte* destinationPtr = destination)
         {
-            Buffer.MemoryCopy(message.Buffer, destinationPtr, destination.Length, length);
+            Buffer.MemoryCopy(message.Buffer, destinationPtr, destination.Length, message.Length);
         }
     }
 
-    internal void SendRaw(byte[] data, int length, NetworkChannel channel, ProductUserId remoteUserId, bool isServerHandled)
+    private void SendRaw(ArraySegment<byte> data, NetworkChannel channel, ProductUserId remoteUserId, bool isServerHandled)
     {
         if (remoteUserId == null || !remoteUserId.IsValid())
         {
@@ -90,18 +88,38 @@ internal class EOSP2PSender
         
         byte targetChannel = isServerHandled ? EOSP2P.ServerChannel : EOSP2P.ClientChannel;
 
-        var options = new SendPacketOptions
+        foreach (var packet in P2P.Fragmenter.Fragment(data))
+        {
+            var sendOptions = new SendPacketOptions
+            {
+                LocalUserId = P2P.LocalUserId,
+                RemoteUserId = remoteUserId,
+                SocketId = P2P.SocketId,
+                Channel = targetChannel,
+                Data = packet,
+                AllowDelayedDelivery = true,
+                Reliability = ToPacketReliability(channel),
+            };
+
+            P2P.P2PInterface.SendPacket(ref sendOptions);
+        }
+    }
+
+    // Used for connecting
+    internal void SendEmpty(ProductUserId remoteUserId)
+    {
+        var sendOptions = new SendPacketOptions
         {
             LocalUserId = P2P.LocalUserId,
             RemoteUserId = remoteUserId,
             SocketId = P2P.SocketId,
-            Channel = targetChannel,
-            Data = new ArraySegment<byte>(data, 0, length),
-            AllowDelayedDelivery = true,
-            Reliability = ToPacketReliability(channel),
+            Channel = 0,
+            Data = new ArraySegment<byte>(Array.Empty<byte>()),
+            Reliability = PacketReliability.ReliableOrdered,
+            AllowDelayedDelivery = true
         };
 
-        P2P.P2PInterface.SendPacket(ref options);
+        P2P.P2PInterface.SendPacket(ref sendOptions);
     }
 
     private static PacketReliability ToPacketReliability(NetworkChannel channel)
@@ -113,4 +131,16 @@ internal class EOSP2PSender
             _ => PacketReliability.ReliableUnordered,
         };
     }
+    
+    private ProductUserId GetProductUserId(ClientPlatformID clientPlatformID)
+    {
+        if (!productUserIdCache.TryGetValue(clientPlatformID, out var userId))
+        {
+            userId = ProductUserId.FromString(clientPlatformID.Value);
+            productUserIdCache[clientPlatformID] = userId;
+        }
+        
+        return userId;
+    }
+
 }

@@ -25,14 +25,13 @@ internal struct EpicLobbyQuery : ILobbyQuery
             },
         };
 
-        var options = new LobbySearchSetParameterOptions()
+        var setParameterOptions = new LobbySearchSetParameterOptions()
         {
             Parameter = attributeData,
             ComparisonOp = ComparisonOp.Equal,
         };
 
-        var result = LobbySearch.SetParameter(ref options);
-
+        var result = LobbySearch.SetParameter(ref setParameterOptions);
         if (result != Result.Success)
         {
             EpicModule.Logger.Error($"Failed to set lobby query: {result}");
@@ -52,14 +51,13 @@ internal struct EpicLobbyQuery : ILobbyQuery
             },
         };
 
-        var options = new LobbySearchSetParameterOptions()
+        var setParameterOptions = new LobbySearchSetParameterOptions()
         {
             Parameter = attributeData,
             ComparisonOp = GetEOSLobbyComparison(comparison),
         };
 
-        var result = LobbySearch.SetParameter(ref options);
-
+        var result = LobbySearch.SetParameter(ref setParameterOptions);
         if (result != Result.Success)
         {
             EpicModule.Logger.Error($"Failed to set lobby query: {result}");

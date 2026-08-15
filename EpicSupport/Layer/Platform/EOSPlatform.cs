@@ -53,7 +53,7 @@ internal class EOSPlatform : EOSInterface
     
     private bool CreatePlatform(out PlatformInterface platformInterface)
     {
-        var options = new Options
+        var platformOptions = new Options
         {
             ProductId = ProductId,
             SandboxId = SandboxId,
@@ -66,7 +66,7 @@ internal class EOSPlatform : EOSInterface
             Flags = Flags
         };
         
-        var platform = PlatformInterface.Create(ref options);
+        var platform = PlatformInterface.Create(ref platformOptions);
         if (platform == null)
         {
             EpicModule.Logger.Error("Failed to create EOS Platform");

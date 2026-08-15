@@ -42,7 +42,6 @@ internal class EOSConnect : EOSInterface
         };
 
         var loginResult = await LoginAsync(loginOptions);
-
         if (loginResult.ResultCode == Result.Success)
         {
             LocalUserId = loginResult.LocalUserId;
@@ -55,7 +54,6 @@ internal class EOSConnect : EOSInterface
             };
 
             var createUserResult = await CreateUserAsync(createUserOptions);
-
             if (createUserResult.ResultCode != Result.Success)
             {
                 EpicModule.Logger.Error($"CreateUser failed: {createUserResult.ResultCode}");
@@ -83,12 +81,12 @@ internal class EOSConnect : EOSInterface
     {
         var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var options = new CreateDeviceIdOptions
+        var deviceIdOptions = new CreateDeviceIdOptions
         {
             DeviceModel = Environment.MachineName
         };
 
-        ConnectInterface.CreateDeviceId(ref options, null, (ref CreateDeviceIdCallbackInfo data) =>
+        ConnectInterface.CreateDeviceId(ref deviceIdOptions, null, (ref CreateDeviceIdCallbackInfo data) =>
         {
             bool success = data.ResultCode == Result.Success || data.ResultCode == Result.DuplicateNotAllowed;
 
@@ -115,8 +113,7 @@ internal class EOSConnect : EOSInterface
         return tcs.Task;
     }
 
-    private Task<CreateUserCallbackInfo> CreateUserAsync(
-        CreateUserOptions options)
+    private Task<CreateUserCallbackInfo> CreateUserAsync(CreateUserOptions options)
     {
         var tcs = new TaskCompletionSource<CreateUserCallbackInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -132,9 +129,9 @@ internal class EOSConnect : EOSInterface
     {
         UnregisterAuthExpiration();
 
-        var options = new AddNotifyAuthExpirationOptions();
+        var authExpirationOptions = new AddNotifyAuthExpirationOptions();
 
-        ExpirationNotificationId = ConnectInterface.AddNotifyAuthExpiration(ref options, null, (ref AuthExpirationCallbackInfo info) =>
+        ExpirationNotificationId = ConnectInterface.AddNotifyAuthExpiration(ref authExpirationOptions, null, (ref AuthExpirationCallbackInfo info) =>
         {
             _ = RefreshTokenAsync();
         });

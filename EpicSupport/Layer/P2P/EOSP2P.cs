@@ -17,6 +17,7 @@ internal class EOSP2P : EOSInterface
     internal const byte ClientChannel = 1;
     internal const byte ServerChannel = 2;
     
+    internal PacketFragmenter Fragmenter;
     internal EOSP2PSender Sender;
     internal EOSP2PReceiver Receiver;
 
@@ -29,24 +30,27 @@ internal class EOSP2P : EOSInterface
         Client = new EOSP2PClient(this);
         Server = new EOSP2PServer(this);
         
+        Fragmenter = new PacketFragmenter();
         Sender = new EOSP2PSender(this);
         Receiver = new EOSP2PReceiver(this);
     }
 
     internal override Task<bool> InitializeAsync()
     {
-        var setPortRangeOptions = new SetPortRangeOptions
+        var portOptions = new SetPortRangeOptions
         {
             Port = 7777,
             MaxAdditionalPortsToTry = 99
         };
-        P2PInterface.SetPortRange(ref setPortRangeOptions);
         
-        var setRelayControlOptions = new SetRelayControlOptions
+        P2PInterface.SetPortRange(ref portOptions);
+        
+        var relayOptions = new SetRelayControlOptions
         {
             RelayControl = RelayControl.ForceRelays
         };
-        P2PInterface.SetRelayControl(ref setRelayControlOptions);
+        
+        P2PInterface.SetRelayControl(ref relayOptions);
 
         return Task.FromResult(true);
     }
