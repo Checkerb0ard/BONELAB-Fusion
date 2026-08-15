@@ -88,19 +88,19 @@ public class EpicGamesNetworkLayer : NetworkLayer
         return await initializationTask;
     }
 
-    protected override Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
+    protected override async Task<bool> TryLogOutAsync(CancellationToken cancellationToken)
     {
-        ThreadHelper.RunOnMainThread(() =>
+        await ThreadHelper.RunOnMainThreadAsTask(() =>
         {
             Runtime.Shutdown();
         });
         
-        return Task.FromResult(true);
+        return true;
     }
 
-    protected override Task<bool> TryStartServerAsync(CancellationToken cancellationToken)
+    protected override async Task<bool> TryStartServerAsync(CancellationToken cancellationToken)
     {
-        ThreadHelper.RunOnMainThread(() =>
+        await ThreadHelper.RunOnMainThreadAsTask(() =>
         {
             Runtime.Lobby.CreateLobby();
             Runtime.P2P.Server.Start();
@@ -110,12 +110,12 @@ public class EpicGamesNetworkLayer : NetworkLayer
 
         TryRefreshServerCode();
 
-        return Task.FromResult(true);
+        return true;
     }
 
-    protected override Task<bool> TryStopServerAsync(CancellationToken cancellationToken)
+    protected override async Task<bool> TryStopServerAsync(CancellationToken cancellationToken)
     {
-        ThreadHelper.RunOnMainThread(() =>
+        await ThreadHelper.RunOnMainThreadAsTask(() =>
         {
             Runtime.Lobby.DestroyLobby();
             Runtime.P2P.Server.Stop();
@@ -123,18 +123,18 @@ public class EpicGamesNetworkLayer : NetworkLayer
         
         _runningServerID = ServerID.Empty;
 
-        return Task.FromResult(true);
+        return true;
     }
 
-    protected override Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
+    protected override async Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
     {
         ProductUserId targetUserId = ProductUserId.FromString(client.ToString());
         
         var server = Runtime.P2P.Server;
         
-        ThreadHelper.RunOnMainThread(() => server.DisconnectPeer(targetUserId));
+        await ThreadHelper.RunOnMainThreadAsTask(() => server.DisconnectPeer(targetUserId));
         
-        return Task.FromResult(true);
+        return true;
     }
 
     protected override async Task<bool> TryConnectToServerAsync(ServerID server, CancellationToken cancellationToken)
@@ -149,7 +149,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                ThreadHelper.RunOnMainThread(client.Disconnect);
+                await ThreadHelper.RunOnMainThreadAsTask(client.Disconnect);
                 return false;
             }
             
