@@ -25,8 +25,10 @@ internal class EOSPlatform : EOSInterface
         if (!CreatePlatform(out PlatformInterface))
             return Task.FromResult(false);
         
+#if DEBUG
         LoggingInterface.SetLogLevel(LogCategory.AllCategories, LogLevel.Info);
         LoggingInterface.SetCallback((ref LogMessage message) => EpicModule.Logger.Log($"EOS -> [{message.Category}] [{message.Level.ToString()}] {message.Message}"));
+#endif
         
         return Task.FromResult(true);
     }

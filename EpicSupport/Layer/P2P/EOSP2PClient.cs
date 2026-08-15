@@ -1,0 +1,102 @@
+﻿using Epic.OnlineServices;
+using Epic.OnlineServices.P2P;
+using LabFusion.Network;
+
+namespace MarrowFusion.Epic;
+
+internal class EOSP2PClient
+{
+    internal EOSP2P P2P;
+
+    internal bool IsConnecting;
+    internal bool IsConnected;
+    internal ProductUserId ConnectedUserId;
+    
+    private ulong ConnectionEstablishedId = Common.INVALID_NOTIFICATIONID;
+    private ulong ConnectionClosedId = Common.INVALID_NOTIFICATIONID;
+    
+    internal EOSP2PClient(EOSP2P P2P)
+    {
+        this.P2P = P2P;
+    }
+
+    internal void Connect(ProductUserId remoteUserId)
+    {
+        IsConnecting = true;
+        IsConnected = false;
+        ConnectedUserId = remoteUserId;
+
+        SubscribeNotifications();
+        
+        // In order to make a connection you need to send a packet. Kinda dumb
+        P2P.Sender.SendRaw(Array.Empty<byte>(), 0, NetworkChannel.Reliable, remoteUserId, true);
+    }
+
+    internal void Disconnect()
+    {
+        if (ConnectedUserId != null)
+        {
+            var closeConnectionOptions = new CloseConnectionOptions
+            {
+                LocalUserId = P2P.LocalUserId,
+                RemoteUserId = ConnectedUserId,
+                SocketId = P2P.SocketId
+            };
+
+            P2P.P2PInterface.CloseConnection(ref closeConnectionOptions);
+        }
+        
+        UnsubscribeNotifications();
+    }
+
+    private void SubscribeNotifications()
+    {
+        var establishedOptions = new AddNotifyPeerConnectionEstablishedOptions
+        {
+            LocalUserId = P2P.LocalUserId,
+            SocketId = P2P.SocketId,
+        };
+        
+        ConnectionEstablishedId = P2P.P2PInterface.AddNotifyPeerConnectionEstablished(ref establishedOptions, null, (ref OnPeerConnectionEstablishedInfo info) =>
+        {
+            if (info.RemoteUserId != ConnectedUserId)
+                return;
+            
+            IsConnecting = false;
+            IsConnected = true;
+        });
+        
+        var closedOptions = new AddNotifyPeerConnectionClosedOptions
+        {
+            LocalUserId = P2P.LocalUserId,
+            SocketId = P2P.SocketId,
+        };
+        
+        ConnectionClosedId = P2P.P2PInterface.AddNotifyPeerConnectionClosed(ref closedOptions, null, (ref OnRemoteConnectionClosedInfo info) =>
+        {
+            if (info.RemoteUserId != ConnectedUserId)
+                return;
+            
+            IsConnecting = false;
+            IsConnected = false;
+            ConnectedUserId = null;
+            
+            NetworkManager.DisconnectClientAndServer();
+        });
+    }
+
+    private void UnsubscribeNotifications()
+    {
+        if (ConnectionEstablishedId != Common.INVALID_NOTIFICATIONID)
+        {
+            P2P.P2PInterface.RemoveNotifyPeerConnectionEstablished(ConnectionEstablishedId);
+            ConnectionEstablishedId = Common.INVALID_NOTIFICATIONID;
+        }
+
+        if (ConnectionClosedId != Common.INVALID_NOTIFICATIONID)
+        {
+            P2P.P2PInterface.RemoveNotifyPeerConnectionClosed(ConnectionClosedId);
+            ConnectionClosedId = Common.INVALID_NOTIFICATIONID;
+        }
+    }
+}

@@ -11,11 +11,26 @@ internal class EOSP2P : EOSInterface
     
     internal SocketId SocketId { get; } = new() { SocketName = "Marrow Fusion" };
 
+    internal EOSP2PClient Client;
+    internal EOSP2PServer Server;
+
+    internal const byte ClientChannel = 1;
+    internal const byte ServerChannel = 2;
+    
+    internal EOSP2PSender Sender;
+    internal EOSP2PReceiver Receiver;
+
     internal EOSP2P(EOSRuntime eosRuntime, P2PInterface p2pInterface, ProductUserId localUserId)
     {
         Runtime = eosRuntime;
         P2PInterface = p2pInterface;
         LocalUserId = localUserId;
+        
+        Client = new EOSP2PClient(this);
+        Server = new EOSP2PServer(this);
+        
+        Sender = new EOSP2PSender(this);
+        Receiver = new EOSP2PReceiver(this);
     }
 
     internal override Task<bool> InitializeAsync()
@@ -26,6 +41,7 @@ internal class EOSP2P : EOSInterface
             MaxAdditionalPortsToTry = 99
         };
         P2PInterface.SetPortRange(ref setPortRangeOptions);
+        
         var setRelayControlOptions = new SetRelayControlOptions
         {
             RelayControl = RelayControl.ForceRelays
@@ -33,5 +49,10 @@ internal class EOSP2P : EOSInterface
         P2PInterface.SetRelayControl(ref setRelayControlOptions);
 
         return Task.FromResult(true);
+    }
+
+    internal override void Tick()
+    {
+        Receiver.Tick();
     }
 }

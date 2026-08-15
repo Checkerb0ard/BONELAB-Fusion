@@ -10,6 +10,8 @@ internal class EOSLobby : EOSInterface
     internal LobbyInterface LobbyInterface;
     internal ProductUserId LocalUserId;
     
+    internal EpicLobby CurrentLobby;
+    
     internal EOSLobby(EOSRuntime eosRuntime, LobbyInterface lobbyInterface, ProductUserId localUserId)
     {
         Runtime = eosRuntime;
@@ -63,19 +65,15 @@ internal class EOSLobby : EOSInterface
                 return;
             }
             
-            //CurrentLobby = new EpicLobby(Runtime, lobbyDetails, info.LobbyId, LocalUserId);
-            
-            // Manually call a metadata write
-            //LobbyMetadataSerializer.WriteInfo(CurrentLobby);
+            CurrentLobby = new EpicLobby(Runtime, lobbyDetails, LocalUserId);
         });
     }
 
     internal void DestroyLobby()
     {
-        /*
         if (CurrentLobby == null)
         {
-            EpicModule.Logger.Warn("No current lobby to leave");
+            EpicModule.Logger.Warn("No current lobby to destroy");
             return;
         }
         
@@ -84,11 +82,20 @@ internal class EOSLobby : EOSInterface
             EpicModule.Logger.Warn("Cannot destroy lobby, not the owner");
             return;
         }
+        
+        var lobbyDetailsCopyInfoOptions = new LobbyDetailsCopyInfoOptions();
+        
+        var copyInfoResult = CurrentLobby.LobbyDetails.CopyInfo(ref lobbyDetailsCopyInfoOptions, out var lobbyInfo);
+        if (copyInfoResult != Result.Success || lobbyInfo == null)
+        {
+            EpicModule.Logger.Error($"Failed to copy lobby info: {copyInfoResult}");
+            return;
+        }
 
         var destroyLobbyOptions = new DestroyLobbyOptions
         {
             LocalUserId = LocalUserId,
-            LobbyId = CurrentLobby.LobbyID
+            LobbyId = lobbyInfo.Value.LobbyId,
         };
             
         LobbyInterface.DestroyLobby(ref destroyLobbyOptions, null, (ref DestroyLobbyCallbackInfo info) =>
@@ -100,14 +107,22 @@ internal class EOSLobby : EOSInterface
         });
         
         CurrentLobby = null;
-        */
     }
     
-    internal bool SetAttribute(Utf8String lobbyId, string key, string value)
+    internal bool SetAttribute(LobbyDetails lobbyDetails, string key, string value)
     {
+        var lobbyDetailsCopyInfoOptions = new LobbyDetailsCopyInfoOptions();
+        
+        var copyInfoResult = lobbyDetails.CopyInfo(ref lobbyDetailsCopyInfoOptions, out var lobbyInfo);
+        if (copyInfoResult != Result.Success || lobbyInfo == null)
+        {
+            EpicModule.Logger.Error($"Failed to copy lobby info: {copyInfoResult}");
+            return false;
+        }
+        
         var updateLobbyModificationOptions = new UpdateLobbyModificationOptions
         {
-            LobbyId = lobbyId,
+            LobbyId = lobbyInfo.Value.LobbyId,
             LocalUserId = LocalUserId,
         };
         
@@ -155,6 +170,7 @@ internal class EOSLobby : EOSInterface
                 EpicModule.Logger.Log($"Successfully updated lobby attribute '{key}'");
 #endif
             }
+            
             modification.Release();
         });
         

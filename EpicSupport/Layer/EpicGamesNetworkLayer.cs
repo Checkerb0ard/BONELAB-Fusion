@@ -5,23 +5,26 @@ using MarrowFusion.Epic.Utilities;
 
 namespace MarrowFusion.Epic;
 
+// TODO:
+// Packet Fragmentation
+// Remove Allocations in Messaging System
 public class EpicGamesNetworkLayer : NetworkLayer
 {
     public override string Title => "Epic Online Services";
     
     public override string Platform => "Epic";
     
-    public override bool IsServerRunning => false;
+    public override bool IsServerRunning => Runtime?.P2P?.Server?.IsRunning ?? false;
 
     public override ServerID RunningServerID => _runningServerID;
 
-    public override bool IsClientConnected => false;
+    public override bool IsClientConnected => Runtime?.P2P?.Client?.IsConnected ?? false;
 
     public override ClientPlatformID? ClientID => new(ClientProductUserId?.ToString());
 
     public override ServerID ConnectedServerID => _connectedServerID;
 
-    public override NetworkLobby Lobby => _currentLobby;
+    public override NetworkLobby Lobby => Runtime?.Lobby?.CurrentLobby;
 
     public override Matchmaker Matchmaker => _matchmaker;
     
@@ -31,7 +34,6 @@ public class EpicGamesNetworkLayer : NetworkLayer
     private ServerID _connectedServerID = ServerID.Empty;
 
     private Matchmaker _matchmaker = null;
-    private NetworkLobby _currentLobby;
     
     internal EOSRuntime Runtime;
     
@@ -47,17 +49,32 @@ public class EpicGamesNetworkLayer : NetworkLayer
 
     public override void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
     {
-
+        if (!IsServerRunning)
+        {
+            return;
+        }
+        
+        Runtime.P2P.Sender.SendToClient(message, channel, clientPlatformID);
     }
 
     public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
     {
-
+        if (!IsServerRunning)
+        {
+            return;
+        }
+        
+        Runtime.P2P.Sender.SendToClients(message, channel, clientPlatformIDs);
     }
 
     public override void SendToServer(NetMessage message, NetworkChannel channel)
     {
-
+        if (!IsClientConnected)
+        {
+            return;
+        }
+        
+        Runtime.P2P.Sender.SendToServer(message, channel);
     }
 
     protected override async Task<bool> TryLogInAsync(CancellationToken cancellationToken)
@@ -89,7 +106,9 @@ public class EpicGamesNetworkLayer : NetworkLayer
         ThreadHelper.RunOnMainThread(() =>
         {
             Runtime.Lobby.CreateLobby();
+            Runtime.P2P.Server.Start();
         });
+        
         _runningServerID = new ServerID(ClientProductUserId.ToString());
 
         TryRefreshServerCode();
@@ -102,7 +121,9 @@ public class EpicGamesNetworkLayer : NetworkLayer
         ThreadHelper.RunOnMainThread(() =>
         {
             Runtime.Lobby.DestroyLobby();
+            Runtime.P2P.Server.Stop();
         });
+        
         _runningServerID = ServerID.Empty;
 
         return Task.FromResult(true);
@@ -110,26 +131,69 @@ public class EpicGamesNetworkLayer : NetworkLayer
 
     protected override Task<bool> TryDisconnectClientAsync(ClientPlatformID client, CancellationToken cancellationToken)
     {
+        ProductUserId targetUserId = ProductUserId.FromString(client.ToString());
+        
+        var server = Runtime.P2P.Server;
+        
+        ThreadHelper.RunOnMainThread(() => server.DisconnectPeer(targetUserId));
+        
         return Task.FromResult(true);
     }
 
     protected override async Task<bool> TryConnectToServerAsync(ServerID server, CancellationToken cancellationToken)
     {
+        ProductUserId serverUserId = ProductUserId.FromString(server.ToString());
+        
+        var client = Runtime.P2P.Client;
+        
+        await ThreadHelper.RunOnMainThreadAsTask(() => client.Connect(serverUserId));
+
+        while (client.IsConnecting)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                ThreadHelper.RunOnMainThread(() => client.Disconnect());
+                return false;
+            }
+            
+            await Task.Delay(50, CancellationToken.None);
+        }
+        
+        if (!client.IsConnected)
+        {
+            return false;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            client.Disconnect();
+            return false;
+        }
+        
         _connectedServerID = server;
 
         return true;
     }
 
-    protected override Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
+    protected override async Task<bool> TryDisconnectFromServerAsync(CancellationToken cancellationToken)
     {
-        if (!IsClientConnected)
+        var client = Runtime.P2P.Client;
+        
+        if (!client.IsConnected)
         {
-            return Task.FromResult(false);
+            return false;
+        }
+        
+        await ThreadHelper.RunOnMainThreadAsTask(() => client.Disconnect());
+        
+        while (client.IsConnected)
+        {
+            await Task.Delay(50, CancellationToken.None);
         }
         
         _connectedServerID = ServerID.Empty;
 
-        return Task.FromResult(true);
+        return true;
     }
 
     protected override void OnInitialize()
@@ -138,14 +202,12 @@ public class EpicGamesNetworkLayer : NetworkLayer
         
         EpicModule.Logger.Log($"EOS initialized with ProductUserId {ClientProductUserId.ToString()}!");
 
-        //_matchmaker = new EpicMatchmaker();
+        _matchmaker = new EpicMatchmaker(Runtime);
     }
 
     protected override void OnDeinitialize()
     {
         _matchmaker = null;
-        
-        _currentLobby = null;
     }
 
     protected override void OnTick()
