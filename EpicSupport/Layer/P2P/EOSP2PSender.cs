@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-
 using Epic.OnlineServices;
 using Epic.OnlineServices.P2P;
 using LabFusion.Network;
@@ -108,6 +107,11 @@ internal class EOSP2PSender
     // Used for connecting
     internal void SendEmpty(ProductUserId remoteUserId)
     {
+        if (remoteUserId == null || !remoteUserId.IsValid())
+        {
+            return;
+        }
+        
         var sendOptions = new SendPacketOptions
         {
             LocalUserId = P2P.LocalUserId,

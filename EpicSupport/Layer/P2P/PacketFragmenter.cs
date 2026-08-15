@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using Epic.OnlineServices;
+﻿using Epic.OnlineServices;
 using Epic.OnlineServices.P2P;
 
 // Edited but not original
@@ -12,12 +11,28 @@ internal class PacketFragmenter
     internal const int HeaderSize = sizeof(uint) + sizeof(ushort) + sizeof(byte);
     internal const int MaxPacketSize = P2PInterface.MAX_PACKET_SIZE;
     internal const int MaxPayloadSize = MaxPacketSize - HeaderSize;
+    
+    internal const int MaxFragmentsPerMessage = 64;
+    internal const int MaxConcurrentReassemblies = 32;
+    
+    internal const int SlotTimeoutMs = 10000;
 
     private uint _nextPacketId;
-    private readonly Dictionary<FragmentKey, List<FragmentData>> _pendingFragments = new();
-    
+
     private readonly byte[] _sendBuffer = new byte[MaxPacketSize];
-    
+
+    private readonly ReassemblySlot[] _slots;
+
+    internal PacketFragmenter()
+    {
+        _slots = new ReassemblySlot[MaxConcurrentReassemblies];
+        for (int i = 0; i < _slots.Length; i++)
+        {
+            _slots[i].Buffer = new byte[MaxFragmentsPerMessage * MaxPayloadSize];
+            _slots[i].InUse = false;
+        }
+    }
+
     internal FragmentEnumerator Fragment(ArraySegment<byte> data)
     {
         return new FragmentEnumerator(this, data, _nextPacketId++);
@@ -40,7 +55,7 @@ internal class PacketFragmenter
             _index = -1;
             Current = default;
         }
-        
+
         public FragmentEnumerator GetEnumerator() => this;
 
         public bool MoveNext()
@@ -74,7 +89,7 @@ internal class PacketFragmenter
 
         public ArraySegment<byte> Current { get; private set; }
     }
-    
+
     internal static bool NeedsFragmentation(int dataLength)
     {
         return dataLength > MaxPayloadSize;
@@ -95,7 +110,7 @@ internal class PacketFragmenter
         // lastFragment
         buffer[6] = lastFragment ? (byte)1 : (byte)0;
     }
-    
+
     internal bool ProcessIncoming(ProductUserId senderId, ArraySegment<byte> data, byte channel, out ArraySegment<byte> payload)
     {
         payload = default;
@@ -105,7 +120,7 @@ internal class PacketFragmenter
             EpicModule.Logger.Warn($"Received packet too small for header: {data.Count} bytes (need {HeaderSize})");
             return false;
         }
-        
+
         uint packetId = BitConverter.ToUInt32(data.Array, data.Offset);
         ushort fragmentId = BitConverter.ToUInt16(data.Array, data.Offset + 4);
         bool lastFragment = data.Array[data.Offset + 6] == 1;
@@ -117,173 +132,166 @@ internal class PacketFragmenter
             payload = new ArraySegment<byte>(data.Array, data.Offset + HeaderSize, payloadLength);
             return true;
         }
-        
-        byte[] payloadCopy = ArrayPool<byte>.Shared.Rent(payloadLength);
-        if (payloadLength > 0)
+
+        if (fragmentId >= MaxFragmentsPerMessage)
         {
-            Array.Copy(data.Array, data.Offset + HeaderSize, payloadCopy, 0, payloadLength);
+            EpicModule.Logger.Warn($"Fragment id {fragmentId} exceeds max supported fragments per message ({MaxFragmentsPerMessage}); dropping packet");
+            return false;
         }
 
-        var key = new FragmentKey(senderId, packetId, channel);
-
-        if (!_pendingFragments.TryGetValue(key, out var fragments))
+        int slotIndex = FindOrCreateSlot(senderId, packetId, channel);
+        if (slotIndex < 0)
         {
-            fragments = new List<FragmentData>();
-            _pendingFragments[key] = fragments;
+            EpicModule.Logger.Warn("No free reassembly slot available. Dropping fragment");
+            return false;
         }
 
-        fragments.Add(new FragmentData(fragmentId, lastFragment, payloadCopy, payloadLength));
-        
-        byte[] reassembled = TryReassemble(key, fragments);
-        if (reassembled == null)
+        ref var slot = ref _slots[slotIndex];
+        slot.LastActivityTicks = Environment.TickCount;
+
+        int offset = fragmentId * MaxPayloadSize;
+        if (offset + payloadLength > slot.Buffer.Length)
+        {
+            EpicModule.Logger.Warn("Fragment payload exceeds reassembly buffer bounds; dropping reassembly");
+            FreeSlot(ref slot);
+            return false;
+        }
+
+        Array.Copy(data.Array, data.Offset + HeaderSize, slot.Buffer, offset, payloadLength);
+        slot.ReceivedMask |= 1UL << fragmentId;
+
+        if (lastFragment)
+        {
+            slot.ExpectedCount = fragmentId + 1;
+            slot.LastFragmentLength = payloadLength;
+            
+            ulong invalidMask = slot.ExpectedCount >= 64 ? 0UL : ~((1UL << slot.ExpectedCount) - 1UL);
+            if ((slot.ReceivedMask & invalidMask) != 0)
+            {
+                EpicModule.Logger.Warn("Received fragment id beyond declared message length; dropping reassembly.");
+                FreeSlot(ref slot);
+                return false;
+            }
+        }
+
+        if (slot.ExpectedCount == -1)
         {
             return false;
         }
 
-        payload = new ArraySegment<byte>(reassembled);
+        ulong completeMask = slot.ExpectedCount >= 64 ? ulong.MaxValue : (1UL << slot.ExpectedCount) - 1UL;
+        if ((slot.ReceivedMask & completeMask) != completeMask)
+        {
+            return false;
+        }
+
+        int totalSize = (slot.ExpectedCount - 1) * MaxPayloadSize + slot.LastFragmentLength;
+        payload = new ArraySegment<byte>(slot.Buffer, 0, totalSize);
+        
+        FreeSlot(ref slot);
         return true;
     }
 
-    private byte[] TryReassemble(FragmentKey key, List<FragmentData> fragments)
+    private int FindOrCreateSlot(ProductUserId senderId, uint packetId, byte channel)
     {
-        int expectedCount = -1;
-        foreach (var frag in fragments)
+        int freeIndex = -1;
+        int staleIndex = -1;
+        int staleAge = -1;
+
+        for (int i = 0; i < _slots.Length; i++)
         {
-            if (frag.IsLast)
+            ref var slot = ref _slots[i];
+
+            if (slot.InUse)
             {
-                expectedCount = frag.Id + 1;
-                break;
+                if (slot.PacketId == packetId && slot.Channel == channel && Equals(slot.SenderId, senderId))
+                {
+                    return i;
+                }
+
+                int age = unchecked(Environment.TickCount - slot.LastActivityTicks);
+                if (age > SlotTimeoutMs && age > staleAge)
+                {
+                    staleIndex = i;
+                    staleAge = age;
+                }
+            }
+            else if (freeIndex == -1)
+            {
+                freeIndex = i;
             }
         }
 
-        if (expectedCount == -1)
+        if (freeIndex != -1)
         {
-            return null;
+            InitSlot(freeIndex, senderId, packetId, channel);
+            return freeIndex;
         }
 
-        if (fragments.Count != expectedCount)
+        if (staleIndex != -1)
         {
-            return null;
-        }
-        
-        bool[] seen = new bool[expectedCount];
-        foreach (var frag in fragments)
-        {
-            if (frag.Id >= expectedCount)
-            {
-                ReturnFragmentBuffers(fragments);
-                _pendingFragments.Remove(key);
-                return null;
-            }
-            seen[frag.Id] = true;
+            EpicModule.Logger.Warn($"Reassembly slot pool full. Evicting stale slot (idle {staleAge}ms) to make room");
+            InitSlot(staleIndex, senderId, packetId, channel);
+            return staleIndex;
         }
 
-        for (int i = 0; i < expectedCount; i++)
-        {
-            if (!seen[i])
-            {
-                return null;
-            }
-        }
-        
-        fragments.Sort((a, b) => a.Id.CompareTo(b.Id));
-        
-        int totalSize = 0;
-        foreach (var frag in fragments)
-        {
-            totalSize += frag.Length;
-        }
-        
-        byte[] result = new byte[totalSize];
-        int offset = 0;
-        foreach (var frag in fragments)
-        {
-            Array.Copy(frag.Payload, 0, result, offset, frag.Length);
-            offset += frag.Length;
-            ArrayPool<byte>.Shared.Return(frag.Payload);
-        }
-        
-        _pendingFragments.Remove(key);
-
-        return result;
+        return -1;
     }
-    
+
+    private void InitSlot(int index, ProductUserId senderId, uint packetId, byte channel)
+    {
+        ref var slot = ref _slots[index];
+        slot.InUse = true;
+        slot.SenderId = senderId;
+        slot.PacketId = packetId;
+        slot.Channel = channel;
+        slot.ExpectedCount = -1;
+        slot.ReceivedMask = 0UL;
+        slot.LastFragmentLength = 0;
+        slot.LastActivityTicks = Environment.TickCount;
+    }
+
+    private static void FreeSlot(ref ReassemblySlot slot)
+    {
+        slot.InUse = false;
+        slot.SenderId = null;
+        slot.ExpectedCount = -1;
+        slot.ReceivedMask = 0UL;
+        slot.LastFragmentLength = 0;
+    }
+
     internal void ClearPendingForSender(ProductUserId senderId)
     {
-        var keysToRemove = new List<FragmentKey>();
-        foreach (var (key, fragments) in _pendingFragments)
+        for (int i = 0; i < _slots.Length; i++)
         {
-            if (key.SenderId == senderId)
+            ref var slot = ref _slots[i];
+            if (slot.InUse && Equals(slot.SenderId, senderId))
             {
-                keysToRemove.Add(key);
-                ReturnFragmentBuffers(fragments);
+                FreeSlot(ref slot);
             }
         }
-        foreach (var key in keysToRemove)
-        {
-            _pendingFragments.Remove(key);
-        }
     }
-    
+
     internal void ClearAll()
     {
-        foreach (var fragments in _pendingFragments.Values)
+        for (int i = 0; i < _slots.Length; i++)
         {
-            ReturnFragmentBuffers(fragments);
-        }
-        _pendingFragments.Clear();
-    }
-
-    private static void ReturnFragmentBuffers(List<FragmentData> fragments)
-    {
-        foreach (var frag in fragments)
-        {
-            ArrayPool<byte>.Shared.Return(frag.Payload);
+            FreeSlot(ref _slots[i]);
         }
     }
 
-    private readonly struct FragmentKey : IEquatable<FragmentKey>
+    private struct ReassemblySlot
     {
-        internal readonly ProductUserId SenderId;
-        internal readonly uint PacketId;
-        internal readonly byte Channel;
-
-        internal FragmentKey(ProductUserId senderId, uint packetId, byte channel)
-        {
-            SenderId = senderId;
-            PacketId = packetId;
-            Channel = channel;
-        }
-
-        public bool Equals(FragmentKey other)
-        {
-            return SenderId == other.SenderId && PacketId == other.PacketId && Channel == other.Channel;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is FragmentKey other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(SenderId, PacketId, Channel);
-        }
-    }
-
-    private readonly struct FragmentData
-    {
-        internal readonly ushort Id;
-        internal readonly bool IsLast;
-        internal readonly byte[] Payload;
-        internal readonly int Length;
-
-        internal FragmentData(ushort id, bool isLast, byte[] payload, int length)
-        {
-            Id = id;
-            IsLast = isLast;
-            Payload = payload;
-            Length = length;
-        }
+        internal bool InUse;
+        internal ProductUserId SenderId;
+        internal uint PacketId;
+        internal byte Channel;
+        
+        internal int ExpectedCount;
+        internal ulong ReceivedMask;
+        internal int LastFragmentLength;
+        internal int LastActivityTicks;
+        
+        internal byte[] Buffer;
     }
 }

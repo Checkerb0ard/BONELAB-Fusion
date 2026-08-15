@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-
 using Epic.OnlineServices;
 using Epic.OnlineServices.P2P;
 using LabFusion.Network;

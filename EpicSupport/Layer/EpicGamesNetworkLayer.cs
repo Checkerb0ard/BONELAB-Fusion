@@ -5,9 +5,6 @@ using MarrowFusion.Epic.Utilities;
 
 namespace MarrowFusion.Epic;
 
-// TODO:
-// Remove allocations from fragment system
-
 public class EpicGamesNetworkLayer : NetworkLayer
 {
     public override string Title => "Epic Online Services";

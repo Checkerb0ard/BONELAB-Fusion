@@ -124,7 +124,7 @@ internal static class EOSJNI
 
 #if DEBUG
         // JNI 1.6 = 0x00010006
-        FusionLogger.Log($"JNI_OnLoad returned: 0x{result:X}");
+        EpicModule.Logger.Log($"JNI_OnLoad returned: 0x{result:X}");
 #endif
 
         return true;
