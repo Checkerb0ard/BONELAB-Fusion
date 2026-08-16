@@ -7,7 +7,7 @@ using LabFusion.Network.Serialization;
 using LabFusion.Safety;
 using LabFusion.SDK.Modules;
 using LabFusion.Network;
-using LabFusion.Senders;
+using LabFusion.Utilities;
 
 namespace LabFusion.Marrow.Messages;
 

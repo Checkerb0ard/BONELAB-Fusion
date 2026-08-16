@@ -126,7 +126,7 @@ public class SpawnResponseMessage : NativeMessageHandler
             if (AssetWarehouseSearcher.HasTags<SpawnableCrate>(new(barcode), FusionTags.SingleplayerOnly))
             {
 #if DEBUG
-                FusionLogger.Warn($"Blocking local spawn of spawnable {data.Barcode} because it is tagged Singleplayer Only!");
+                FusionLogger.Warn($"Blocking local spawn of spawnable {data.SpawnData.Barcode} because it is tagged Singleplayer Only!");
 #endif
 
                 return;
