@@ -163,6 +163,9 @@ public abstract class NativeMessageHandler : MessageHandler
 
         if (received.IsServerHandled && !OnPreRelayMessage(received))
         {
+#if DEBUG
+            FusionLogger.Warn($"Server received message {GetDescriptor(received.Bytes)} from client with PlatformID {received.SenderPlatformID.Value} that failed the pre-relay check!");
+#endif
             return;
         }
 
