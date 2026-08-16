@@ -13,9 +13,11 @@ internal class EOSP2P : EOSInterface
 
     internal EOSP2PClient Client;
     internal EOSP2PServer Server;
-
-    internal const byte ClientChannel = 1;
-    internal const byte ServerChannel = 2;
+    
+    internal const byte ClientReliableChannel = 1;
+    internal const byte ClientUnreliableChannel = 2;
+    internal const byte ServerReliableChannel = 3;
+    internal const byte ServerUnreliableChannel = 4;
     
     internal PacketFragmenter Fragmenter;
     internal EOSP2PSender Sender;

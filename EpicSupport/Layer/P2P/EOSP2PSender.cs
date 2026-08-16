@@ -85,7 +85,8 @@ internal class EOSP2PSender
             return;
         }
         
-        byte targetChannel = isServerHandled ? EOSP2P.ServerChannel : EOSP2P.ClientChannel;
+        byte targetChannel = GetChannel(channel, isServerHandled);
+        PacketReliability reliability = ToPacketReliability(channel);
 
         foreach (var packet in P2P.Fragmenter.Fragment(data))
         {
@@ -97,7 +98,7 @@ internal class EOSP2PSender
                 Channel = targetChannel,
                 Data = packet,
                 AllowDelayedDelivery = true,
-                Reliability = ToPacketReliability(channel),
+                Reliability = reliability,
             };
 
             P2P.P2PInterface.SendPacket(ref sendOptions);
@@ -125,14 +126,26 @@ internal class EOSP2PSender
 
         P2P.P2PInterface.SendPacket(ref sendOptions);
     }
-
+    
+    private static byte GetChannel(NetworkChannel channel, bool isServerHandled)
+    {
+        return (isServerHandled, channel) switch
+        {
+            (true, NetworkChannel.Reliable) => EOSP2P.ServerReliableChannel,
+            (true, NetworkChannel.Unreliable) => EOSP2P.ServerUnreliableChannel,
+            (false, NetworkChannel.Reliable) => EOSP2P.ClientReliableChannel,
+            (false, NetworkChannel.Unreliable) => EOSP2P.ClientUnreliableChannel,
+            _ => throw new ArgumentOutOfRangeException(nameof(channel)),
+        };
+    }
+    
     private static PacketReliability ToPacketReliability(NetworkChannel channel)
     {
         return channel switch
         {
             NetworkChannel.Reliable => PacketReliability.ReliableUnordered,
             NetworkChannel.Unreliable => PacketReliability.UnreliableUnordered,
-            _ => PacketReliability.ReliableUnordered,
+            _ => throw new ArgumentOutOfRangeException(nameof(channel)),
         };
     }
     

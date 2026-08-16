@@ -84,17 +84,19 @@ internal class EOSP2PReceiver
             return;
         }
 
-        if (channel == EOSP2P.ServerChannel)
+        switch (channel)
         {
-            MessageManager.ReadMessageOnServer(payload, GetPlatformID(senderId));
-        }
-        else if (channel == EOSP2P.ClientChannel)
-        {
-            MessageManager.ReadMessageOnClient(payload);
-        }
-        else
-        {
-            EpicModule.Logger.Warn("Message received on unknown channel: " + channel);
+            case EOSP2P.ServerReliableChannel:
+            case EOSP2P.ServerUnreliableChannel:
+                MessageManager.ReadMessageOnServer(payload, GetPlatformID(senderId));
+                break;
+            case EOSP2P.ClientReliableChannel:
+            case EOSP2P.ClientUnreliableChannel:
+                MessageManager.ReadMessageOnClient(payload);
+                break;
+            default:
+                EpicModule.Logger.Warn($"Message received on unknown channel: {channel}");
+                break;
         }
     }
     
