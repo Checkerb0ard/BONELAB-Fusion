@@ -103,10 +103,11 @@ internal class EOSLobby : EOSInterface
             if (info.ResultCode != Result.Success && info.ResultCode != Result.NotFound)
             {
                 EpicModule.Logger.Error($"Failed to destroy lobby: {info.ResultCode}");
+                return;
             }
+            
+            CurrentLobby = null;
         });
-        
-        CurrentLobby = null;
     }
     
     internal bool SetAttribute(LobbyDetails lobbyDetails, string key, string value)
@@ -163,12 +164,6 @@ internal class EOSLobby : EOSInterface
             if (info.ResultCode != Result.Success)
             {
                 EpicModule.Logger.Error($"Failed to update lobby attribute '{key}': {info.ResultCode}");
-            }
-            else
-            {
-#if DEBUG
-                EpicModule.Logger.Log($"Successfully updated lobby attribute '{key}'");
-#endif
             }
             
             modification.Release();
