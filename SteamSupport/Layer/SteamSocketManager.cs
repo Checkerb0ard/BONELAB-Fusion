@@ -47,6 +47,6 @@ public class SteamSocketManager : SocketManager
 
         ConnectedSteamIDs[platformID] = connection;
 
-        SteamSocketHandler.OnSocketMessageReceived(data, size, true, new ClientPlatformID(platformID));
+        SteamSocketHandler.ReadMessageOnServer(data, size, new ClientPlatformID(platformID));
     }
 }

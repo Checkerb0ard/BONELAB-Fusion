@@ -33,7 +33,7 @@ public static class SteamSocketHandler
         }
     }
 
-    public static void ServerSendToClients(this SteamSocketManager socketManager, Span<ClientPlatformID> clients, NetworkChannel channel, NetMessage message)
+    public static void SendToClients(this SteamSocketManager socketManager, Span<ClientPlatformID> clients, NetworkChannel channel, NetMessage message)
     {
         SendType sendType = ConvertToSendType(channel);
 
@@ -56,7 +56,7 @@ public static class SteamSocketHandler
         }
     }
 
-    public static void ClientSendToServer(this SteamConnectionManager connectionManager, NetworkChannel channel, NetMessage message)
+    public static void SendToServer(this SteamConnectionManager connectionManager, NetworkChannel channel, NetMessage message)
     {
         try
         {
@@ -89,27 +89,31 @@ public static class SteamSocketHandler
         }
     }
 
-    public static void OnSocketMessageReceived(IntPtr messageIntPtr, int dataBlockSize, bool isServerHandled = false, ClientPlatformID? platformID = null)
+    public static unsafe void ReadMessageOnServer(IntPtr messageIntPtr, int dataBlockSize, ClientPlatformID sender)
     {
         try
         {
-            unsafe
-            {
-                var messageSpan = new ReadOnlySpan<byte>(messageIntPtr.ToPointer(), dataBlockSize);
+            var buffer = new ReadOnlySpan<byte>(messageIntPtr.ToPointer(), dataBlockSize);
 
-                var readableMessage = new ReadableMessage()
-                {
-                    Buffer = messageSpan,
-                    IsServerHandled = isServerHandled,
-                    SenderPlatformID = platformID,
-                };
-
-                NativeMessageHandler.ReadMessage(readableMessage);
-            }
+            MessageManager.ReadMessageOnServer(buffer, sender);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            SteamModule.Logger.Error($"Failed reading message from socket server with reason: {e.Message}\nTrace:{e.StackTrace}");
+            SteamModule.Logger.LogException("reading message on Server from Client", ex);
+        }
+    }
+
+    public static unsafe void ReadMessageOnClient(IntPtr messageIntPtr, int dataBlockSize)
+    {
+        try
+        {
+            var buffer = new ReadOnlySpan<byte>(messageIntPtr.ToPointer(), dataBlockSize);
+
+            MessageManager.ReadMessageOnClient(buffer);
+        }
+        catch (Exception ex)
+        {
+            SteamModule.Logger.LogException("reading message on Client from Server", ex);
         }
     }
 }
