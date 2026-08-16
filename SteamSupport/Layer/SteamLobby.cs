@@ -13,7 +13,7 @@ public class SteamLobby : NetworkLobby
         _lobby = lobby;
     }
 
-    protected override ServerID OnGetServerID() => new(_lobby.Owner.Id);
+    protected override ServerID OnGetServerID() => new(_lobby.Id);
 
     protected override void OnSetMetadata(string key, string value)
     {
