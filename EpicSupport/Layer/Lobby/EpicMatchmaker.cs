@@ -97,19 +97,24 @@ internal class EpicMatchmaker : Matchmaker
                     var getLobbyOwnerOptions = new LobbyDetailsGetLobbyOwnerOptions();
                     
                     var lobbyOwner = lobbyDetails.GetLobbyOwner(ref getLobbyOwnerOptions);
-
-#if RELEASE
+                    
+                    if (lobbyOwner == null || !lobbyOwner.IsValid())
+                    {
+                        lobbyDetails.Release();
+                        continue;
+                    }
+                    
                     if (lobbyOwner == Runtime.Connect.LocalUserId)
                     {
                         lobbyDetails.Release();
                         continue;
                     }
-#endif
 
                     using var networkLobby = new EpicLobby(Runtime, lobbyDetails, lobbyOwner);
 
                     if (!LobbyMetadata.TryReadFromLobby(networkLobby, out var metadata))
                     {
+                        lobbyDetails.Release();
                         continue;
                     }
 
