@@ -69,24 +69,24 @@ public abstract class SteamNetworkLayer : NetworkLayer
         return SteamAPILoader.HasSteamAPI;
     }
 
-    public override void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)
+    public override void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID client)
     {
         if (!IsServerRunning)
         {
             return;
         }
 
-        ServerSteamSocket.SendToClient(clientPlatformID, channel, message);
+        ServerSteamSocket.SendToClient(client, channel, message);
     }
 
-    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
+    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clients)
     {
         if (!IsServerRunning)
         {
             return;
         }
 
-        ServerSteamSocket.ServerSendToClients(clientPlatformIDs, channel, message);
+        ServerSteamSocket.SendToClients(clients, channel, message);
     }
 
     public override void SendToServer(NetMessage message, NetworkChannel channel)
@@ -96,7 +96,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
             return;
         }
 
-        ClientSteamConnection.ClientSendToServer(channel, message);
+        ClientSteamConnection.SendToServer(channel, message);
     }
 
     public override bool IsFriend(ClientPlatformID client)

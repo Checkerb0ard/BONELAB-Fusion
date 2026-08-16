@@ -22,6 +22,6 @@ public class SteamConnectionManager : ConnectionManager
     {
         base.OnMessage(data, size, messageNum, recvTime, channel);
 
-        SteamSocketHandler.OnSocketMessageReceived(data, size, false);
+        SteamSocketHandler.ReadMessageOnClient(data, size);
     }
 }
