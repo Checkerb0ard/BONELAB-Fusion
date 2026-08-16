@@ -373,7 +373,7 @@ public static class NetworkLayerManager
     private static void OnConnectionEstablished()
     {
         var clientID = Layer.ClientID;
-        PlayerIDManager.SetPlatformID(clientID);
+        PlayerIDManager.SetLocalPlatformID(clientID);
 
         if (clientID == null)
         {
@@ -410,7 +410,7 @@ public static class NetworkLayerManager
         Layer = layer;
         IsLoggedIn = true;
 
-        PlayerIDManager.SetPlatformID(layer.ClientID);
+        PlayerIDManager.SetLocalPlatformID(layer.ClientID);
 
         LogInCompleted?.InvokeSafe(layer, "invoking LogInCompleted event");
     }
@@ -452,7 +452,7 @@ public static class NetworkLayerManager
         Layer = null;
         IsLoggedIn = false;
 
-        PlayerIDManager.SetPlatformID(null);
+        PlayerIDManager.SetLocalPlatformID(null);
 
         LogOutCompleted?.InvokeSafe(layer, "invoking LogOutCompleted event");
     }

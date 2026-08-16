@@ -265,10 +265,17 @@ public static class PlayerIDManager
     public static bool HasPlayerID(ClientPlatformID platformID) => PlatformIDLookup.ContainsKey(platformID);
 
     /// <summary>
+    /// Returns true if a platform ID matches the local client's platform ID.
+    /// </summary>
+    /// <param name="client"></param>
+    /// <returns></returns>
+    public static bool IsClientMe(ClientPlatformID client) => LocalPlatformID == client;
+
+    /// <summary>
     /// Sets the local platform ID. This should be established some time before the client's connection is authorized and remain persistent throughout.
     /// <para>The connected server should also be able to read the platform ID through the connection without relying on the client's validation.
     /// Otherwise, the client may be disconnected for having an invalid platform ID.</para>
     /// </summary>
     /// <param name="platformID"></param>
-    public static void SetPlatformID(ClientPlatformID? platformID = null) => LocalPlatformID = platformID;
+    public static void SetLocalPlatformID(ClientPlatformID? platformID = null) => LocalPlatformID = platformID;
 }
