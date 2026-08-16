@@ -29,7 +29,7 @@ public static class Trial_SpawnerEventsPatches
 #if DEBUG
         if (index > 0)
         {
-            FusionLogger.Log($"Trial_SpawnerEvents {__instance.name} had a conflicting hash {hash} and has been added at index {index}.");
+            BonelabModule.Logger.Log($"Trial_SpawnerEvents {__instance.name} had a conflicting hash {hash} and has been added at index {index}.");
         }
 #endif
     }

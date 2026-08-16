@@ -69,8 +69,6 @@ public class NetworkPlayer : IEntityExtender, IEntityUpdatable, IEntityFixedUpda
     /// </summary>
     public PlayerUpdatableManager UpdatableManager { get; } = new();
 
-    public event Action OnBeforeTeleportToPose, OnAfterTeleportToPose;
-
     public JawFlapper JawFlapper { get; private set; } = new();
 
     private readonly EntityPose _receivedEntityPose = new(1);
