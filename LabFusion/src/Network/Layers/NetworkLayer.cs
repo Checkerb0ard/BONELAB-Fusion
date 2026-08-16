@@ -744,7 +744,7 @@ public abstract class NetworkLayer
     /// <param name="message"></param>
     /// <param name="channel"></param>
     /// <param name="clients"></param>
-    public abstract void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clients);
+    public abstract void SendToClients(NetMessage message, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clients);
 
     /// <summary>
     /// If the client is connected to a server, send a message from the client to the server.

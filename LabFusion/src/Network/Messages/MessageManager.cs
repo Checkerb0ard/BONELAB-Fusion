@@ -30,6 +30,11 @@ public static class MessageManager
 
     /// <summary>
     /// Reads a readable message.
+    /// <para>
+    /// It is not recommended to construct a readable message yourself unless you know what you are doing. 
+    /// Instead, you should use <see cref="ReadMessageOnServer(ReadOnlySpan{byte}, ClientPlatformID)"/> when reading on the server
+    /// or <see cref="ReadMessageOnClient(ReadOnlySpan{byte})"/> when reading on a client.
+    /// </para>
     /// </summary>
     /// <param name="message"></param>
     public static void ReadMessage(ReadableMessage message) => NativeMessageHandler.ReadMessage(message);

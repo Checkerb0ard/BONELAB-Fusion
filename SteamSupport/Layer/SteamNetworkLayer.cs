@@ -79,7 +79,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         ServerSteamSocket.SendToClient(client, channel, message);
     }
 
-    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clients)
+    public override void SendToClients(NetMessage message, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clients)
     {
         if (!IsServerRunning)
         {

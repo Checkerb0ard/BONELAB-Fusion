@@ -74,7 +74,7 @@ public static class ServerManager
     /// <param name="tag"></param>
     /// <param name="channel"></param>
     /// <param name="clients"></param>
-    public static void SendToClientsNative<TData>(TData data, byte tag, NetworkChannel channel, Span<ClientPlatformID> clients) where TData : INetSerializable
+    public static void SendToClientsNative<TData>(TData data, byte tag, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clients) where TData : INetSerializable
     {
         using var message = NetMessage.CreateNative(data, tag, new MessageRoute(RelayType.None, channel));
 
@@ -147,7 +147,7 @@ public static class ServerManager
     /// <param name="data"></param>
     /// <param name="channel"></param>
     /// <param name="clients"></param>
-    public static void SendToClientsModule<TMessage, TData>(TData data, NetworkChannel channel, Span<ClientPlatformID> clients) where TMessage : ModuleMessageHandler where TData : INetSerializable
+    public static void SendToClientsModule<TMessage, TData>(TData data, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clients) where TMessage : ModuleMessageHandler where TData : INetSerializable
     {
         using var message = NetMessage.CreateModule<TMessage, TData>(data, new MessageRoute(RelayType.None, channel));
 
@@ -227,7 +227,7 @@ public static class ServerManager
     /// </summary>
     /// <param name="message"></param>
     /// <param name="channel"></param>
-    public static void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clients)
+    public static void SendToClients(NetMessage message, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clients)
     {
         if (message == null)
         {
@@ -258,7 +258,7 @@ public static class ServerManager
 
         var clients = RentClients(playerIDs);
 
-        SendToClients(message, channel, new Span<ClientPlatformID>(clients, 0, idCount));
+        SendToClients(message, channel, new ReadOnlySpan<ClientPlatformID>(clients, 0, idCount));
 
         ArrayPool<ClientPlatformID>.Shared.Return(clients);
     }
@@ -276,7 +276,7 @@ public static class ServerManager
 
         var clients = RentClients(playerIDs);
 
-        SendToClients(message, channel, new Span<ClientPlatformID>(clients, 0, idCount));
+        SendToClients(message, channel, new ReadOnlySpan<ClientPlatformID>(clients, 0, idCount));
 
         ArrayPool<ClientPlatformID>.Shared.Return(clients);
     }
