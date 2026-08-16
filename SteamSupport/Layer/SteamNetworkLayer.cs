@@ -315,6 +315,8 @@ public abstract class SteamNetworkLayer : NetworkLayer
 
         _localLobby = lobbyTask.Value;
         _currentLobby = new SteamLobby(_localLobby);
+
+        _localLobby.Owner = new Friend(ClientSteamID);
     }
 
     private void HookEvents()
