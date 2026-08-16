@@ -35,12 +35,13 @@ public class ConnectionResponseMessage : NativeMessageHandler
     {
         var data = received.ReadData<ConnectionResponseData>();
 
-        PlayerIDManager.RegisterPlayer(data.PlatformID, data.SmallID, data.InitialMetadata, data.IsJoining, out var playerID);
-
-        if (playerID.PlatformID == PlayerIDManager.LocalPlatformID)
+        // If the connected user is us, notify that the connection has been authorized
+        if (PlayerIDManager.IsClientMe(data.PlatformID))
         {
             ClientManager.OnConnectionAuthorized();
         }
+
+        PlayerIDManager.RegisterPlayer(data.PlatformID, data.SmallID, data.InitialMetadata, data.IsJoining, out var playerID);
 
         // Send catchup messages now that the user is registered
         if (ServerManager.IsServerRunning)
