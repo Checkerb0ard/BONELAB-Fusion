@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <Reference Include="JNISharp">
-      <HintPath>JNISharp.dll</HintPath>
+      <HintPath>dependencies\JNISharp.dll</HintPath>
     </Reference>
   </ItemGroup>
 
