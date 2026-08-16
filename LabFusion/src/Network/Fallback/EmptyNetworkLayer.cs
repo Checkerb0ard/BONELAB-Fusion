@@ -52,7 +52,7 @@ public class EmptyNetworkLayer : NetworkLayer
         throw new NotImplementedException();
     }
 
-    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
+    public override void SendToClients(NetMessage message, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clientPlatformIDs)
     {
         throw new NotImplementedException();
     }

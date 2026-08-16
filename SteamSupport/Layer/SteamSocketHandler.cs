@@ -33,7 +33,7 @@ public static class SteamSocketHandler
         }
     }
 
-    public static void SendToClients(this SteamSocketManager socketManager, Span<ClientPlatformID> clients, NetworkChannel channel, NetMessage message)
+    public static void SendToClients(this SteamSocketManager socketManager, ReadOnlySpan<ClientPlatformID> clients, NetworkChannel channel, NetMessage message)
     {
         SendType sendType = ConvertToSendType(channel);
 
