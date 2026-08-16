@@ -5,6 +5,9 @@ using MarrowFusion.Epic.Utilities;
 
 namespace MarrowFusion.Epic;
 
+// TODO:
+// Fix disconnecting when host logs out of layer
+
 public class EpicGamesNetworkLayer : NetworkLayer
 {
     public override string Title => "Epic Online Services";
@@ -176,12 +179,10 @@ public class EpicGamesNetworkLayer : NetworkLayer
     {
         var client = Runtime.P2P.Client;
         
-        if (!client.IsConnected)
+        if (client.IsConnected)
         {
-            return false;
+            await ThreadHelper.RunOnMainThreadAsTask(client.Disconnect);
         }
-        
-        await ThreadHelper.RunOnMainThreadAsTask(client.Disconnect);
         
         while (client.IsConnected)
         {

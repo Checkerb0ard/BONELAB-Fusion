@@ -22,6 +22,9 @@ internal class EOSP2PClient
 
     internal void Connect(ProductUserId remoteUserId)
     {
+        if (remoteUserId == null)
+            return;
+        
         IsConnecting = true;
         IsConnected = false;
         ConnectedUserId = remoteUserId;
@@ -34,19 +37,14 @@ internal class EOSP2PClient
 
     internal void Disconnect()
     {
-        if (ConnectedUserId != null)
+        var closeOptions = new CloseConnectionOptions
         {
-            var closeOptions = new CloseConnectionOptions
-            {
-                LocalUserId = P2P.LocalUserId,
-                RemoteUserId = ConnectedUserId,
-                SocketId = P2P.SocketId
-            };
+            LocalUserId = P2P.LocalUserId,
+            RemoteUserId = ConnectedUserId,
+            SocketId = P2P.SocketId
+        };
 
-            P2P.P2PInterface.CloseConnection(ref closeOptions);
-        }
-        
-        UnsubscribeNotifications();
+        P2P.P2PInterface.CloseConnection(ref closeOptions);
     }
 
     private void SubscribeNotifications()
@@ -84,6 +82,8 @@ internal class EOSP2PClient
             NetworkManager.DisconnectClientAndServer();
             
             P2P.Fragmenter.ClearAll();
+            
+            UnsubscribeNotifications();
         });
     }
 
