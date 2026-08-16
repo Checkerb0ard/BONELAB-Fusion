@@ -14,7 +14,7 @@ public class SteamConnectionManager : ConnectionManager
         NetworkManager.DisconnectClientAndServer();
 
 #if DEBUG
-        FusionLogger.Log("Client was disconnected.");
+        SteamModule.Logger.Log("Client was disconnected.");
 #endif
     }
 

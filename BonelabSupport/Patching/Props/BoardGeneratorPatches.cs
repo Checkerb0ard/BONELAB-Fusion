@@ -113,7 +113,7 @@ public static class BoardSpawnerAsyncPatches
                 // Send the generator message
                 var data = new BoardGeneratorData()
                 {
-                    OwnerID = PlayerIDManager.LocalSmallID,
+                    OwnerID = PlayerIDManager.LocalSmallID.Value,
                     BoardID = boardId,
                     BoardGeneratorID = boardGeneratorId,
                     FirstPoint = firstPoint,

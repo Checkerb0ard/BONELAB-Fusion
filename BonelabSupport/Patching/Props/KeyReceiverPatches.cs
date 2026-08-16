@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
 
 using LabFusion.Network;
-using MarrowFusion.Bonelab.Extenders;
 using LabFusion.MonoBehaviours;
 using LabFusion.Data;
 using LabFusion.Marrow;
-using LabFusion.Utilities;
+
+using MarrowFusion.Bonelab.Extenders;
 using MarrowFusion.Bonelab.Messages;
 
 using Il2CppSLZ.Interaction;
@@ -31,7 +31,7 @@ public static class KeyReceiverPatches
 #if DEBUG
         if (index > 0)
         {
-            FusionLogger.Log($"KeyReceiver {__instance.name} had a conflicting hash {hash} and has been added at index {index}.");
+            BonelabModule.Logger.Log($"KeyReceiver {__instance.name} had a conflicting hash {hash} and has been added at index {index}.");
         }
 #endif
 

@@ -41,7 +41,7 @@ public class LevelsPanelViewPatches
         catch (Exception e)
         {
 #if DEBUG
-            FusionLogger.LogException("executing patch LevelsPanelView.SelectItem", e);
+            BonelabModule.Logger.LogException("executing patch LevelsPanelView.SelectItem", e);
 #endif
         }
 

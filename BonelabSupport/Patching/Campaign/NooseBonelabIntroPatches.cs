@@ -30,7 +30,7 @@ public static class NooseBonelabIntroPatches
             return;
         }
 
-        var nooseEvent = DescentEventHandler.CreateNooseEvent(PlayerIDManager.LocalSmallID, DescentNooseType.ATTACH_NOOSE);
+        var nooseEvent = DescentEventHandler.CreateNooseEvent(PlayerIDManager.LocalSmallID.Value, DescentNooseType.ATTACH_NOOSE);
 
         ClientManager.RelayModule<DescentNooseMessage, DescentNooseData>(new DescentNooseData() { PlayerId = nooseEvent.PlayerId, Type = nooseEvent.Type }, CommonMessageRoutes.ReliableToOtherClients);
     }
@@ -49,7 +49,7 @@ public static class NooseBonelabIntroPatches
             return;
         }
 
-        var nooseEvent = DescentEventHandler.CreateNooseEvent(PlayerIDManager.LocalSmallID, DescentNooseType.CUT_NOOSE);
+        var nooseEvent = DescentEventHandler.CreateNooseEvent(PlayerIDManager.LocalSmallID.Value, DescentNooseType.CUT_NOOSE);
 
         ClientManager.RelayModule<DescentNooseMessage, DescentNooseData>(new DescentNooseData() { PlayerId = nooseEvent.PlayerId, Type = nooseEvent.Type }, CommonMessageRoutes.ReliableToOtherClients);
     }

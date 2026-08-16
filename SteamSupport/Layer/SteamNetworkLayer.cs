@@ -308,7 +308,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
         if (!lobbyTask.HasValue)
         {
 #if DEBUG
-            FusionLogger.Log("Failed to create a steam lobby!");
+            SteamModule.Logger.Log("Failed to create a steam lobby!");
 #endif
             return;
         }
