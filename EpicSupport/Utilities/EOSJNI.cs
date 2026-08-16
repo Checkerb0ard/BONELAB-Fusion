@@ -254,7 +254,7 @@ internal static class EOSJNI
             
             JNI.CheckExceptionAndThrow();
 #if DEBUG
-            FusionLogger.Log($"Successfully loaded DEX file: {dexPath}");
+            EpicModule.Logger.Log($"Successfully loaded DEX file: {dexPath}");
 #endif
             return true;
         }
