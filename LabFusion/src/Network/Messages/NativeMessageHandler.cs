@@ -166,57 +166,9 @@ public abstract class NativeMessageHandler : MessageHandler
             return;
         }
 
-        var route = received.Route;
-        var type = route.Type;
-        var channel = route.Channel;
-
-        switch (type)
+        if (TryRelayAsServer(received))
         {
-            case RelayType.ToServer:
-                if (!received.IsServerHandled)
-                {
-                    throw new MessageExpectedServerException();
-                }
-                break;
-            case RelayType.ToClients:
-                if (received.IsServerHandled)
-                {
-                    using var message = NetMessage.CreateNative(Tag, received);
-
-                    ServerManager.SendToClients(message, channel);
-                    return;
-                }
-                break;
-            case RelayType.ToOtherClients:
-                if (received.IsServerHandled)
-                {
-                    using var message = NetMessage.CreateNative(Tag, received);
-
-                    ServerManager.SendToClientsExcept(message, channel, PlayerIDManager.GetPlayerID(received.SenderSmallID.Value).PlatformID);
-                    return;
-                }
-                break;
-            case RelayType.ToTarget:
-                if (received.IsServerHandled)
-                {
-                    using var message = NetMessage.CreateNative(Tag, received);
-
-                    ServerManager.SendToClient(message, channel, PlayerIDManager.GetPlayerID(route.Target.Value).PlatformID);
-                    return;
-                }
-                break;
-            case RelayType.ToTargets:
-                if (received.IsServerHandled)
-                {
-                    using var message = NetMessage.CreateNative(Tag, received);
-
-                    foreach (var target in route.Targets)
-                    {
-                        ServerManager.SendToClient(message, channel, PlayerIDManager.GetPlayerID(target).PlatformID);
-                    }
-                    return;
-                }
-                break;
+            return;
         }
 
         OnHandleMessage(received);
@@ -225,4 +177,53 @@ public abstract class NativeMessageHandler : MessageHandler
     protected virtual string GetDescriptor(byte[] bytes) => $"Native Tag {Tag}";
 
     public static readonly NativeMessageHandler[] Handlers = new NativeMessageHandler[byte.MaxValue];
+
+    private bool TryRelayAsServer(ReceivedMessage received)
+    {
+        var route = received.Route;
+        var type = route.Type;
+        var channel = route.Channel;
+
+        switch (type)
+        {
+            default:
+                if (!received.IsServerHandled)
+                {
+                    return false;
+                }
+                break;
+            case RelayType.None:
+                return false;
+            case RelayType.ToServer:
+                if (!received.IsServerHandled)
+                {
+                    throw new MessageExpectedServerException();
+                }
+                return false;
+        }
+
+        using var message = NetMessage.CreateNative(Tag, received);
+
+        switch (type)
+        {
+            case RelayType.ToClients:
+                ServerManager.SendToClients(message, channel);
+                break;
+            case RelayType.ToOtherClients:
+                ServerManager.SendToClientsExcept(message, channel, received.SenderPlatformID.Value);
+                break;
+            case RelayType.ToTarget:
+                ServerManager.SendToClient(message, channel, PlayerIDManager.GetPlayerID(route.Target.Value).PlatformID);
+                break;
+            case RelayType.ToTargets:
+                // TODO: Switch to SendToClients with PlatformID span
+                foreach (var target in route.Targets)
+                {
+                    ServerManager.SendToClient(message, channel, PlayerIDManager.GetPlayerID(target).PlatformID);
+                }
+                break;
+        }
+
+        return true;
+    }
 }
