@@ -57,7 +57,7 @@ public abstract class SteamNetworkLayer : NetworkLayer
     private ServerID _connectedServerID = ServerID.Empty;
 
     private Matchmaker _matchmaker = null;
-    private NetworkLobby _currentLobby;
+    private SteamLobby _currentLobby;
 
     public override bool CheckSupported()
     {
@@ -314,7 +314,9 @@ public abstract class SteamNetworkLayer : NetworkLayer
         }
 
         _localLobby = lobbyTask.Value;
+
         _currentLobby = new SteamLobby(_localLobby);
+        _currentLobby.SetServerID(ClientSteamID);
     }
 
     private void HookEvents()
