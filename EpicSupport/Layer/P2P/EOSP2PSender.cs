@@ -23,7 +23,7 @@ internal class EOSP2PSender
         Send(message, channel, remoteUserId, false);
     }
     
-    internal void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
+    internal void SendToClients(NetMessage message, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clientPlatformIDs)
     {
         if (clientPlatformIDs.Length == 0)
         {

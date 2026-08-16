@@ -54,7 +54,7 @@ public class EpicGamesNetworkLayer : NetworkLayer
         Runtime.P2P.Sender.SendToClient(message, channel, clientPlatformID);
     }
 
-    public override void SendToClients(NetMessage message, NetworkChannel channel, Span<ClientPlatformID> clientPlatformIDs)
+    public override void SendToClients(NetMessage message, NetworkChannel channel, ReadOnlySpan<ClientPlatformID> clientPlatformIDs)
     {
         if (!IsServerRunning)
         {
