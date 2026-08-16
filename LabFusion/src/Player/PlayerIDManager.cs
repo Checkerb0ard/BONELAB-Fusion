@@ -142,14 +142,14 @@ public static class PlayerIDManager
 
         UnreserveSmallID(smallID);
 
-        playerID.OnUnregister();
-
         PlayerUnregistered?.InvokeSafe(playerID, "invoking PlayerUnregistered event");
 
         if (isLeaving)
         {
             PlayerLeft?.InvokeSafe(playerID, "invoking PlayerLeft event");
         }
+
+        playerID.OnUnregister();
 
         if (playerID == LocalID)
         {
