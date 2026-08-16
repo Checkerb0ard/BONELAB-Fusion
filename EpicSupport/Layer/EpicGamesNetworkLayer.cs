@@ -5,9 +5,6 @@ using MarrowFusion.Epic.Utilities;
 
 namespace MarrowFusion.Epic;
 
-// TODO:
-// Fix disconnecting when host logs out of layer
-
 public class EpicGamesNetworkLayer : NetworkLayer
 {
     public override string Title => "Epic Online Services";

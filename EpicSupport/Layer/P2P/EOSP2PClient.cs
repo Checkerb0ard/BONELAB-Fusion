@@ -45,6 +45,14 @@ internal class EOSP2PClient
         };
 
         P2P.P2PInterface.CloseConnection(ref closeOptions);
+        
+        IsConnecting = false;
+        IsConnected = false;
+        ConnectedUserId = null;
+        
+        UnsubscribeNotifications();
+        
+        P2P.Fragmenter.ClearAll();
     }
 
     private void SubscribeNotifications()
@@ -75,15 +83,7 @@ internal class EOSP2PClient
             if (info.RemoteUserId != ConnectedUserId)
                 return;
             
-            IsConnecting = false;
-            IsConnected = false;
-            ConnectedUserId = null;
-            
             NetworkManager.DisconnectClientAndServer();
-            
-            P2P.Fragmenter.ClearAll();
-            
-            UnsubscribeNotifications();
         });
     }
 
