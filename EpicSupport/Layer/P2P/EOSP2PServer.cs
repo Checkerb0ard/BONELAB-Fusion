@@ -15,9 +15,9 @@ internal class EOSP2PServer
     private ulong ConnectionEstablishedId = Common.INVALID_NOTIFICATIONID;
     private ulong ConnectionClosedId = Common.INVALID_NOTIFICATIONID;
     
-    internal EOSP2PServer(EOSP2P P2P)
+    internal EOSP2PServer(EOSP2P p2p)
     {
-        this.P2P = P2P;
+        P2P = p2p;
     }
 
     internal void Start()

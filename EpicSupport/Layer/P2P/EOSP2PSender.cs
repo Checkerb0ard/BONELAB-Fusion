@@ -11,9 +11,9 @@ internal class EOSP2PSender
     
     private readonly Dictionary<ClientPlatformID, ProductUserId> productUserIdCache = new();
     
-    internal EOSP2PSender(EOSP2P P2P)
+    internal EOSP2PSender(EOSP2P p2p)
     {
-        this.P2P = P2P;
+        P2P = p2p;
     }
     
     internal void SendToClient(NetMessage message, NetworkChannel channel, ClientPlatformID clientPlatformID)

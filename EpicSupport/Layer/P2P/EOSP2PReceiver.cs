@@ -11,9 +11,9 @@ internal class EOSP2PReceiver
     
     private readonly Dictionary<ProductUserId, ClientPlatformID> platformIdCache = new();
 
-    internal EOSP2PReceiver(EOSP2P P2P)
+    internal EOSP2PReceiver(EOSP2P p2p)
     {
-        this.P2P = P2P;
+        P2P = p2p;
     }
 
     internal void Tick()
