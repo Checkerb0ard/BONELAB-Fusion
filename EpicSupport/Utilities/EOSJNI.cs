@@ -1,286 +1,158 @@
-﻿using LabFusion.Data;
-using JNISharp.NativeInterface;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using JNISharp.NativeInterface;
+using LabFusion.Data;
 
 namespace MarrowFusion.Epic.Utilities;
 
 internal static class EOSJNI
 {
-    private static readonly BindingFlags _allBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.GetField | BindingFlags.SetField | BindingFlags.GetProperty | BindingFlags.SetProperty;
-    
-    private static IntPtr _javaVM = IntPtr.Zero;
+    private static readonly BindingFlags allBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.GetField | BindingFlags.SetField | BindingFlags.GetProperty | BindingFlags.SetProperty;
 
-    private static JClass _eosSdkClass;
-    private static JClass _unityPlayerClass;
+    private static IntPtr javaVM;
 
-    private const string EOS_LIBRARY_PATH = "/data/data/com.StressLevelZero.BONELAB/libEOSSDK.so";
+    private static JClass eosSdkClass;
+    private static JClass unityPlayerClass;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int JNI_OnLoadDelegate(IntPtr javaVM, IntPtr reserved);
 
     internal static void Initialize()
     {
-        if (IsInitialized())
-            return;
-        
-        if (!ExtractDexFiles())
-            return;
-        
-        if (!InjectDex(PersistentData.GetPath("classes.dex")))
+        if (javaVM != IntPtr.Zero)
             return;
 
-        if (!InjectDex(PersistentData.GetPath("classes2.dex")))
-            return;
-        
-        if (!InjectDex(PersistentData.GetPath("classes3.dex")))
-            return;
-        
-        if (!InjectDex(PersistentData.GetPath("classes4.dex")))
-            return;
-        
-        if (!InjectDex(PersistentData.GetPath("classes5.dex")))
-            return;
-        
-        if (!ValidatePatch())
-            return;
+        ExtractDexFiles();
 
-        if (!LoadJNI())
-            return;
-
-        if (!InitializeEOS())
-            return;
-    }
-
-    private static bool IsInitialized()
-    {
-        return _javaVM != IntPtr.Zero;
-    }
-    
-    private static bool ValidatePatch()
-    {
-        _eosSdkClass = JNI.FindClass("com/epicgames/mobile/eossdk/EOSSDK");
-
-        if (_eosSdkClass.Valid())
-            return true;
-
-        EpicModule.Logger.Error("EOSSDK class not found!");
-        EpicModule.Logger.Error("Did dex injection succeed?");
-        return false;
-    }
-    
-    private static bool LoadJNI()
-    {
-        if (!ResolveJavaVM())
-            return false;
-
-        if (!InvokeNativeJNIOnLoad())
-            return false;
-        
-        if (!LoadEOSNativeLibrary())
-            return false;
-
-        return true;
-    }
-
-    private static bool ResolveJavaVM()
-    {
-        var jniType = Type.GetType("JNISharp.NativeInterface.JNI, JNISharp");
-        if (jniType == null)
+        foreach (string dexFile in Directory.GetFiles(PersistentData.GetPath(""), "*.dex", SearchOption.TopDirectoryOnly))
         {
-            EpicModule.Logger.Error("JNISharp.NativeInterface.JNI type not found!");
-            return false;
+            InjectDex(dexFile);
         }
 
-        var lastVmPtrField = jniType.GetField("lastVmPtr", _allBindingFlags);
-        if (lastVmPtrField == null)
-        {
-            EpicModule.Logger.Error("JNISharp lastVmPtr field not found!");
-            return false;
-        }
+        eosSdkClass = JNI.FindClass("com/epicgames/mobile/eossdk/EOSSDK");
 
-        _javaVM = (IntPtr)lastVmPtrField.GetValue(null);
-        if (_javaVM == IntPtr.Zero)
-        {
-            EpicModule.Logger.Error("Failed to retrieve JavaVM pointer from JNISharp!");
-            return false;
-        }
-
-        return true;
+        LoadJNI();
+        InitializeEOS();
     }
 
-    private static bool InvokeNativeJNIOnLoad()
+    private static void LoadJNI()
+    {
+        ResolveJavaVM();
+        InvokeNativeJNIOnLoad();
+        LoadEOSNativeLibrary();
+    }
+
+    private static void ResolveJavaVM()
+    {
+        Type jniType = Type.GetType("JNISharp.NativeInterface.JNI, JNISharp");
+
+        FieldInfo lastVmPtrField = jniType.GetField("lastVmPtr", allBindingFlags);
+
+        javaVM = (IntPtr)lastVmPtrField.GetValue(null);
+    }
+
+    private static void InvokeNativeJNIOnLoad()
     {
         IntPtr onLoadPtr = MelonLoader.NativeLibrary.GetExport(EOSSDKLoader.LibraryPtr, "JNI_OnLoad");
 
-        if (onLoadPtr == IntPtr.Zero)
-        {
-            EpicModule.Logger.Error("JNI_OnLoad export not found in EOS SDK!");
-            return false;
-        }
-
         var onLoad = Marshal.GetDelegateForFunctionPointer<JNI_OnLoadDelegate>(onLoadPtr);
-        int result = onLoad(_javaVM, IntPtr.Zero);
 
-#if DEBUG
-        // JNI 1.6 = 0x00010006
-        EpicModule.Logger.Log($"JNI_OnLoad returned: 0x{result:X}");
-#endif
-
-        return true;
+        int result = onLoad(javaVM, IntPtr.Zero);
     }
 
-    private static bool LoadEOSNativeLibrary()
+    private static void LoadEOSNativeLibrary()
     {
+        unityPlayerClass = JNI.FindClass("com/unity3d/player/UnityPlayer");
+
+        JFieldID activityField = JNI.GetStaticFieldID(unityPlayerClass, "currentActivity", "Landroid/app/Activity;");
+
+        JObject activity = JNI.GetStaticObjectField<JObject>(unityPlayerClass, activityField);
+
+        JClass contextClass = JNI.FindClass("android/content/Context");
+
+        JMethodID getPackageNameMethod = JNI.GetMethodID(contextClass, "getPackageName", "()Ljava/lang/String;");
+
+        JString packageNameObject = JNI.CallObjectMethod<JString>(activity, getPackageNameMethod);
+        
+        string libraryPath = $"/data/data/{packageNameObject.GetString()}/libEOSSDK.so";
+
         JClass systemClass = JNI.FindClass("java/lang/System");
+
         JMethodID loadMethod = JNI.GetStaticMethodID(systemClass, "load", "(Ljava/lang/String;)V");
 
-        JObject libPath = JNI.NewString(EOS_LIBRARY_PATH);
-
-        JNI.CallStaticVoidMethod(systemClass, loadMethod, libPath);
-
-        if (!JNI.ExceptionCheck())
-            return true;
-
-        JNI.ExceptionDescribe();
-        EpicModule.Logger.Error("Failed to load libEOSSDK.so via System.load!");
-        return false;
-    }
-    
-    private static bool InitializeEOS()
-    {
-        _unityPlayerClass = JNI.FindClass("com/unity3d/player/UnityPlayer");
-
-        JFieldID activityField = JNI.GetStaticFieldID(_unityPlayerClass, "currentActivity", "Landroid/app/Activity;");
-        JObject activity = JNI.GetStaticObjectField<JObject>(_unityPlayerClass, activityField);
-        if (!activity.Valid())
-        {
-            EpicModule.Logger.Error("Failed to retrieve UnityPlayer.currentActivity!");
-            return false;
-        }
-
-        JMethodID initMethod = _eosSdkClass.GetStaticMethodID("init", "(Landroid/app/Activity;)V");
-        JNI.CallStaticVoidMethod(_eosSdkClass, initMethod, activity);
-
-        if (!JNI.ExceptionCheck())
-            return true;
-
-        JNI.ExceptionDescribe();
-        EpicModule.Logger.Error("EOS SDK initialization failed!");
-        return false;
+        JNI.CallStaticVoidMethod(systemClass, loadMethod, JNI.NewString(libraryPath));
     }
 
-    private static bool ExtractDexFiles()
+    private static void InitializeEOS()
     {
-        const string classesResourcePath = "EpicSupport.dependencies.resources.dex.classes.dex";
-        const string classes2ResourcePath = "EpicSupport.dependencies.resources.dex.classes2.dex";
-        const string classes3ResourcePath = "EpicSupport.dependencies.resources.dex.classes3.dex";
-        const string classes4ResourcePath = "EpicSupport.dependencies.resources.dex.classes4.dex";
-        const string classes5ResourcePath = "EpicSupport.dependencies.resources.dex.classes5.dex";
-        
-        string classesPath = PersistentData.GetPath("classes.dex");
-        string classes2Path = PersistentData.GetPath("classes2.dex");
-        string classes3Path = PersistentData.GetPath("classes3.dex");
-        string classes4Path = PersistentData.GetPath("classes4.dex");
-        string classes5Path = PersistentData.GetPath("classes5.dex");
-        
-        File.WriteAllBytes(classesPath, EmbeddedResource.LoadBytesFromAssembly(EpicModule.ModuleAssembly, classesResourcePath));
-        File.WriteAllBytes(classes2Path, EmbeddedResource.LoadBytesFromAssembly(EpicModule.ModuleAssembly, classes2ResourcePath));
-        File.WriteAllBytes(classes3Path, EmbeddedResource.LoadBytesFromAssembly(EpicModule.ModuleAssembly, classes3ResourcePath));
-        File.WriteAllBytes(classes4Path, EmbeddedResource.LoadBytesFromAssembly(EpicModule.ModuleAssembly, classes4ResourcePath));
-        File.WriteAllBytes(classes5Path, EmbeddedResource.LoadBytesFromAssembly(EpicModule.ModuleAssembly, classes5ResourcePath));
-        
-        if (!File.Exists(classesPath) || !File.Exists(classes2Path) || !File.Exists(classes3Path) || !File.Exists(classes4Path) || !File.Exists(classes5Path))
-        {
-            EpicModule.Logger.Error("Failed to extract dex files!");
-            return false;
-        }
+        JFieldID activityField = JNI.GetStaticFieldID(unityPlayerClass, "currentActivity", "Landroid/app/Activity;");
 
-#if DEBUG
-        EpicModule.Logger.Log("Extracted dex files!");
-#endif
-        
-        return true;
+        JObject activity = JNI.GetStaticObjectField<JObject>(unityPlayerClass, activityField);
+
+        JMethodID initMethod = eosSdkClass.GetStaticMethodID("init", "(Landroid/app/Activity;)V");
+
+        JNI.CallStaticVoidMethod(eosSdkClass, initMethod, activity);
     }
-    
-    private static bool InjectDex(string dexPath)
+
+    private static void ExtractDexFiles()
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(dexPath))
-            {
-                EpicModule.Logger.Log("DEX path is null or empty");
-                return false;
-            }
+        const string resourcePrefix = "EpicSupport.dependencies.resources.dex.";
 
-            if (!File.Exists(dexPath))
-            {
-                EpicModule.Logger.Log($"DEX file not found: {dexPath}");
-                return false;
-            }
+        Assembly assembly = EpicModule.ModuleAssembly;
 
-            var extension = Path.GetExtension(dexPath).ToLowerInvariant();
-            if (extension != ".dex")
-            {
-                EpicModule.Logger.Log($"Invalid file extension: {extension}. Expected .dex");
-                return false;
-            }
-            
-            var threadClass = JNI.FindClass("java/lang/Thread");
-            var currentThreadMethod = threadClass.GetStaticMethodID("currentThread", "()Ljava/lang/Thread;");
-            var currentThread = JNI.CallStaticObjectMethod<JObject>(threadClass, currentThreadMethod);
-            
-            var getContextClassLoaderMethod = threadClass.GetMethodID("getContextClassLoader", "()Ljava/lang/ClassLoader;");
-            var classLoader = JNI.CallObjectMethod<JObject>(currentThread, getContextClassLoaderMethod);      
-            
-            var fileClass = JNI.FindClass("java/io/File");
-            var fileConstructor = fileClass.GetMethodID("<init>", "(Ljava/lang/String;)V");
-            var dexPathStr = JNI.NewString(dexPath);
-            
-            var dexFile = JNI.NewObject<JObject>(fileClass, fileConstructor, new JValue(dexPathStr));
-            if (!dexFile.Valid())
-            {
-                EpicModule.Logger.Log("Failed to create File object for DEX path");
-                return false;
-            }
-            
-            var baseDexClassLoaderClass = JNI.FindClass("dalvik/system/BaseDexClassLoader");
-            var pathListField = baseDexClassLoaderClass.GetFieldID("pathList", "Ldalvik/system/DexPathList;");
-            var pathList = JNI.GetObjectField<JObject>(classLoader, pathListField);
-            var dexPathListClass = JNI.FindClass("dalvik/system/DexPathList");
-            var addDexPathMethod = dexPathListClass.GetMethodID("addDexPath", "(Ljava/lang/String;Ljava/io/File;)V");
-            
-            JNI.CallVoidMethod(pathList, addDexPathMethod, new JValue(dexPathStr), new JValue(dexFile));
-            
-            JNI.CheckExceptionAndThrow();
-#if DEBUG
-            EpicModule.Logger.Log($"Successfully loaded DEX file: {dexPath}");
-#endif
-            return true;
-        }
-        catch (JThrowableException jex)
+        string[] resources = assembly.GetManifestResourceNames().Where(x =>
+        x.StartsWith(
+            resourcePrefix,
+            StringComparison.OrdinalIgnoreCase) &&
+        x.EndsWith(
+            ".dex",
+            StringComparison.OrdinalIgnoreCase))
+        .ToArray();
+
+        foreach (string resource in resources)
         {
-            EpicModule.Logger.Error($"Java exception while loading DEX file: {jex.Throwable}");
-            try
-            {
-                string message = jex.Throwable.GetMessage();
-                EpicModule.Logger.Error($"Exception message: {message}");
-            }
-            catch
-            {
-                EpicModule.Logger.Error("Could not retrieve exception message");
-            }
-            return false;
+            string fileName = resource[resourcePrefix.Length..];
+
+            string outputPath = PersistentData.GetPath(fileName);
+
+            byte[] bytes = EmbeddedResource.LoadBytesFromAssembly(assembly, resource);
+
+            File.WriteAllBytes(outputPath, bytes);
         }
-        catch (JNIResultException jniEx)
-        {
-            EpicModule.Logger.Error($"JNI error while loading DEX file: {jniEx.Result}");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            EpicModule.Logger.LogException("loading DEX file", ex);
-            return false;
-        }
+    }
+
+    private static void InjectDex(string dexPath)
+    {
+        JClass threadClass = JNI.FindClass("java/lang/Thread");
+
+        JMethodID currentThreadMethod = threadClass.GetStaticMethodID("currentThread", "()Ljava/lang/Thread;");
+
+        JObject currentThread = JNI.CallStaticObjectMethod<JObject>(threadClass, currentThreadMethod);
+
+        JMethodID getContextClassLoaderMethod = threadClass.GetMethodID("getContextClassLoader", "()Ljava/lang/ClassLoader;");
+
+        JObject classLoader = JNI.CallObjectMethod<JObject>(currentThread, getContextClassLoaderMethod);
+
+        JClass fileClass = JNI.FindClass("java/io/File");
+
+        JMethodID fileConstructor = fileClass.GetMethodID("<init>", "(Ljava/lang/String;)V");
+
+        JObject dexPathString = JNI.NewString(dexPath);
+
+        JObject dexFile = JNI.NewObject<JObject>(fileClass, fileConstructor, new JValue(dexPathString));
+
+        JClass baseDexClassLoaderClass = JNI.FindClass("dalvik/system/BaseDexClassLoader");
+
+        JFieldID pathListField = baseDexClassLoaderClass.GetFieldID("pathList", "Ldalvik/system/DexPathList;");
+
+        JObject pathList = JNI.GetObjectField<JObject>(classLoader, pathListField);
+
+        JClass dexPathListClass = JNI.FindClass("dalvik/system/DexPathList");
+
+        JMethodID addDexPathMethod = dexPathListClass.GetMethodID("addDexPath", "(Ljava/lang/String;Ljava/io/File;)V");
+
+        JNI.CallVoidMethod(pathList, addDexPathMethod, new JValue(dexPathString), new JValue(dexFile));
+
+        JNI.CheckExceptionAndThrow();
     }
 }

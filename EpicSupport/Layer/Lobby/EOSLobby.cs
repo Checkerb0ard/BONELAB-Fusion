@@ -100,6 +100,12 @@ internal class EOSLobby : EOSInterface
             
         LobbyInterface.DestroyLobby(ref destroyOptions, null, (ref DestroyLobbyCallbackInfo info) =>
         {
+            if (info.ResultCode == Result.AlreadyPending)
+            {
+                EpicModule.Logger.Warn("Lobby destruction already pending, waiting for completion...");
+                return;
+            }
+            
             if (info.ResultCode != Result.Success && info.ResultCode != Result.NotFound)
             {
                 EpicModule.Logger.Error($"Failed to destroy lobby: {info.ResultCode}");
