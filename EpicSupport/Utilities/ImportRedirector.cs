@@ -5,7 +5,7 @@ namespace MarrowFusion.Epic.Utilities;
 
 internal static class ImportRedirector
 {
-    private static readonly Dictionary<string, string> _redirects = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> redirects = new(StringComparer.OrdinalIgnoreCase);
     
     internal static void SetImportResolver()
     {
@@ -14,12 +14,12 @@ internal static class ImportRedirector
 
     internal static void Redirect(string originalImport, string newImport)
     {
-        _redirects[originalImport] = newImport;
+        redirects[originalImport] = newImport;
     }
 
     private static IntPtr ResolveImport(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        if (!_redirects.TryGetValue(libraryName, out string newImport))
+        if (!redirects.TryGetValue(libraryName, out string newImport))
             return IntPtr.Zero;
 
         try
