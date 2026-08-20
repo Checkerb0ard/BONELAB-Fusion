@@ -2,6 +2,9 @@
 
 namespace LabFusion.Network.Serialization;
 
+/// <summary>
+/// Additional implementations for serializing data using an INetSerializer.
+/// </summary>
 public static class NetSerializerExtensions
 {
     /// <summary>
