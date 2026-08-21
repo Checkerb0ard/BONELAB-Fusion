@@ -2,11 +2,19 @@
 
 namespace LabFusion.Network.Serialization;
 
+/// <summary>
+/// Additional implementations for serializing data using an INetSerializer.
+/// </summary>
 public static class NetSerializerExtensions
 {
+    /// <summary>
+    /// Serializes an object by its json representation.
+    /// </summary>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValueByJson(this INetSerializer serializer, ref object value)
     {
-        if (!SerializeNullable(serializer, ref value))
+        if (!SerializeHasValue(serializer, ref value))
         {
             return;
         }
@@ -16,58 +24,19 @@ public static class NetSerializerExtensions
         SerializeJson(serializer, ref value, type);
     }
 
-    private static Type SerializeType(INetSerializer serializer, ref object value)
-    {
-        string typeName = null;
-
-        if (!serializer.IsReader)
-        {
-            typeName = value.GetType().AssemblyQualifiedName;
-        }
-
-        serializer.SerializeValue(ref typeName);
-
-        var type = Type.GetType(typeName);
-
-        return type;
-    }
-
-    private static bool SerializeNullable(INetSerializer serializer, ref object value)
-    {
-        bool hasValue = value != null;
-
-        serializer.SerializeValue(ref hasValue);
-
-        if (!hasValue)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static void SerializeJson(INetSerializer serializer, ref object value, Type type)
-    {
-        var options = new JsonSerializerOptions()
-        {
-            IncludeFields = true,
-            IgnoreReadOnlyFields = true,
-            IgnoreReadOnlyProperties = true,
-        };
-
-        var json = JsonSerializer.SerializeToUtf8Bytes(value, options);
-
-        serializer.SerializeValue(ref json);
-
-        if (serializer.IsReader)
-        {
-            value = JsonSerializer.Deserialize(json, type, options);
-        }
-    }
-
+    /// <summary>
+    /// Serializes an object. 
+    /// <para>For built in data-types, this will use a custom serialization implementation. 
+    /// For INetSerializables, it will use their serialization implementation.
+    /// For other objects, it will attempt to serialize the object as json.</para>
+    /// <para>Note that this is inefficient and should only be used when generically serializing an object that you do not know the type of.</para>
+    /// </summary>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
+    /// <exception cref="NotSupportedException"></exception>
     public static void SerializeValue(this INetSerializer serializer, ref object value)
     {
-        if (!SerializeNullable(serializer, ref value))
+        if (!SerializeHasValue(serializer, ref value))
         { 
             return; 
         }
@@ -179,6 +148,12 @@ public static class NetSerializerExtensions
         }
     }
 
+    /// <summary>
+    /// Serializes a <typeparamref name="TSerializable"/>.
+    /// </summary>
+    /// <typeparam name="TSerializable"></typeparam>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValue<TSerializable>(this INetSerializer serializer, ref TSerializable value) where TSerializable : INetSerializable, new()
     {
         if (serializer.IsReader)
@@ -189,6 +164,12 @@ public static class NetSerializerExtensions
         value.Serialize(serializer);
     }
 
+    /// <summary>
+    /// Serializes a nullable <typeparamref name="TSerializable"/>.
+    /// </summary>
+    /// <typeparam name="TSerializable"></typeparam>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValue<TSerializable>(this INetSerializer serializer, ref TSerializable? value) where TSerializable : struct, INetSerializable
     {
         bool hasValue = value.HasValue;
@@ -200,14 +181,21 @@ public static class NetSerializerExtensions
             return;
         }
 
-        if (serializer.IsReader)
-        {
-            value = new();
-        }
+        // Serializing value.Value directly will only serialize to a copy, since its a struct
+        // So we must serialize to a local value first then copy it to the reference
+        TSerializable result = serializer.IsReader ? new() : value.Value;
 
-        value.Value.Serialize(serializer);
+        result.Serialize(serializer);
+
+        value = result;
     }
 
+    /// <summary>
+    /// Serializes an array segment of <typeparamref name="TSerializable"/>.
+    /// </summary>
+    /// <typeparam name="TSerializable"></typeparam>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValue<TSerializable>(this INetSerializer serializer, ref ArraySegment<TSerializable> value) where TSerializable : INetSerializable, new()
     {
         int count = 0;
@@ -234,6 +222,12 @@ public static class NetSerializerExtensions
         }
     }
 
+    /// <summary>
+    /// Serializes an INetSerializable given its type.
+    /// </summary>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
+    /// <param name="type"></param>
     public static void SerializeValue(this INetSerializer serializer, ref INetSerializable value, Type type)
     {
         if (serializer.IsReader)
@@ -244,6 +238,11 @@ public static class NetSerializerExtensions
         value.Serialize(serializer);
     }
 
+    /// <summary>
+    /// Serializes the major, minor, and build values of a version.
+    /// </summary>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValue(this INetSerializer serializer, ref Version value)
     {
         int major = 0, minor = 0, build = 0;
@@ -265,6 +264,11 @@ public static class NetSerializerExtensions
         }
     }
 
+    /// <summary>
+    /// Serializes a dictionary with string keys and string values.
+    /// </summary>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValue(this INetSerializer serializer, ref Dictionary<string, string> value)
     {
         int length = 0;
@@ -304,6 +308,11 @@ public static class NetSerializerExtensions
         }
     }
 
+    /// <summary>
+    /// Serializes a list of strings.
+    /// </summary>
+    /// <param name="serializer"></param>
+    /// <param name="value"></param>
     public static void SerializeValue(this INetSerializer serializer, ref List<string> value)
     {
         int length = 0;
@@ -358,5 +367,54 @@ public static class NetSerializerExtensions
         size += value.Value.GetSize();
 
         return size;
+    }
+
+    private static Type SerializeType(INetSerializer serializer, ref object value)
+    {
+        string typeName = null;
+
+        if (!serializer.IsReader)
+        {
+            typeName = value.GetType().AssemblyQualifiedName;
+        }
+
+        serializer.SerializeValue(ref typeName);
+
+        var type = Type.GetType(typeName);
+
+        return type;
+    }
+
+    private static bool SerializeHasValue(INetSerializer serializer, ref object value)
+    {
+        bool hasValue = value != null;
+
+        serializer.SerializeValue(ref hasValue);
+
+        if (!hasValue)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void SerializeJson(INetSerializer serializer, ref object value, Type type)
+    {
+        var options = new JsonSerializerOptions()
+        {
+            IncludeFields = true,
+            IgnoreReadOnlyFields = true,
+            IgnoreReadOnlyProperties = true,
+        };
+
+        var json = JsonSerializer.SerializeToUtf8Bytes(value, options);
+
+        serializer.SerializeValue(ref json);
+
+        if (serializer.IsReader)
+        {
+            value = JsonSerializer.Deserialize(json, type, options);
+        }
     }
 }
