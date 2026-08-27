@@ -55,7 +55,7 @@ internal class EpicMatchmaker : Matchmaker
             });
         });
 
-        using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+        await using (cancellationToken.Register(() => tcs.TrySetCanceled()))
         {
             var findResult = await tcs.Task;
 
